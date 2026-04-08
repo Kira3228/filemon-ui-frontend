@@ -1,0 +1,66 @@
+{
+  "name": "common-components",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "core-js": "^3.6.5",
+    "vue": "2.7.16",
+    "vue-class-component": "^7.2.3",
+    "vue-property-decorator": "^9.1.2",
+    "vue-router": "^3.6.5",
+    "vuex": "^3.4.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
+    "@vue/cli-plugin-babel": "~4.5.19",
+    "@vue/cli-plugin-router": "~4.5.19",
+    "@vue/cli-plugin-typescript": "~4.5.19",
+    "@vue/cli-plugin-vuex": "~4.5.19",
+    "@vue/cli-service": "~4.5.19",
+    "autoprefixer": "^9.8.8",
+    "eslint": "^9.38.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-vue": "^10.5.1",
+    "postcss": "^8.5.6",
+    "sass": "~1.32.0",
+    "sass-loader": "^10.0.0",
+    "tailwindcss": "^1.9.6",
+    "typescript": "~4.1.5",
+    "vue-template-compiler": "^2.6.11"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended",
+      "@vue/typescript/recommended"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2020
+    },
+    "globals": {
+      "defineProps": "readonly",
+      "defineEmits": "readonly",
+      "withDefaults": "readonly",
+      "defineExpose": "readonly",
+      "defineOptions": "readonly",
+      "defineSlots": "readonly",
+      "defineModel": "readonly"
+    },
+    "rules": {}
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

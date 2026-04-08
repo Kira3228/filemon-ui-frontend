@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --app-bg: #f4f7fb;
+    --app-surface: #ffffff;
+    --app-surface-muted: #eef3f8;
+    --app-text: #162033;
+    --app-text-muted: #5d6b82;
+    --app-border: #d9e2ef;
+}
+
+html.dark {
+    --app-bg: #0f1723;
+    --app-surface: #162133;
+    --app-surface-muted: #1d2b40;
+    --app-text: #edf3ff;
+    --app-text-muted: #a9b7ce;
+    --app-border: #2a3d59;
+    color-scheme: dark;
+}
+
+html,
+body {
+    font-family: 'Inter', 'Roboto', 'Segoe UI', Arial, sans-serif !important;
+}
+
+html,
+body,
+#app {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    background: var(--app-bg);
+    color: var(--app-text);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.p-component {
+    font-family: 'Inter', 'Roboto', 'Segoe UI', Arial, sans-serif;
+}
+
+.app-surface {
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+}
