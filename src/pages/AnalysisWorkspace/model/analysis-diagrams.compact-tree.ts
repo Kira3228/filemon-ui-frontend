@@ -18,13 +18,16 @@ export const reduceTransitiveCompactEdges = (
   edgeCounts: Map<string, number>,
   edgeProcessIds: Map<string, Set<number>>,
 ) => {
-  const edges = [...edgeCounts.keys()].map((key) => key.split("->").map((item) => Number(item)) as [number, number]);
+  const edges = [...edgeCounts.keys()].map((key) => {
+    const [from, to] = key.split("->").map((item) => Number(item));
+    return { from, to };
+  });
   if (edges.length < 3) {
     return { edgeCounts, edgeProcessIds };
   }
 
   const adjacency = new Map<number, Set<number>>();
-  for (const [from, to] of edges) {
+  for (const { from, to } of edges) {
     const next = adjacency.get(from) || new Set<number>();
     next.add(to);
     adjacency.set(from, next);
@@ -50,7 +53,7 @@ export const reduceTransitiveCompactEdges = (
   const reducedCounts = new Map<string, number>();
   const reducedProcesses = new Map<string, Set<number>>();
 
-  for (const [from, to] of edges) {
+  for (const { from, to } of edges) {
     const key = `${from}->${to}`;
     if (hasAltPath(from, to, key)) { continue; }
     reducedCounts.set(key, edgeCounts.get(key) || 0);

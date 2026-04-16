@@ -61,7 +61,7 @@ type SelectPrimitive = string | number | boolean | null | undefined;
 type SelectOption = Record<string, unknown> | SelectPrimitive;
 type SelectEventPayload<TValue> = TValue | { value: TValue };
 
-interface IProps<T extends SelectOption = SelectOption, H = unknown> {
+interface Props<T extends SelectOption = SelectOption, H = unknown> {
   label?: string;
   items?: T[];
   placeholder?: string;
@@ -75,7 +75,7 @@ interface IProps<T extends SelectOption = SelectOption, H = unknown> {
   clearable?: boolean;
 }
 
-const props = withDefaults(defineProps<IProps>(), {
+const props = withDefaults(defineProps<Props>(), {
   chips: false,
   customList: false,
   returnObject: false,

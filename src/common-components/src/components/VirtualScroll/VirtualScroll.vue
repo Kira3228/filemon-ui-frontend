@@ -42,7 +42,7 @@ import { computed } from "vue";
 import { DynamicScroller, DynamicScrollerItem } from "vue-virtual-scroller";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 
-interface IProps {
+interface Props {
   skeletonsQuantity?: number;
   isLoading?: boolean;
   skeletonHeight?: number;
@@ -50,7 +50,7 @@ interface IProps {
   error?: string | undefined;
 }
 
-const props = defineProps<IProps>();
+const props = defineProps<Props>();
 const emit = defineEmits<{
   (e: `load-more`): void;
 }>();

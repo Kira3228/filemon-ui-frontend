@@ -74,17 +74,30 @@
           </div>
         </template>
 
-        <template #item.name="{ item }">
-          <div class="analysis-source-cell" :title="`${item.name}\n${item.path}`">
+        <template #[`item.name`]="{ item }">
+          <div
+            class="analysis-source-cell"
+            :title="`${item.name}\n${item.path}`"
+          >
             <strong class="analysis-source-title">{{ item.name }}</strong>
             <span class="analysis-source-caption">{{ item.path || "—" }}</span>
           </div>
         </template>
-        <template #item.filesystem="{ item }">{{ item.filesystem || item.filesystemUuid || "—" }}</template>
-        <template #item.processes="{ item }">{{ item.stats?.processes ?? 0 }}</template>
-        <template #item.producedFiles="{ item }">{{ item.stats?.producedFiles ?? 0 }}</template>
-        <template #item.maxDepth="{ item }">{{ item.stats?.maxDepth ?? 0 }}</template>
-        <template #item.readOps="{ item }">{{ item.stats?.readOps ?? 0 }}</template>
+        <template #[`item.filesystem`]="{ item }">{{
+          item.filesystem || item.filesystemUuid || "—"
+        }}</template>
+        <template #[`item.processes`]="{ item }">{{
+          item.stats?.processes ?? 0
+        }}</template>
+        <template #[`item.producedFiles`]="{ item }">{{
+          item.stats?.producedFiles ?? 0
+        }}</template>
+        <template #[`item.maxDepth`]="{ item }">{{
+          item.stats?.maxDepth ?? 0
+        }}</template>
+        <template #[`item.readOps`]="{ item }">{{
+          item.stats?.readOps ?? 0
+        }}</template>
       </DataTable>
     </div>
   </section>
@@ -92,10 +105,8 @@
 
 <script lang="ts" setup>
 import { DataTable } from "@/common-components/src/components/DataTable";
-import { Header } from "@/common-components/src/components/DataTable";
 import { ref, watch } from "vue";
 import { useRouter } from "vue-router/composables";
-import type { AnalysisSourceItem } from "../../model/analysis-report.types";
 import { useAnalysisUiSettings } from "../../model/use-analysis-ui-settings";
 import { useAnalysisWorkspace } from "../../model/use-analysis-workspace";
 import AnalysisFileDetailsToggle from "../components/AnalysisFileDetailsToggle.vue";
@@ -121,20 +132,34 @@ watch(selectedSourceId, (value) => {
   }
 });
 
-watch(allSources, (items) => {
-  if (!highlightedSourceId.value) { return; }
-  const hasHighlightedSource = items.some((item) => item.fileId === highlightedSourceId.value);
-  if (!hasHighlightedSource) {
-    highlightedSourceId.value = selectedSourceId.value;
-  }
-}, { immediate: true });
+watch(
+  allSources,
+  (items) => {
+    if (!highlightedSourceId.value) {
+      return;
+    }
+    const hasHighlightedSource = items.some(
+      (item) => item.fileId === highlightedSourceId.value,
+    );
+    if (!hasHighlightedSource) {
+      highlightedSourceId.value = selectedSourceId.value;
+    }
+  },
+  { immediate: true },
+);
 
-const exportSourceLabel = (item: AnalysisSourceItem) => `${item.name || "—"} | ${item.path || "—"}`;
-const exportSourceFilesystem = (item: AnalysisSourceItem) => item.filesystemUuid || "—";
-const sortSourceProcesses = (item: AnalysisSourceItem) => item.stats?.processes ?? 0;
-const sortSourceProducedFiles = (item: AnalysisSourceItem) => item.stats?.producedFiles ?? 0;
-const sortSourceMaxDepth = (item: AnalysisSourceItem) => item.stats?.maxDepth ?? 0;
-const sortSourceReadOps = (item: AnalysisSourceItem) => item.stats?.readOps ?? 0;
+const exportSourceLabel = (item: AnalysisSourceItem) =>
+  `${item.name || "—"} | ${item.path || "—"}`;
+const exportSourceFilesystem = (item: AnalysisSourceItem) =>
+  item.filesystemUuid || "—";
+const sortSourceProcesses = (item: AnalysisSourceItem) =>
+  item.stats?.processes ?? 0;
+const sortSourceProducedFiles = (item: AnalysisSourceItem) =>
+  item.stats?.producedFiles ?? 0;
+const sortSourceMaxDepth = (item: AnalysisSourceItem) =>
+  item.stats?.maxDepth ?? 0;
+const sortSourceReadOps = (item: AnalysisSourceItem) =>
+  item.stats?.readOps ?? 0;
 
 const headers: Header[] = [
   {
@@ -217,12 +242,16 @@ const handleRowDblClick = (item: AnalysisSourceItem) => {
 };
 
 const assignHighlightedSource = () => {
-  if (!highlightedSourceId.value) { return; }
+  if (!highlightedSourceId.value) {
+    return;
+  }
   setSelectedSource(highlightedSourceId.value);
 };
 
 const handleSnapshotInput = (event: Event) => {
-  snapshotAt.value = !selectedSourceId.value ? "" : (event.target as HTMLInputElement)?.value || "";
+  snapshotAt.value = !selectedSourceId.value
+    ? ""
+    : (event.target as HTMLInputElement)?.value || "";
 };
 
 const clearSnapshot = () => {

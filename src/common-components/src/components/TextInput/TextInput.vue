@@ -51,14 +51,14 @@ import { computed } from "vue";
 import { useDebounce } from "../../lib/debounce";
 import { uid } from "../../lib/uid";
 
-interface IProps {
+interface Props {
   isSearch?: boolean;
   label?: string;
   placeholder?: string;
   value?: string | number;
   isTextarea?: boolean;
 }
-const props = withDefaults(defineProps<IProps>(), {
+const props = withDefaults(defineProps<Props>(), {
   isSearch: false,
   isTextarea: false,
 });

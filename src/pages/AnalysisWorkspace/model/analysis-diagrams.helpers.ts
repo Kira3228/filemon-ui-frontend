@@ -1,7 +1,6 @@
 import type {
   AnalysisDiagramProcessVersion,
   AnalysisFileItem,
-  AnalysisRenameHistoryItem,
   AnalysisReportResult,
   Nullable,
 } from "./analysis-report.types";

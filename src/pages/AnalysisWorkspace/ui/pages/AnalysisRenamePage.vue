@@ -2,7 +2,9 @@
   <section class="app-surface analysis-page-card">
     <header class="analysis-page-header">
       <span>История переименований и перемещений</span>
-      <span class="analysis-page-meta">{{ scopedRenameHistory.length }} записей</span>
+      <span class="analysis-page-meta"
+        >{{ scopedRenameHistory.length }} записей</span
+      >
     </header>
     <div
       v-if="scopedRenameHistory.length"
@@ -34,7 +36,8 @@
             :title="scopedFile?.path || `Файл #${scopedFileId}`"
           >
             <span class="analysis-route-filter-text">
-              <strong>Файл:</strong> {{ scopedFile?.name || `#${scopedFileId}` }}
+              <strong>Файл:</strong>
+              {{ scopedFile?.name || `#${scopedFileId}` }}
             </span>
             <button
               type="button"
@@ -46,11 +49,15 @@
             </button>
           </span>
         </template>
-        <template #item.createdAt="{ value }">{{ formatTs(value) }}</template>
-        <template #item.eventType="{ value }">
-          <span class="analysis-badge" :class="badgeClass(value)">{{ eventTypeLabel(value) }}</span>
+        <template #[`item.createdAt`]="{ value }">{{
+          formatTs(value)
+        }}</template>
+        <template #[`item.eventType`]="{ value }">
+          <span class="analysis-badge" :class="badgeClass(value)">{{
+            eventTypeLabel(value)
+          }}</span>
         </template>
-        <template #item.details="{ value }">
+        <template #[`item.details`]="{ value }">
           <span class="analysis-page-meta">{{ JSON.stringify(value) }}</span>
         </template>
       </DataTable>
@@ -63,33 +70,88 @@
 
 <script lang="ts" setup>
 import { DataTable } from "@/common-components/src/components/DataTable";
-import { Header } from "@/common-components/src/components/DataTable";
+import type { Header } from "@/common-components/src/components/DataTable";
 import { computed } from "vue";
 import { filterItemsByFileId } from "../../model/file-route-filter";
-import type { AnalysisRenameHistoryItem } from "../../model/analysis-report.types";
 import { useAnalysisUiSettings } from "../../model/use-analysis-ui-settings";
 import { useKeyboardTableSelection } from "../../model/use-keyboard-table-selection";
 import { useAnalysisWorkspace } from "../../model/use-analysis-workspace";
 import { useRouteFileScope } from "../../model/use-route-file-scope";
 import AnalysisFileDetailsToggle from "../components/AnalysisFileDetailsToggle.vue";
+import type { AnalysisRenameHistoryItem } from "../../model/analysis-report.types";
 
-const { badgeClass, eventTypeLabel, filteredRenameHistory, formatTs, setSelectedFile } = useAnalysisWorkspace();
+const {
+  badgeClass,
+  eventTypeLabel,
+  filteredRenameHistory,
+  formatTs,
+  setSelectedFile,
+} = useAnalysisWorkspace();
 const { fileDetailsVisible, setFileDetailsVisible } = useAnalysisUiSettings();
-const { router, scopedFile, scopedFileId, clearScopedFile } = useRouteFileScope();
+const { router, scopedFile, scopedFileId, clearScopedFile } =
+  useRouteFileScope();
 const scopedRenameHistory = computed(() =>
   filterItemsByFileId(filteredRenameHistory.value, scopedFileId.value),
 );
-const exportRenameCreatedAt = (item: AnalysisRenameHistoryItem) => formatTs(item.createdAt);
-const exportRenameEventType = (item: AnalysisRenameHistoryItem) => eventTypeLabel(item.eventType);
-const exportRenameDetails = (item: AnalysisRenameHistoryItem) => JSON.stringify(item.details);
+const exportRenameCreatedAt = (item: AnalysisRenameHistoryItem) =>
+  formatTs(item.createdAt);
+const exportRenameEventType = (item: AnalysisRenameHistoryItem) =>
+  eventTypeLabel(item.eventType);
+const exportRenameDetails = (item: AnalysisRenameHistoryItem) =>
+  JSON.stringify(item.details);
 
 const headers: Header[] = [
-  { text: "Время", value: "createdAt", align: "start", sortable: true, isVisible: true, width: 150, exportValue: exportRenameCreatedAt },
-  { text: "Тип", value: "eventType", align: "start", sortable: true, isVisible: true, width: 100, exportValue: exportRenameEventType },
-  { text: "Файл", value: "fileName", align: "start", sortable: true, isVisible: true, width: 120 },
-  { text: "Старый путь", value: "oldPath", align: "start", sortable: false, isVisible: true, width: 250 },
-  { text: "Новый путь", value: "newPath", align: "start", sortable: false, isVisible: true, width: 250 },
-  { text: "Детали (JSON)", value: "details", align: "start", sortable: false, isVisible: true, width: 240, exportValue: exportRenameDetails },
+  {
+    text: "Время",
+    value: "createdAt",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 150,
+    exportValue: exportRenameCreatedAt,
+  },
+  {
+    text: "Тип",
+    value: "eventType",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 100,
+    exportValue: exportRenameEventType,
+  },
+  {
+    text: "Файл",
+    value: "fileName",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 120,
+  },
+  {
+    text: "Старый путь",
+    value: "oldPath",
+    align: "start",
+    sortable: false,
+    isVisible: true,
+    width: 250,
+  },
+  {
+    text: "Новый путь",
+    value: "newPath",
+    align: "start",
+    sortable: false,
+    isVisible: true,
+    width: 250,
+  },
+  {
+    text: "Детали (JSON)",
+    value: "details",
+    align: "start",
+    sortable: false,
+    isVisible: true,
+    width: 240,
+    exportValue: exportRenameDetails,
+  },
 ];
 
 const openFile = (fileId: number) => {

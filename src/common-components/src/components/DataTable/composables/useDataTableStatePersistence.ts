@@ -118,7 +118,7 @@ export const useDataTableStatePersistence = ({
       })
       .sort((first, second) => (first as Header & { __order: number }).__order - (second as Header & { __order: number }).__order)
       .map((header) => {
-        const { __order, ...cleanHeader } = header as Header & { __order: number };
+        const { ...cleanHeader } = header as Header & { __order: number };
         return cleanHeader;
       });
   });

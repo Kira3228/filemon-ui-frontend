@@ -14,12 +14,12 @@
 import Paginator from "primevue/paginator";
 import { computed } from "vue";
 
-interface IProps {
+interface Props {
   length: number;
   value?: number | undefined;
   totalVisible: number;
 }
-const props = defineProps<IProps>();
+const props = defineProps<Props>();
 
 const emits = defineEmits<{
   (e: `input`, newPage: number): void;

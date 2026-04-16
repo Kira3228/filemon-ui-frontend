@@ -23,7 +23,8 @@
             <span
               class="material-icons layout-status-bar__state-icon"
               aria-hidden="true"
-            >{{ refreshStatusIcon }}</span>
+              >{{ refreshStatusIcon }}</span
+            >
             {{ refreshStatusLabel }}
           </button>
         </div>
@@ -39,7 +40,9 @@
             :class="`layout-status-metric--${stat.tone}`"
           >
             <span class="layout-status-metric__label">{{ stat.label }}</span>
-            <strong class="layout-status-metric__value">{{ stat.value }}</strong>
+            <strong class="layout-status-metric__value">{{
+              stat.value
+            }}</strong>
           </RouterLink>
           <span
             v-else
@@ -48,7 +51,9 @@
             :class="`layout-status-metric--${stat.tone}`"
           >
             <span class="layout-status-metric__label">{{ stat.label }}</span>
-            <strong class="layout-status-metric__value">{{ stat.value }}</strong>
+            <strong class="layout-status-metric__value">{{
+              stat.value
+            }}</strong>
           </span>
         </template>
         <span
@@ -57,11 +62,18 @@
           :title="selectedSource.path || selectedSource.name"
         >
           <span class="layout-status-chip__label">Источник</span>
-          <strong class="layout-status-chip__value">{{ selectedSource.name }}</strong>
+          <strong class="layout-status-chip__value">{{
+            selectedSource.name
+          }}</strong>
         </span>
-        <span v-if="snapshotAt" class="layout-status-chip layout-status-chip--neutral">
+        <span
+          v-if="snapshotAt"
+          class="layout-status-chip layout-status-chip--neutral"
+        >
           <span class="layout-status-chip__label">Снимок</span>
-          <strong class="layout-status-chip__value">{{ formatTs(snapshotAt) }}</strong>
+          <strong class="layout-status-chip__value">{{
+            formatTs(snapshotAt)
+          }}</strong>
         </span>
         <div class="layout-status-bar__database-group">
           <span
@@ -72,7 +84,8 @@
             <span
               class="material-icons layout-status-bar__database-icon"
               aria-hidden="true"
-            >storage</span>
+              >storage</span
+            >
             <strong class="layout-status-chip__value">
               {{ databasePath || "Путь не задан" }}
             </strong>
@@ -85,7 +98,8 @@
             <span
               class="material-icons layout-status-bar__database-icon"
               aria-hidden="true"
-            >dns</span>
+              >dns</span
+            >
             <strong class="layout-status-chip__value">
               {{ databaseStatusLabel }}
             </strong>
@@ -106,10 +120,8 @@ import {
 } from "@/pages/AnalysisWorkspace/model/file-route-filter";
 import { RouterLink, RouterView } from "vue-router";
 import { useRoute, useRouter } from "vue-router/composables";
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import {
-  useAnalysisWorkspace,
-} from "@/pages/AnalysisWorkspace/model/use-analysis-workspace";
+import { computed, onBeforeUnmount, onMounted, watch } from "vue";
+import { useAnalysisWorkspace } from "@/pages/AnalysisWorkspace/model/use-analysis-workspace";
 import {
   analysisSections,
   getAnalysisSectionByPath,
@@ -117,19 +129,10 @@ import {
 import { useAnalysisUiSettings } from "@/pages/AnalysisWorkspace/model/use-analysis-ui-settings";
 import { useDatabaseState } from "@/shared/model/use-database-state";
 
-const {
-  loading,
-  formatTs,
-  report,
-  refreshReport,
-  selectedSource,
-  snapshotAt,
-} = useAnalysisWorkspace();
-const {
-  autoRefreshEnabled,
-  autoRefreshIntervalSeconds,
-  openAnalysisTab,
-} = useAnalysisUiSettings();
+const { loading, formatTs, report, refreshReport, selectedSource, snapshotAt } =
+  useAnalysisWorkspace();
+const { autoRefreshEnabled, autoRefreshIntervalSeconds, openAnalysisTab } =
+  useAnalysisUiSettings();
 const route = useRoute();
 const router = useRouter();
 const {
@@ -144,7 +147,9 @@ const {
 const isAnalysisRoute = computed(() => route.path.startsWith("/analysis"));
 const showStatusBar = computed(() => isAnalysisRoute.value);
 const scopedFileId = computed(() => parseRouteFileId(route));
-const refreshStatusIcon = computed(() => (loading.value ? "autorenew" : "sync"));
+const refreshStatusIcon = computed(() =>
+  loading.value ? "autorenew" : "sync",
+);
 const refreshStatusLabel = computed(() => {
   if (loading.value) {
     return "Обновление данных";
@@ -271,9 +276,9 @@ const restartAutoRefreshTimer = () => {
   clearAutoRefreshTimer();
 
   if (
-    typeof window === "undefined"
-    || !isAnalysisRoute.value
-    || !autoRefreshEnabled.value
+    typeof window === "undefined" ||
+    !isAnalysisRoute.value ||
+    !autoRefreshEnabled.value
   ) {
     return;
   }
@@ -331,23 +336,27 @@ const handleDatabasePathDoubleClick = () => {
   const focusDatabasePath = String(Date.now());
 
   if (route.path === "/analysis/settings") {
-    router.replace({
-      path: route.path,
-      query: {
-        ...route.query,
-        focusDatabasePath,
-      },
-    }).catch(() => {});
+    router
+      .replace({
+        path: route.path,
+        query: {
+          ...route.query,
+          focusDatabasePath,
+        },
+      })
+      .catch(() => {});
     return;
   }
 
-  router.push({
-    path: "/analysis/settings",
-    query: {
-      focusDatabasePath,
-      returnTo: route.fullPath,
-    },
-  }).catch(() => {});
+  router
+    .push({
+      path: "/analysis/settings",
+      query: {
+        focusDatabasePath,
+        returnTo: route.fullPath,
+      },
+    })
+    .catch(() => {});
 };
 
 onMounted(() => {
@@ -364,7 +373,6 @@ watch(
     loadDatabaseState().catch(() => {});
   },
 );
-
 </script>
 <style scoped lang="scss">
 .layout-shell {
@@ -399,12 +407,18 @@ watch(
   position: relative;
   z-index: 15;
   overflow: hidden;
-  background:
-    radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 30%),
-    radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent 28%),
+  background: radial-gradient(
+      circle at top left,
+      rgba(14, 165, 233, 0.12),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at top right,
+      rgba(59, 130, 246, 0.1),
+      transparent 28%
+    ),
     linear-gradient(180deg, var(--app-surface), var(--app-surface-muted));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04),
     0 -1px 0 rgba(148, 163, 184, 0.08);
   backdrop-filter: blur(16px);
 }
@@ -414,7 +428,12 @@ watch(
   position: absolute;
   inset: 0 0 auto;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.28), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(37, 99, 235, 0.28),
+    transparent
+  );
 }
 
 .layout-status-bar__intro {
@@ -445,10 +464,7 @@ watch(
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition:
-    transform 0.2s ease,
-    background-color 0.2s ease,
-    color 0.2s ease,
+  transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease,
     box-shadow 0.2s ease;
 }
 
@@ -537,7 +553,8 @@ watch(
   min-width: 18rem;
   max-width: min(100%, 42rem);
   cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .layout-status-bar__database:hover {
@@ -560,11 +577,8 @@ watch(
   background: var(--app-surface-muted);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
   text-decoration: none;
-  transition:
-    transform 0.2s ease,
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: transform 0.2s ease, background-color 0.2s ease,
+    border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .layout-status-metric__label {
@@ -587,35 +601,46 @@ watch(
   transform: translateY(-1px);
   background: var(--app-surface);
   border-color: rgba(59, 130, 246, 0.26);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04),
     0 10px 24px rgba(15, 23, 42, 0.18);
 }
 
 .layout-status-metric--blue {
-  background:
-    linear-gradient(180deg, rgba(37, 99, 235, 0.2), rgba(29, 78, 216, 0.12)),
+  background: linear-gradient(
+      180deg,
+      rgba(37, 99, 235, 0.2),
+      rgba(29, 78, 216, 0.12)
+    ),
     var(--app-surface-muted);
   border-color: rgba(59, 130, 246, 0.24);
 }
 
 .layout-status-metric--amber {
-  background:
-    linear-gradient(180deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.12)),
+  background: linear-gradient(
+      180deg,
+      rgba(245, 158, 11, 0.2),
+      rgba(217, 119, 6, 0.12)
+    ),
     var(--app-surface-muted);
   border-color: rgba(245, 158, 11, 0.24);
 }
 
 .layout-status-metric--emerald {
-  background:
-    linear-gradient(180deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.12)),
+  background: linear-gradient(
+      180deg,
+      rgba(16, 185, 129, 0.2),
+      rgba(5, 150, 105, 0.12)
+    ),
     var(--app-surface-muted);
   border-color: rgba(16, 185, 129, 0.24);
 }
 
 .layout-status-metric--slate {
-  background:
-    linear-gradient(180deg, rgba(148, 163, 184, 0.16), rgba(100, 116, 139, 0.12)),
+  background: linear-gradient(
+      180deg,
+      rgba(148, 163, 184, 0.16),
+      rgba(100, 116, 139, 0.12)
+    ),
     var(--app-surface-muted);
   border-color: rgba(148, 163, 184, 0.2);
 }

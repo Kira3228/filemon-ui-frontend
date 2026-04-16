@@ -1,5 +1,5 @@
 import { computed } from "vue";
-import type { ComputedRef, Ref } from "vue";
+import type { Ref } from "vue";
 import {
   buildCompactFileTreeMermaid,
   buildFullPropagationMermaid,
@@ -7,7 +7,6 @@ import {
 import type {
   AnalysisChainEntry,
   AnalysisFileItem,
-  AnalysisFileLink,
   AnalysisItemWithTimestamps,
   AnalysisOperationItem,
   AnalysisProcessReadView,
@@ -100,15 +99,15 @@ export const createAnalysisWorkspaceSelectors = ({
           });
         });
 
-      return {
-        ...process,
-        label: process.label || (
-          process.executablePath
-            ? `${process.executablePath.split(/[\\/]/).filter(Boolean).pop() || process.executablePath}${process.pid !== null && process.pid !== undefined ? ` (PID ${process.pid})` : ""}`
-            : `PID ${process.pid ?? "—"}`
-        ),
-        files,
-      };
+        return {
+          ...process,
+          label: process.label || (
+            process.executablePath
+              ? `${process.executablePath.split(/[\\/]/).filter(Boolean).pop() || process.executablePath}${process.pid !== null && process.pid !== undefined ? ` (PID ${process.pid})` : ""}`
+              : `PID ${process.pid ?? "—"}`
+          ),
+          files,
+        };
       })
       .filter((process) => {
         if (!process.files.length) { return false; }

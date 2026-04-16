@@ -29,7 +29,6 @@ export const createProcessInteractionTransitions = ({
   collapseProcessGroup,
   expandProcessBucket,
   expandProcessGroup,
-  isProcessBucketExpanded,
   isProcessGroupExpanded,
   selectProcessGroup,
   syncSelectedFileWithGroup,

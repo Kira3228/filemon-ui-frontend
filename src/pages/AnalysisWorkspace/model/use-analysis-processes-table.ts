@@ -14,7 +14,6 @@ import {
 } from "./analysis-processes-table.grouping";
 import { createProcessRows } from "./analysis-processes-table.rows";
 import { buildProcessBucketTitle, buildProcessGroupTitle, formatProcessTableMetaValue } from "./analysis-processes-table.presentation";
-import type { ProcessEventRow, ProcessEventType } from "./analysis-processes-table.rows";
 import type { ProcessBucket, ProcessGroup, ProcessGroupRow, ProcessTableItem } from "./analysis-processes-table.types";
 import type {
   AnalysisFileItem,

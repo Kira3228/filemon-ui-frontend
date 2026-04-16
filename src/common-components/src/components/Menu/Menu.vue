@@ -9,7 +9,10 @@
         <button
           type="button"
           class="app-menu__item"
-          :class="{ 'app-menu__item--active': isActive(item), 'app-menu__item--open': menus[idx] }"
+          :class="{
+            'app-menu__item--active': isActive(item),
+            'app-menu__item--open': menus[idx],
+          }"
           @click="handleItemClick(item, idx)"
         >
           <span class="app-menu__item-content">
@@ -77,7 +80,9 @@ const menus = ref<boolean[]>(props.items.map(() => false));
 
 const navigateTo = (item: TMenuItem) => {
   if (item.to && item.to !== route.path) {
-    router.push(item.to).catch(() => {});
+    router.push(item.to).catch(() => {
+      `err`;
+    });
   }
   emit("menu-click", { to: item.to, title: item.title });
 };

@@ -24,16 +24,20 @@
     "vue-virtual-scroller": "^1.1.2"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^8.46.2",
-    "@typescript-eslint/parser": "^8.46.2",
+    "@typescript-eslint/eslint-plugin": "^2.34.0",
+    "@typescript-eslint/parser": "^2.34.0",
     "@vue/cli-plugin-babel": "~4.5.19",
+    "@vue/cli-plugin-eslint": "~4.5.19",
     "@vue/cli-plugin-router": "~4.5.19",
     "@vue/cli-plugin-typescript": "~4.5.19",
     "@vue/cli-service": "~4.5.19",
+    "@vue/eslint-config-prettier": "^6.0.0",
+    "@vue/eslint-config-typescript": "^5.1.0",
     "autoprefixer": "^9.8.8",
-    "eslint": "^9.38.0",
-    "eslint-config-google": "^0.14.0",
-    "eslint-plugin-vue": "^10.5.1",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-prettier": "^3.4.1",
+    "eslint-plugin-vue": "^7.20.0",
     "postcss": "^8.5.6",
     "sass": "~1.32.0",
     "sass-loader": "^10.0.0",
@@ -46,6 +50,12 @@
     "env": {
       "node": true
     },
+    "globals": {
+      "defineProps": "readonly",
+      "defineEmits": "readonly",
+      "withDefaults": "readonly",
+      "defineExpose": "readonly"
+    },
     "extends": [
       "plugin:vue/essential",
       "eslint:recommended",
@@ -54,7 +64,11 @@
     "parserOptions": {
       "parser": "@typescript-eslint/parser"
     },
-    "rules": {}
+    "rules": {
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": "error",
+      "vue/script-setup-uses-vars": "error"
+    }
   },
   "browserslist": [
     "> 1%",

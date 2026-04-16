@@ -27,7 +27,7 @@ interface DialogProps {
   value?: boolean;
   title?: string;
 }
-const props = defineProps<DialogProps>();
+defineProps<DialogProps>();
 
 const emit = defineEmits<{
   (e: "input", val: boolean): void;

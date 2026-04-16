@@ -9,7 +9,6 @@ import type { PropagationGraphState } from "./analysis-diagrams.propagation";
 import type {
   AnalysisDiagramFileVersion,
   AnalysisDiagramProcessVersion,
-  AnalysisFileItem,
 } from "./analysis-report.types";
 
 export const renderFullPropagationMermaid = (

@@ -36,7 +36,4 @@ const props = withDefaults(defineProps<IconProps>(), {
 const activeColor = computed(() => {
   return props.theme === "dark" ? "#ffffff" : "#000000";
 });
-const strokeColor = computed(() => {
-  return props.theme === "dark" ? "#000000" : "#ffffff";
-});
 </script>

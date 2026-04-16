@@ -34,12 +34,12 @@ import { computed } from "vue";
 import { useDebounce } from "../../lib/debounce";
 import { uid } from "../../lib/uid";
 
-interface IProps {
+interface Props {
   value?: string | null;
   label?: string;
 }
 
-const props = withDefaults(defineProps<IProps>(), {
+const props = withDefaults(defineProps<Props>(), {
   value: null,
 });
 

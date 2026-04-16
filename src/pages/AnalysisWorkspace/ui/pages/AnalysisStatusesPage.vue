@@ -2,9 +2,15 @@
   <section class="app-surface analysis-page-card">
     <header class="analysis-page-header">
       <span>История статусов</span>
-      <span class="analysis-page-meta">{{ scopedStatusHistory.length }} записей</span>
+      <span class="analysis-page-meta"
+        >{{ scopedStatusHistory.length }} записей</span
+      >
     </header>
-    <div ref="tableHostRef" class="analysis-page-table-shell" @mousedown.capture="handleTablePointerDown">
+    <div
+      ref="tableHostRef"
+      class="analysis-page-table-shell"
+      @mousedown.capture="handleTablePointerDown"
+    >
       <DataTable
         :headers="headers"
         :items="scopedStatusHistory"
@@ -29,7 +35,8 @@
             :title="scopedFile?.path || `Файл #${scopedFileId}`"
           >
             <span class="analysis-route-filter-text">
-              <strong>Файл:</strong> {{ scopedFile?.name || `#${scopedFileId}` }}
+              <strong>Файл:</strong>
+              {{ scopedFile?.name || `#${scopedFileId}` }}
             </span>
             <button
               type="button"
@@ -41,11 +48,15 @@
             </button>
           </span>
         </template>
-        <template #item.createdAt="{ value }">{{ formatTs(value) }}</template>
-        <template #item.status="{ value }">
-          <span class="analysis-badge" :class="statusBadgeClass(value)">{{ value || "—" }}</span>
+        <template #[`item.createdAt`]="{ value }">{{
+          formatTs(value)
+        }}</template>
+        <template #[`item.status`]="{ value }">
+          <span class="analysis-badge" :class="statusBadgeClass(value)">{{
+            value || "—"
+          }}</span>
         </template>
-        <template #item.changeSource="{ value }">
+        <template #[`item.changeSource`]="{ value }">
           {{ value === "MANUAL" ? "Ручное изменение" : "Системное изменение" }}
         </template>
       </DataTable>
@@ -55,33 +66,78 @@
 
 <script lang="ts" setup>
 import { DataTable } from "@/common-components/src/components/DataTable";
-import { Header } from "@/common-components/src/components/DataTable";
 import { computed } from "vue";
 import { filterItemsByFileId } from "../../model/file-route-filter";
-import type { AnalysisStatusHistoryItem } from "../../model/analysis-report.types";
 import { useAnalysisUiSettings } from "../../model/use-analysis-ui-settings";
 import { useKeyboardTableSelection } from "../../model/use-keyboard-table-selection";
 import { useAnalysisWorkspace } from "../../model/use-analysis-workspace";
 import { useRouteFileScope } from "../../model/use-route-file-scope";
 import AnalysisFileDetailsToggle from "../components/AnalysisFileDetailsToggle.vue";
 
-const { filteredStatusHistory, formatTs, setSelectedFile, statusBadgeClass } = useAnalysisWorkspace();
+const { filteredStatusHistory, formatTs, setSelectedFile, statusBadgeClass } =
+  useAnalysisWorkspace();
 const { fileDetailsVisible, setFileDetailsVisible } = useAnalysisUiSettings();
-const { router, scopedFile, scopedFileId, clearScopedFile } = useRouteFileScope();
+const { router, scopedFile, scopedFileId, clearScopedFile } =
+  useRouteFileScope();
 const scopedStatusHistory = computed(() =>
   filterItemsByFileId(filteredStatusHistory.value, scopedFileId.value),
 );
 const exportStatusChangeSource = (item: AnalysisStatusHistoryItem) =>
   item.changeSource === "MANUAL" ? "Ручное изменение" : "Системное изменение";
-const exportStatusCreatedAt = (item: AnalysisStatusHistoryItem) => formatTs(item.createdAt);
+const exportStatusCreatedAt = (item: AnalysisStatusHistoryItem) =>
+  formatTs(item.createdAt);
 
 const headers: Header[] = [
-  { text: "Файл", value: "fileName", align: "start", sortable: true, isVisible: true, width: 120 },
-  { text: "Путь", value: "path", align: "start", sortable: false, isVisible: true, width: 320 },
-  { text: "UUID файловой системы", value: "filesystemUuid", align: "start", sortable: true, isVisible: true, width: 180 },
-  { text: "Статус", value: "status", align: "start", sortable: true, isVisible: true, width: 120 },
-  { text: "Источник", value: "changeSource", align: "start", sortable: true, isVisible: true, width: 140, exportValue: exportStatusChangeSource },
-  { text: "Время", value: "createdAt", align: "start", sortable: true, isVisible: true, width: 150, exportValue: exportStatusCreatedAt },
+  {
+    text: "Файл",
+    value: "fileName",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 120,
+  },
+  {
+    text: "Путь",
+    value: "path",
+    align: "start",
+    sortable: false,
+    isVisible: true,
+    width: 320,
+  },
+  {
+    text: "UUID файловой системы",
+    value: "filesystemUuid",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 180,
+  },
+  {
+    text: "Статус",
+    value: "status",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 120,
+  },
+  {
+    text: "Источник",
+    value: "changeSource",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 140,
+    exportValue: exportStatusChangeSource,
+  },
+  {
+    text: "Время",
+    value: "createdAt",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 150,
+    exportValue: exportStatusCreatedAt,
+  },
 ];
 
 const openFile = (fileId: number) => {

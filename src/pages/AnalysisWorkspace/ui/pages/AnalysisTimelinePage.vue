@@ -2,9 +2,15 @@
   <section class="app-surface analysis-page-card">
     <header class="analysis-page-header">
       <span>События</span>
-      <span class="analysis-page-meta">{{ scopedTimeline.length }} событий</span>
+      <span class="analysis-page-meta"
+        >{{ scopedTimeline.length }} событий</span
+      >
     </header>
-    <div ref="tableHostRef" class="analysis-page-table-shell" @mousedown.capture="handleTablePointerDown">
+    <div
+      ref="tableHostRef"
+      class="analysis-page-table-shell"
+      @mousedown.capture="handleTablePointerDown"
+    >
       <DataTable
         :headers="headers"
         :items="scopedTimeline"
@@ -29,7 +35,8 @@
             :title="scopedFile?.path || `Файл #${scopedFileId}`"
           >
             <span class="analysis-route-filter-text">
-              <strong>Файл:</strong> {{ scopedFile?.name || `#${scopedFileId}` }}
+              <strong>Файл:</strong>
+              {{ scopedFile?.name || `#${scopedFileId}` }}
             </span>
             <button
               type="button"
@@ -41,15 +48,23 @@
             </button>
           </span>
         </template>
-        <template #item.timestamp="{ value }">{{ formatTs(value) }}</template>
-        <template #item.type="{ value }">
-          <span class="analysis-badge" :class="badgeClass(value)">{{ eventTypeLabel(value) }}</span>
+        <template #[`item.timestamp`]="{ value }">{{
+          formatTs(value)
+        }}</template>
+        <template #[`item.type`]="{ value }">
+          <span class="analysis-badge" :class="badgeClass(value)">{{
+            eventTypeLabel(value)
+          }}</span>
         </template>
-        <template #item.fileStatus="{ value }">
-          <span class="analysis-badge" :class="statusBadgeClass(value)">{{ value || "—" }}</span>
+        <template #[`item.fileStatus`]="{ value }">
+          <span class="analysis-badge" :class="statusBadgeClass(value)">{{
+            value || "—"
+          }}</span>
         </template>
-        <template #item.entity="{ item }">
-          <span v-if="item.fileName" class="analysis-file-name">{{ item.fileName }}</span>
+        <template #[`item.entity`]="{ item }">
+          <span v-if="item.fileName" class="analysis-file-name">{{
+            item.fileName
+          }}</span>
           <span v-else>{{ item.processLabel || "—" }}</span>
         </template>
       </DataTable>
@@ -59,29 +74,66 @@
 
 <script lang="ts" setup>
 import { DataTable } from "@/common-components/src/components/DataTable";
-import { Header } from "@/common-components/src/components/DataTable";
+import type { Header } from "@/common-components/src/components/DataTable";
 import { computed } from "vue";
 import { filterItemsByFileId } from "../../model/file-route-filter";
-import type { AnalysisTimelineEntry } from "../../model/analysis-report.types";
 import { useAnalysisUiSettings } from "../../model/use-analysis-ui-settings";
 import { useKeyboardTableSelection } from "../../model/use-keyboard-table-selection";
 import { useAnalysisWorkspace } from "../../model/use-analysis-workspace";
 import { useRouteFileScope } from "../../model/use-route-file-scope";
 import AnalysisFileDetailsToggle from "../components/AnalysisFileDetailsToggle.vue";
+import type { AnalysisTimelineEntry } from "../../model/analysis-report.types";
 
-const { badgeClass, eventTypeLabel, filteredTimeline, formatTs, setSelectedFile, statusBadgeClass } = useAnalysisWorkspace();
+const {
+  badgeClass,
+  eventTypeLabel,
+  filteredTimeline,
+  formatTs,
+  setSelectedFile,
+  statusBadgeClass,
+} = useAnalysisWorkspace();
 const { fileDetailsVisible, setFileDetailsVisible } = useAnalysisUiSettings();
-const { router, scopedFile, scopedFileId, clearScopedFile } = useRouteFileScope();
-const scopedTimeline = computed(() => filterItemsByFileId(filteredTimeline.value, scopedFileId.value));
-const exportTimelineTimestamp = (item: AnalysisTimelineEntry) => formatTs(item.timestamp);
-const exportTimelineType = (item: AnalysisTimelineEntry) => eventTypeLabel(item.type);
-const exportTimelineEntity = (item: AnalysisTimelineEntry) => item.fileName || item.processLabel || "—";
-const exportTimelineStatus = (item: AnalysisTimelineEntry) => item.fileStatus || "—";
+const { router, scopedFile, scopedFileId, clearScopedFile } =
+  useRouteFileScope();
+const scopedTimeline = computed(() =>
+  filterItemsByFileId(filteredTimeline.value, scopedFileId.value),
+);
+const exportTimelineTimestamp = (item: AnalysisTimelineEntry) =>
+  formatTs(item.timestamp);
+const exportTimelineType = (item: AnalysisTimelineEntry) =>
+  eventTypeLabel(item.type);
+const exportTimelineEntity = (item: AnalysisTimelineEntry) =>
+  item.fileName || item.processLabel || "—";
+const exportTimelineStatus = (item: AnalysisTimelineEntry) =>
+  item.fileStatus || "—";
 
 const headers: Header[] = [
-  { text: "#", value: "index", align: "start", sortable: true, isVisible: true, width: 50 },
-  { text: "Время", value: "timestamp", align: "start", sortable: true, isVisible: true, width: 140, exportValue: exportTimelineTimestamp },
-  { text: "Тип", value: "type", align: "start", sortable: true, isVisible: true, width: 90, exportValue: exportTimelineType },
+  {
+    text: "#",
+    value: "index",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 50,
+  },
+  {
+    text: "Время",
+    value: "timestamp",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 140,
+    exportValue: exportTimelineTimestamp,
+  },
+  {
+    text: "Тип",
+    value: "type",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 90,
+    exportValue: exportTimelineType,
+  },
   {
     text: "Файл / процесс",
     value: "entity",
@@ -92,8 +144,23 @@ const headers: Header[] = [
     filterBy: ["fileName", "processLabel"],
     exportValue: exportTimelineEntity,
   },
-  { text: "Статус", value: "fileStatus", align: "start", sortable: true, isVisible: true, width: 130, exportValue: exportTimelineStatus },
-  { text: "Описание", value: "details", align: "start", sortable: false, isVisible: true, width: 420 },
+  {
+    text: "Статус",
+    value: "fileStatus",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 130,
+    exportValue: exportTimelineStatus,
+  },
+  {
+    text: "Описание",
+    value: "details",
+    align: "start",
+    sortable: false,
+    isVisible: true,
+    width: 420,
+  },
 ];
 
 const openFile = (fileId?: number) => {
@@ -112,7 +179,9 @@ const {
   items: scopedTimeline,
   getKey: (item) => item.id,
   onSelect: (item) => {
-    if (!item.fileId) { return; }
+    if (!item.fileId) {
+      return;
+    }
     setSelectedFile(item.fileId);
   },
   onOpen: (item) => openFile(item.fileId),

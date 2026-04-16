@@ -108,7 +108,7 @@
             </div>
           </header>
         </template>
-        <template #item.eventType="{ item, value }">
+        <template #[`item.eventType`]="{ item, value }">
           <button
             v-if="isProcessGroupRow(item)"
             type="button"
@@ -148,25 +148,25 @@
             {{ eventTypeLabel(value) }}
           </span>
         </template>
-        <template #item.fileName="{ item }">
+        <template #[`item.fileName`]="{ item }">
           <template v-if="isProcessGroupRow(item)"> </template>
           <div v-else class="analysis-file-cell" :title="`${item.fileName}\n${item.path}`">
             <strong class="analysis-file-title">{{ item.fileName }}</strong>
             <span class="analysis-file-caption">{{ item.path }}</span>
           </div>
         </template>
-        <template #item.filesystemUuid="{ item, value }">
+        <template #[`item.filesystemUuid`]="{ item, value }">
           <template v-if="isProcessGroupRow(item)"> </template>
           <template v-else>{{ value || "—" }}</template>
         </template>
-        <template #item.versionNumber="{ item, value }">
+        <template #[`item.versionNumber`]="{ item, value }">
           <template v-if="isProcessGroupRow(item)"> </template>
           <template v-else>{{ value === null || value === undefined ? "—" : `v${value}` }}</template>
         </template>
-        <template #item.eventAt="{ item, value }">
+        <template #[`item.eventAt`]="{ item, value }">
           {{ isProcessGroupRow(item) ? "" : formatTs(value) }}
         </template>
-        <template #item.path="{ item, value }">
+        <template #[`item.path`]="{ item, value }">
           <div class="analysis-file-inline" :title="isProcessGroupRow(item) ? '' : value || '—'">
             {{ isProcessGroupRow(item) ? "" : value || "—" }}
           </div>

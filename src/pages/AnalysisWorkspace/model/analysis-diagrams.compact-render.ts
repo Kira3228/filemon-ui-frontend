@@ -26,7 +26,6 @@ interface CompactRenderState {
 export const renderCompactFileTreeMermaid = ({
   fileItems,
   filteredFileVersions,
-  filteredProcessVersions,
   report,
   result,
   sourceFileIds,
@@ -34,14 +33,6 @@ export const renderCompactFileTreeMermaid = ({
   const { nodeFileIds, edgeCounts, edgeProcessIds } = result;
   const fileItemsById = new Map<number, AnalysisFileItem>(fileItems.map((item) => [Number(item.fileId), item] as const));
   const renameRowsByFile = groupRenameRowsByFile(report);
-
-  const processVersionsById = new Map<number, AnalysisDiagramProcessVersion>(filteredProcessVersions.map((row) => [Number(row.processVersionId), row] as const));
-  const processesById = new Map<number, AnalysisDiagramProcessVersion>();
-  for (const row of filteredProcessVersions) {
-    if (row.processId !== null && row.processId !== undefined) {
-      processesById.set(Number(row.processId), row);
-    }
-  }
 
   const firstSeenByFile = new Map<number, string | null>();
   for (const row of filteredFileVersions) {

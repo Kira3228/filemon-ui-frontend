@@ -1,5 +1,5 @@
 import { computed, ref, watch } from "vue";
-import type { ComputedRef, Ref } from "vue";
+import type { ComputedRef } from "vue";
 import type {
   AnalysisChainVersion,
   AnalysisFileEventKind,

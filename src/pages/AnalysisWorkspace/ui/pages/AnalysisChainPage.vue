@@ -1,9 +1,14 @@
 <template>
   <div v-if="selectedChain && selectedFile" class="analysis-chain-page">
-    <section v-if="showFileCard" class="app-surface analysis-page-card analysis-page-card--compact analysis-page-card--resizable">
+    <section
+      v-if="showFileCard"
+      class="app-surface analysis-page-card analysis-page-card--compact analysis-page-card--resizable"
+    >
       <header class="analysis-page-header">
         <span>Карточка файла</span>
-        <span class="analysis-page-meta analysis-file-name">{{ selectedChain.name }}</span>
+        <span class="analysis-page-meta analysis-file-name">{{
+          selectedChain.name
+        }}</span>
       </header>
       <div class="analysis-kv-grid">
         <div class="analysis-kv-row">
@@ -12,11 +17,17 @@
         </div>
         <div class="analysis-kv-row">
           <span>Файловая система</span>
-          <span>{{ selectedFile.filesystem || selectedFile.filesystemUuid || "—" }}</span>
+          <span>{{
+            selectedFile.filesystem || selectedFile.filesystemUuid || "—"
+          }}</span>
         </div>
         <div class="analysis-kv-row">
           <span>Индексный дескриптор (inode)</span>
-          <span>{{ selectedFile.inode === null || selectedFile.inode === undefined ? "—" : selectedFile.inode }}</span>
+          <span>{{
+            selectedFile.inode === null || selectedFile.inode === undefined
+              ? "—"
+              : selectedFile.inode
+          }}</span>
         </div>
         <div class="analysis-kv-row">
           <span>История пути</span>
@@ -24,7 +35,14 @@
         </div>
         <div class="analysis-kv-row analysis-kv-row--wide">
           <span>Описание выбранного события</span>
-          <span :title="(selectedTimelineEvent && selectedTimelineEvent.details) || '—'">{{ (selectedTimelineEvent && selectedTimelineEvent.details) || "—" }}</span>
+          <span
+            :title="
+              (selectedTimelineEvent && selectedTimelineEvent.details) || '—'
+            "
+            >{{
+              (selectedTimelineEvent && selectedTimelineEvent.details) || "—"
+            }}</span
+          >
         </div>
         <div class="analysis-kv-row">
           <span>Статус</span>
@@ -59,167 +77,235 @@
 
     <div class="analysis-chain-layout">
       <div class="analysis-chain-row">
-      <section class="app-surface analysis-page-card analysis-widget-card analysis-page-card--resizable">
-        <header class="analysis-page-header">
-          <button type="button" class="analysis-section-link" @click="openSection('/analysis/files')">
-            Связанные файлы
-          </button>
-          <span class="analysis-page-meta">
-            родителей={{ selectedChain.parents.length }} · потомков={{ selectedChain.children.length }}
-          </span>
-        </header>
-        <div class="analysis-widget-body analysis-widget-body--stretch">
-        <div class="analysis-related-grid">
-          <div>
-            <div class="analysis-subtitle">Родители</div>
-            <div class="analysis-stack">
-              <button
-                v-for="parent in selectedChain.parents"
-                :key="parent.fileId"
-                type="button"
-                class="analysis-link-row"
-                @click="openFile(parent.fileId)"
-              >
-                <span class="analysis-file-name">{{ parent.name }}</span>
-              </button>
-              <div v-if="!selectedChain.parents.length" class="analysis-empty-row">Нет</div>
+        <section
+          class="app-surface analysis-page-card analysis-widget-card analysis-page-card--resizable"
+        >
+          <header class="analysis-page-header">
+            <button
+              type="button"
+              class="analysis-section-link"
+              @click="openSection('/analysis/files')"
+            >
+              Связанные файлы
+            </button>
+            <span class="analysis-page-meta">
+              родителей={{ selectedChain.parents.length }} · потомков={{
+                selectedChain.children.length
+              }}
+            </span>
+          </header>
+          <div class="analysis-widget-body analysis-widget-body--stretch">
+            <div class="analysis-related-grid">
+              <div>
+                <div class="analysis-subtitle">Родители</div>
+                <div class="analysis-stack">
+                  <button
+                    v-for="parent in selectedChain.parents"
+                    :key="parent.fileId"
+                    type="button"
+                    class="analysis-link-row"
+                    @click="openFile(parent.fileId)"
+                  >
+                    <span class="analysis-file-name">{{ parent.name }}</span>
+                  </button>
+                  <div
+                    v-if="!selectedChain.parents.length"
+                    class="analysis-empty-row"
+                  >
+                    Нет
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="analysis-subtitle">Порожденные файлы</div>
+                <div class="analysis-stack">
+                  <button
+                    v-for="child in selectedChain.children"
+                    :key="child.fileId"
+                    type="button"
+                    class="analysis-link-row"
+                    @click="openFile(child.fileId)"
+                  >
+                    <span class="analysis-file-name">{{ child.name }}</span>
+                  </button>
+                  <div
+                    v-if="!selectedChain.children.length"
+                    class="analysis-empty-row"
+                  >
+                    Нет
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div>
-            <div class="analysis-subtitle">Порожденные файлы</div>
-            <div class="analysis-stack">
-              <button
-                v-for="child in selectedChain.children"
-                :key="child.fileId"
-                type="button"
-                class="analysis-link-row"
-                @click="openFile(child.fileId)"
-              >
-                <span class="analysis-file-name">{{ child.name }}</span>
-              </button>
-              <div v-if="!selectedChain.children.length" class="analysis-empty-row">Нет</div>
-            </div>
-          </div>
-        </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="app-surface analysis-page-card analysis-widget-card analysis-page-card--resizable">
-        <header class="analysis-page-header">
-          <button type="button" class="analysis-section-link" @click="openSection('/analysis/operations')">
-            Версии файла
-          </button>
-          <span class="analysis-page-meta">{{ selectedChain.versions.length }} версий</span>
-        </header>
-        <div class="analysis-widget-body">
-          <DataTable
-            :headers="versionHeaders"
-            :items="selectedChain.versions"
-            :items-per-page="1000"
-            export-title="Карточка_файла_версии"
-          >
-            <template #toolbar-actions>
-              <button
-                type="button"
-                class="analysis-toolbar-toggle"
-                :class="{ 'analysis-toolbar-toggle--active': showFileCard }"
-                @click="showFileCard = !showFileCard"
-              >
-                <span class="pi" :class="showFileCard ? 'pi-eye-slash' : 'pi-eye'" />
-                <span>Детали файла</span>
-              </button>
-            </template>
-            <template #item.versionNumber="{ value }">v{{ value }}</template>
-            <template #item.createdAt="{ value }">{{ formatTs(value) }}</template>
-          </DataTable>
-        </div>
-      </section>
+        <section
+          class="app-surface analysis-page-card analysis-widget-card analysis-page-card--resizable"
+        >
+          <header class="analysis-page-header">
+            <button
+              type="button"
+              class="analysis-section-link"
+              @click="openSection('/analysis/operations')"
+            >
+              Версии файла
+            </button>
+            <span class="analysis-page-meta"
+              >{{ selectedChain.versions.length }} версий</span
+            >
+          </header>
+          <div class="analysis-widget-body">
+            <DataTable
+              :headers="versionHeaders"
+              :items="selectedChain.versions"
+              :items-per-page="1000"
+              export-title="Карточка_файла_версии"
+            >
+              <template #toolbar-actions>
+                <button
+                  type="button"
+                  class="analysis-toolbar-toggle"
+                  :class="{ 'analysis-toolbar-toggle--active': showFileCard }"
+                  @click="showFileCard = !showFileCard"
+                >
+                  <span
+                    class="pi"
+                    :class="showFileCard ? 'pi-eye-slash' : 'pi-eye'"
+                  />
+                  <span>Детали файла</span>
+                </button>
+              </template>
+            <template #[`item.versionNumber`]="{ value }">v{{ value }}</template>
+              <template #[`item.createdAt`]="{ value }">{{
+                formatTs(value)
+              }}</template>
+            </DataTable>
+          </div>
+        </section>
       </div>
 
       <div class="analysis-chain-row">
-      <section class="app-surface analysis-page-card analysis-widget-card analysis-page-card--resizable">
-        <header class="analysis-page-header">
-          <button type="button" class="analysis-section-link" @click="openSection('/analysis/timeline')">
-            События файла
-          </button>
-          <span class="analysis-page-meta">{{ selectedFileTimeline.length }} событий</span>
-        </header>
-        <div class="analysis-widget-body">
-          <DataTable
-            :headers="timelineHeaders"
-            :items="selectedFileTimeline"
-            :items-per-page="1000"
-            :active-row-key="selectedTimelineEventId"
-            export-title="Карточка_файла_события"
-            @click-row="handleTimelineRowClick"
-            @dblclick-row="handleTimelineRowClick"
-          >
-            <template #toolbar-actions>
-              <button
-                type="button"
-                class="analysis-toolbar-toggle"
-                :class="{ 'analysis-toolbar-toggle--active': showFileCard }"
-                @click="showFileCard = !showFileCard"
-              >
-                <span class="pi" :class="showFileCard ? 'pi-eye-slash' : 'pi-eye'" />
-                <span>Детали файла</span>
-              </button>
-            </template>
-            <template #item.timestamp="{ value }">{{ formatTs(value) }}</template>
-            <template #item.type="{ value }">
-              <span class="analysis-badge" :class="badgeClass(value)">{{ eventTypeLabel(value) }}</span>
-            </template>
-            <template #item.fileStatus="{ value }">
-              <span class="analysis-badge" :class="statusBadgeClass(value)">{{ value || "—" }}</span>
-            </template>
-          </DataTable>
-        </div>
-        <div v-if="selectedTimelineEvent" class="analysis-widget-selection">
-          <div class="analysis-subtitle">Описание выделенного события</div>
-          <div class="analysis-widget-selection__body">{{ selectedTimelineEvent.details || "—" }}</div>
-        </div>
-      </section>
+        <section
+          class="app-surface analysis-page-card analysis-widget-card analysis-page-card--resizable"
+        >
+          <header class="analysis-page-header">
+            <button
+              type="button"
+              class="analysis-section-link"
+              @click="openSection('/analysis/timeline')"
+            >
+              События файла
+            </button>
+            <span class="analysis-page-meta"
+              >{{ selectedFileTimeline.length }} событий</span
+            >
+          </header>
+          <div class="analysis-widget-body">
+            <DataTable
+              :headers="timelineHeaders"
+              :items="selectedFileTimeline"
+              :items-per-page="1000"
+              :active-row-key="selectedTimelineEventId"
+              export-title="Карточка_файла_события"
+              @click-row="handleTimelineRowClick"
+              @dblclick-row="handleTimelineRowClick"
+            >
+              <template #toolbar-actions>
+                <button
+                  type="button"
+                  class="analysis-toolbar-toggle"
+                  :class="{ 'analysis-toolbar-toggle--active': showFileCard }"
+                  @click="showFileCard = !showFileCard"
+                >
+                  <span
+                    class="pi"
+                    :class="showFileCard ? 'pi-eye-slash' : 'pi-eye'"
+                  />
+                  <span>Детали файла</span>
+                </button>
+              </template>
+              <template #[`item.timestamp`]="{ value }">{{
+                formatTs(value)
+              }}</template>
+              <template #[`item.type`]="{ value }">
+                <span class="analysis-badge" :class="badgeClass(value)">{{
+                  eventTypeLabel(value)
+                }}</span>
+              </template>
+              <template #[`item.fileStatus`]="{ value }">
+                <span class="analysis-badge" :class="statusBadgeClass(value)">{{
+                  value || "—"
+                }}</span>
+              </template>
+            </DataTable>
+          </div>
+          <div v-if="selectedTimelineEvent" class="analysis-widget-selection">
+            <div class="analysis-subtitle">Описание выделенного события</div>
+            <div class="analysis-widget-selection__body">
+              {{ selectedTimelineEvent.details || "—" }}
+            </div>
+          </div>
+        </section>
 
-      <section class="app-surface analysis-page-card analysis-widget-card analysis-page-card--resizable">
-        <header class="analysis-page-header">
-          <span class="analysis-section-link-group">
-            <button type="button" class="analysis-section-link" @click="openSection('/analysis/statuses')">
-              Статусы
-            </button>
-            <span>/</span>
-            <button type="button" class="analysis-section-link" @click="openSection('/analysis/rename')">
-              Переименования
-            </button>
-          </span>
-          <span class="analysis-page-meta">
-            статусов={{ selectedFileStatusHistory.length }} · переименований={{ selectedFileRenameHistory.length }}
-          </span>
-        </header>
-        <div class="analysis-widget-body">
-          <DataTable
-            :headers="historyHeaders"
-            :items="combinedHistory"
-            :items-per-page="1000"
-            export-title="Карточка_файла_status_rename"
-          >
-            <template #toolbar-actions>
+        <section
+          class="app-surface analysis-page-card analysis-widget-card analysis-page-card--resizable"
+        >
+          <header class="analysis-page-header">
+            <span class="analysis-section-link-group">
               <button
                 type="button"
-                class="analysis-toolbar-toggle"
-                :class="{ 'analysis-toolbar-toggle--active': showFileCard }"
-                @click="showFileCard = !showFileCard"
+                class="analysis-section-link"
+                @click="openSection('/analysis/statuses')"
               >
-                <span class="pi" :class="showFileCard ? 'pi-eye-slash' : 'pi-eye'" />
-                <span>Детали файла</span>
+                Статусы
               </button>
-            </template>
-            <template #item.ts="{ value }">{{ formatTs(value) }}</template>
-            <template #item.type="{ value }">
-              <span class="analysis-badge" :class="badgeClass(value)">{{ eventTypeLabel(value) }}</span>
-            </template>
-          </DataTable>
-        </div>
-      </section>
+              <span>/</span>
+              <button
+                type="button"
+                class="analysis-section-link"
+                @click="openSection('/analysis/rename')"
+              >
+                Переименования
+              </button>
+            </span>
+            <span class="analysis-page-meta">
+              статусов={{ selectedFileStatusHistory.length }} ·
+              переименований={{ selectedFileRenameHistory.length }}
+            </span>
+          </header>
+          <div class="analysis-widget-body">
+            <DataTable
+              :headers="historyHeaders"
+              :items="combinedHistory"
+              :items-per-page="1000"
+              export-title="Карточка_файла_status_rename"
+            >
+              <template #toolbar-actions>
+                <button
+                  type="button"
+                  class="analysis-toolbar-toggle"
+                  :class="{ 'analysis-toolbar-toggle--active': showFileCard }"
+                  @click="showFileCard = !showFileCard"
+                >
+                  <span
+                    class="pi"
+                    :class="showFileCard ? 'pi-eye-slash' : 'pi-eye'"
+                  />
+                  <span>Детали файла</span>
+                </button>
+              </template>
+              <template #[`item.ts`]="{ value }">{{
+                formatTs(value)
+              }}</template>
+              <template #[`item.type`]="{ value }">
+                <span class="analysis-badge" :class="badgeClass(value)">{{
+                  eventTypeLabel(value)
+                }}</span>
+              </template>
+            </DataTable>
+          </div>
+        </section>
       </div>
     </div>
   </div>
@@ -232,15 +318,14 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from "vue";
-import { DataTable, Header } from "@/common-components/src/components/DataTable";
+import { ref, watch } from "vue";
+import {
+  DataTable,
+  Header,
+} from "@/common-components/src/components/DataTable";
 import { useRoute, useRouter } from "vue-router/composables";
 import { buildFileScopedLocation } from "../../model/file-route-filter";
 import { useAnalysisChainPageModel } from "../../model/analysis-chain-page.model";
-import type {
-  AnalysisChainVersion,
-  AnalysisFileEventKind,
-} from "../../model/analysis-report.types";
 import { useAnalysisWorkspace } from "../../model/use-analysis-workspace";
 
 const route = useRoute();
@@ -278,23 +363,105 @@ const {
 });
 
 const versionHeaders: Header[] = [
-  { text: "Версия", value: "versionNumber", align: "start", sortable: true, isVisible: true, width: 90 },
-  { text: "Глубина", value: "depth", align: "start", sortable: true, isVisible: true, width: 90 },
-  { text: "Создана", value: "createdAt", align: "start", sortable: true, isVisible: true, width: 150, exportValue: exportVersionCreatedAt },
-  { text: "Кем создана", value: "createdBy", align: "start", sortable: false, isVisible: true, width: 240 },
+  {
+    text: "Версия",
+    value: "versionNumber",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 90,
+  },
+  {
+    text: "Глубина",
+    value: "depth",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 90,
+  },
+  {
+    text: "Создана",
+    value: "createdAt",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 150,
+    exportValue: exportVersionCreatedAt,
+  },
+  {
+    text: "Кем создана",
+    value: "createdBy",
+    align: "start",
+    sortable: false,
+    isVisible: true,
+    width: 240,
+  },
 ];
 
 const timelineHeaders: Header[] = [
-  { text: "Время", value: "timestamp", align: "start", sortable: true, isVisible: true, width: 150, exportValue: exportTimelineTimestamp },
-  { text: "Тип", value: "type", align: "start", sortable: true, isVisible: true, width: 90, exportValue: exportTimelineType },
-  { text: "Статус", value: "fileStatus", align: "start", sortable: true, isVisible: true, width: 120 },
-  { text: "Описание", value: "details", align: "start", sortable: false, isVisible: true, width: 360 },
+  {
+    text: "Время",
+    value: "timestamp",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 150,
+    exportValue: exportTimelineTimestamp,
+  },
+  {
+    text: "Тип",
+    value: "type",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 90,
+    exportValue: exportTimelineType,
+  },
+  {
+    text: "Статус",
+    value: "fileStatus",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 120,
+  },
+  {
+    text: "Описание",
+    value: "details",
+    align: "start",
+    sortable: false,
+    isVisible: true,
+    width: 360,
+  },
 ];
 
 const historyHeaders: Header[] = [
-  { text: "Время", value: "ts", align: "start", sortable: true, isVisible: true, width: 150, exportValue: exportHistoryTimestamp },
-  { text: "Тип", value: "type", align: "start", sortable: true, isVisible: true, width: 90, exportValue: exportHistoryType },
-  { text: "Описание", value: "label", align: "start", sortable: false, isVisible: true, width: 360 },
+  {
+    text: "Время",
+    value: "ts",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 150,
+    exportValue: exportHistoryTimestamp,
+  },
+  {
+    text: "Тип",
+    value: "type",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 90,
+    exportValue: exportHistoryType,
+  },
+  {
+    text: "Описание",
+    value: "label",
+    align: "start",
+    sortable: false,
+    isVisible: true,
+    width: 360,
+  },
 ];
 
 watch(

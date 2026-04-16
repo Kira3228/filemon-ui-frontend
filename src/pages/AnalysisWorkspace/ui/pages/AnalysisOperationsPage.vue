@@ -2,9 +2,15 @@
   <section class="app-surface analysis-page-card">
     <header class="analysis-page-header">
       <span>Все файловые операции</span>
-      <span class="analysis-page-meta">{{ scopedOperations.length }} последних операций</span>
+      <span class="analysis-page-meta"
+        >{{ scopedOperations.length }} последних операций</span
+      >
     </header>
-    <div ref="tableHostRef" class="analysis-page-table-shell" @mousedown.capture="handleTablePointerDown">
+    <div
+      ref="tableHostRef"
+      class="analysis-page-table-shell"
+      @mousedown.capture="handleTablePointerDown"
+    >
       <DataTable
         :headers="headers"
         :items="scopedOperations"
@@ -29,7 +35,8 @@
             :title="scopedFile?.path || `Файл #${scopedFileId}`"
           >
             <span class="analysis-route-filter-text">
-              <strong>Файл:</strong> {{ scopedFile?.name || `#${scopedFileId}` }}
+              <strong>Файл:</strong>
+              {{ scopedFile?.name || `#${scopedFileId}` }}
             </span>
             <button
               type="button"
@@ -41,34 +48,64 @@
             </button>
           </span>
         </template>
-        <template #item.timestamp="{ value }">{{ formatTs(value) }}</template>
-        <template #item.trackingStartedAt="{ value }">{{ formatTs(value) }}</template>
-        <template #item.statusTime="{ value }">{{ formatTs(value) }}</template>
-        <template #item.type="{ value }">
-          <span class="analysis-badge" :class="badgeClass(value)">{{ eventTypeLabel(value) }}</span>
+        <template #[`item.timestamp`]="{ value }">{{
+          formatTs(value)
+        }}</template>
+        <template #[`item.trackingStartedAt`]="{ value }">{{
+          formatTs(value)
+        }}</template>
+        <template #[`item.statusTime`]="{ value }">{{
+          formatTs(value)
+        }}</template>
+        <template #[`item.type`]="{ value }">
+          <span class="analysis-badge" :class="badgeClass(value)">{{
+            eventTypeLabel(value)
+          }}</span>
         </template>
-        <template #item.fileName="{ item }">
-          <div class="analysis-file-cell" :title="`${item.fileName}\n${item.path}`">
+        <template #[`item.fileName`]="{ item }">
+          <div
+            class="analysis-file-cell"
+            :title="`${item.fileName}\n${item.path}`"
+          >
             <strong class="analysis-file-title">{{ item.fileName }}</strong>
             <span class="analysis-file-caption">{{ item.path }}</span>
           </div>
         </template>
-        <template #item.inode="{ value }">{{ value === null || value === undefined ? "—" : value }}</template>
-        <template #item.fileVersionNumber="{ value }">{{ value === null || value === undefined ? "—" : `v${value}` }}</template>
-        <template #item.processName="{ value }">{{ value || "—" }}</template>
-        <template #item.processVersionNumber="{ value }">{{ value === null || value === undefined ? "—" : `v${value}` }}</template>
-        <template #item.originFileName="{ item }">
-          <div class="analysis-file-inline" :title="item.originFilePath || item.originFileName || '—'">
-            <span v-if="item.originFileName" class="analysis-file-name">{{ item.originFileName }}</span>
+        <template #[`item.inode`]="{ value }">{{
+          value === null || value === undefined ? "—" : value
+        }}</template>
+        <template #[`item.fileVersionNumber`]="{ value }">{{
+          value === null || value === undefined ? "—" : `v${value}`
+        }}</template>
+        <template #[`item.processName`]="{ value }">{{
+          value || "—"
+        }}</template>
+        <template #[`item.processVersionNumber`]="{ value }">{{
+          value === null || value === undefined ? "—" : `v${value}`
+        }}</template>
+        <template #[`item.originFileName`]="{ item }">
+          <div
+            class="analysis-file-inline"
+            :title="item.originFilePath || item.originFileName || '—'"
+          >
+            <span v-if="item.originFileName" class="analysis-file-name">{{
+              item.originFileName
+            }}</span>
             <span v-else>—</span>
           </div>
         </template>
-        <template #item.fileStatus="{ value }">
-          <span class="analysis-badge" :class="statusBadgeClass(value)">{{ value || "—" }}</span>
+        <template #[`item.fileStatus`]="{ value }">
+          <span class="analysis-badge" :class="statusBadgeClass(value)">{{
+            value || "—"
+          }}</span>
         </template>
-        <template #item.depth="{ value }">{{ value === null || value === undefined ? "—" : value }}</template>
-        <template #item.user="{ value }">{{ value || "—" }}</template>
-        <template #item.sizeBytes="{ value }">{{ value === null || value === undefined ? "—" : value }}</template>
+        <template #[`item.depth`]="{ value }">{{
+          value === null || value === undefined ? "—" : value
+        }}</template>
+        <template #[`item.user`]="{ value }">{{ value || "—" }}</template>
+        <template #[`item.sizeBytes`]="{ value }">{{
+          value === null || value === undefined ? "—" : value
+        }}</template>
       </DataTable>
     </div>
   </section>
@@ -86,33 +123,155 @@ import { useAnalysisWorkspace } from "../../model/use-analysis-workspace";
 import { useRouteFileScope } from "../../model/use-route-file-scope";
 import AnalysisFileDetailsToggle from "../components/AnalysisFileDetailsToggle.vue";
 
-const { badgeClass, eventTypeLabel, filteredOperations, formatTs, setSelectedFile, statusBadgeClass } = useAnalysisWorkspace();
+const {
+  badgeClass,
+  eventTypeLabel,
+  filteredOperations,
+  formatTs,
+  setSelectedFile,
+  statusBadgeClass,
+} = useAnalysisWorkspace();
 const { fileDetailsVisible, setFileDetailsVisible } = useAnalysisUiSettings();
-const { router, scopedFile, scopedFileId, clearScopedFile } = useRouteFileScope();
+const { router, scopedFile, scopedFileId, clearScopedFile } =
+  useRouteFileScope();
 const scopedOperations = computed(() =>
   filterItemsByFileId(filteredOperations.value, scopedFileId.value),
 );
-const exportOperationTimestamp = (item: AnalysisOperationItem) => formatTs(item.timestamp);
-const exportOperationType = (item: AnalysisOperationItem) => eventTypeLabel(item.type);
-const exportOperationTrackingStartedAt = (item: AnalysisOperationItem) => formatTs(item.trackingStartedAt);
-const exportOperationStatusTime = (item: AnalysisOperationItem) => formatTs(item.statusTime);
+const exportOperationTimestamp = (item: AnalysisOperationItem) =>
+  formatTs(item.timestamp);
+const exportOperationType = (item: AnalysisOperationItem) =>
+  eventTypeLabel(item.type);
+const exportOperationTrackingStartedAt = (item: AnalysisOperationItem) =>
+  formatTs(item.trackingStartedAt);
+const exportOperationStatusTime = (item: AnalysisOperationItem) =>
+  formatTs(item.statusTime);
 
 const headers: Header[] = [
-  { text: "Время операции", value: "timestamp", align: "start", sortable: true, isVisible: true, width: 150, exportValue: exportOperationTimestamp },
-  { text: "Файл", value: "fileName", align: "start", sortable: true, isVisible: true, width: 220, wrap: true },
-  { text: "Индексный дескриптор (inode)", value: "inode", align: "start", sortable: true, isVisible: true, width: 96 },
-  { text: "Тип", value: "type", align: "start", sortable: true, isVisible: true, width: 90, exportValue: exportOperationType },
-  { text: "Версия файла", value: "fileVersionNumber", align: "start", sortable: true, isVisible: true, width: 100 },
-  { text: "Процесс", value: "processName", align: "start", sortable: true, isVisible: true, width: 150 },
-  { text: "Версия процесса", value: "processVersionNumber", align: "start", sortable: true, isVisible: true, width: 112 },
-  { text: "Оригинальный файл", value: "originFileName", align: "start", sortable: true, isVisible: true, width: 180 },
-  { text: "Статус файла", value: "fileStatus", align: "start", sortable: true, isVisible: true, width: 120 },
-  { text: "Глубина", value: "depth", align: "start", sortable: true, isVisible: true, width: 86 },
-  { text: "Пользователь", value: "user", align: "start", sortable: true, isVisible: true, width: 110 },
-  { text: "Размер", value: "sizeBytes", align: "start", sortable: true, isVisible: true, width: 90 },
-  { text: "Старт отслеживания", value: "trackingStartedAt", align: "start", sortable: true, isVisible: true, width: 150, exportValue: exportOperationTrackingStartedAt },
-  { text: "Время статуса", value: "statusTime", align: "start", sortable: true, isVisible: true, width: 150, exportValue: exportOperationStatusTime },
-  { text: "Путь", value: "path", align: "start", sortable: false, isVisible: true, width: 320 },
+  {
+    text: "Время операции",
+    value: "timestamp",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 150,
+    exportValue: exportOperationTimestamp,
+  },
+  {
+    text: "Файл",
+    value: "fileName",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 220,
+    wrap: true,
+  },
+  {
+    text: "Индексный дескриптор (inode)",
+    value: "inode",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 96,
+  },
+  {
+    text: "Тип",
+    value: "type",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 90,
+    exportValue: exportOperationType,
+  },
+  {
+    text: "Версия файла",
+    value: "fileVersionNumber",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 100,
+  },
+  {
+    text: "Процесс",
+    value: "processName",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 150,
+  },
+  {
+    text: "Версия процесса",
+    value: "processVersionNumber",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 112,
+  },
+  {
+    text: "Оригинальный файл",
+    value: "originFileName",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 180,
+  },
+  {
+    text: "Статус файла",
+    value: "fileStatus",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 120,
+  },
+  {
+    text: "Глубина",
+    value: "depth",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 86,
+  },
+  {
+    text: "Пользователь",
+    value: "user",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 110,
+  },
+  {
+    text: "Размер",
+    value: "sizeBytes",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 90,
+  },
+  {
+    text: "Старт отслеживания",
+    value: "trackingStartedAt",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 150,
+    exportValue: exportOperationTrackingStartedAt,
+  },
+  {
+    text: "Время статуса",
+    value: "statusTime",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 150,
+    exportValue: exportOperationStatusTime,
+  },
+  {
+    text: "Путь",
+    value: "path",
+    align: "start",
+    sortable: false,
+    isVisible: true,
+    width: 320,
+  },
 ];
 
 const openFile = (fileId: number) => {
@@ -138,11 +297,15 @@ const {
   items: scopedOperations,
   getKey: (item) => item.id,
   onSelect: (item) => {
-    if (!item.fileId) { return; }
+    if (!item.fileId) {
+      return;
+    }
     setSelectedFile(item.fileId);
   },
   onOpen: (item) => {
-    if (!item.fileId) { return; }
+    if (!item.fileId) {
+      return;
+    }
     openFile(item.fileId);
   },
 });

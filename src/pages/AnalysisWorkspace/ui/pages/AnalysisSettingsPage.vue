@@ -17,7 +17,11 @@
           >
             Вернуться назад
           </button>
-          <button type="button" class="analysis-settings-reset" @click="resetAllSettings">
+          <button
+            type="button"
+            class="analysis-settings-reset"
+            @click="resetAllSettings"
+          >
             Сбросить интерфейс
           </button>
         </div>
@@ -35,16 +39,20 @@
                   type="checkbox"
                   @change="handleAutoRefreshToggle"
                 />
-                <span>{{ autoRefreshEnabledDraft ? "Включено" : "Выключено" }}</span>
+                <span>{{
+                  autoRefreshEnabledDraft ? "Включено" : "Выключено"
+                }}</span>
               </label>
               <span class="analysis-settings-hint">
-                По умолчанию автообновление выключено, данные можно обновить вручную кнопкой.
+                По умолчанию автообновление выключено, данные можно обновить
+                вручную кнопкой.
               </span>
             </div>
 
             <label class="analysis-settings-field">
               <span class="analysis-settings-label">
-                Интервал автообновления: {{ autoRefreshIntervalSecondsDraft }} сек.
+                Интервал автообновления:
+                {{ autoRefreshIntervalSecondsDraft }} сек.
               </span>
               <input
                 :value="autoRefreshIntervalSecondsDraft"
@@ -76,7 +84,8 @@
                 </option>
               </select>
               <span class="analysis-settings-hint">
-                Эта вкладка будет открываться первой, когда сохраненных вкладок еще нет.
+                Эта вкладка будет открываться первой, когда сохраненных вкладок
+                еще нет.
               </span>
             </label>
 
@@ -109,14 +118,16 @@
                 @input="handleDatabasePathInput"
               />
               <span class="analysis-settings-hint">
-                Значение сохраняется на сервере и будет использоваться при следующем запуске.
+                Значение сохраняется на сервере и будет использоваться при
+                следующем запуске.
               </span>
             </div>
 
             <div class="analysis-settings-field">
               <span class="analysis-settings-label">Панели workspace</span>
               <span class="analysis-settings-hint">
-                Ширина панелей теперь задается напрямую через docking-разделители в самих рабочих областях.
+                Ширина панелей теперь задается напрямую через
+                docking-разделители в самих рабочих областях.
               </span>
             </div>
           </div>
@@ -124,7 +135,9 @@
 
         <article class="analysis-settings-card">
           <div class="analysis-settings-card__title">Текущее состояние</div>
-          <div class="analysis-settings-card__body analysis-settings-card__body--compact">
+          <div
+            class="analysis-settings-card__body analysis-settings-card__body--compact"
+          >
             <div class="analysis-settings-kv">
               <span>Активный источник</span>
               <span>{{ selectedSourceName }}</span>
@@ -139,11 +152,15 @@
             </div>
             <div class="analysis-settings-kv">
               <span>Обновлено</span>
-              <span>{{ databaseUpdatedAt ? formatTs(databaseUpdatedAt) : "—" }}</span>
+              <span>{{
+                databaseUpdatedAt ? formatTs(databaseUpdatedAt) : "—"
+              }}</span>
             </div>
             <div class="analysis-settings-kv">
               <span>Снимок</span>
-              <span>{{ snapshotAt ? formatTs(snapshotAt) : "Без ограничения" }}</span>
+              <span>{{
+                snapshotAt ? formatTs(snapshotAt) : "Без ограничения"
+              }}</span>
             </div>
             <div class="analysis-settings-kv">
               <span>Вкладка по умолчанию</span>
@@ -214,19 +231,13 @@ import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router/composables";
 import { useTheme } from "@/shared-ui/theme/use-theme";
 import { useApi } from "@/shared/api/http";
-import {
-  DatabaseConnectionSettings,
-  UpdateDatabaseSettingsRequest,
-} from "@/shared/api/contracts";
-import {
-  useDatabaseState,
-} from "@/shared/model/use-database-state";
+import { useDatabaseState } from "@/shared/model/use-database-state";
 import { useAnalysisWorkspace } from "../../model/use-analysis-workspace";
 import {
   DEFAULT_ANALYSIS_SECTION_KEY,
+  TAnalysisSectionKey,
   analysisSections,
   getAnalysisSectionByKey,
-  TAnalysisSectionKey,
 } from "../../model/analysis-sections";
 import {
   AUTO_REFRESH_INTERVAL_DEFAULT_SECONDS,
@@ -260,8 +271,12 @@ const {
 } = useAnalysisUiSettings();
 const themeDraft = ref<ThemeMode>("light");
 const autoRefreshEnabledDraft = ref(false);
-const autoRefreshIntervalSecondsDraft = ref(AUTO_REFRESH_INTERVAL_DEFAULT_SECONDS);
-const defaultAnalysisTabKeyDraft = ref<TAnalysisSectionKey>(DEFAULT_ANALYSIS_SECTION_KEY);
+const autoRefreshIntervalSecondsDraft = ref(
+  AUTO_REFRESH_INTERVAL_DEFAULT_SECONDS,
+);
+const defaultAnalysisTabKeyDraft = ref<TAnalysisSectionKey>(
+  DEFAULT_ANALYSIS_SECTION_KEY,
+);
 const databasePathDraft = ref("");
 const savedDatabasePath = ref("");
 const databaseConfigPath = ref("");
@@ -276,38 +291,50 @@ const themeOptions = [
   { label: "Светлая", value: "light" },
   { label: "Темная", value: "dark" },
 ];
-const isDatabasePathDirty = computed(() =>
-  databasePathDraft.value.trim() !== savedDatabasePath.value.trim(),
+const isDatabasePathDirty = computed(
+  () => databasePathDraft.value.trim() !== savedDatabasePath.value.trim(),
 );
-const isUiSettingsDirty = computed(() =>
-  themeDraft.value !== currentTheme.value
-  || autoRefreshEnabledDraft.value !== autoRefreshEnabled.value
-  || autoRefreshIntervalSecondsDraft.value !== autoRefreshIntervalSeconds.value
-  || defaultAnalysisTabKeyDraft.value !== defaultAnalysisTabKey.value,
+const isUiSettingsDirty = computed(
+  () =>
+    themeDraft.value !== currentTheme.value ||
+    autoRefreshEnabledDraft.value !== autoRefreshEnabled.value ||
+    autoRefreshIntervalSecondsDraft.value !==
+      autoRefreshIntervalSeconds.value ||
+    defaultAnalysisTabKeyDraft.value !== defaultAnalysisTabKey.value,
 );
-const isSettingsDirty = computed(() => isDatabasePathDirty.value || isUiSettingsDirty.value);
-const canSaveSettings = computed(() =>
-  !databaseLoading.value
-  && !settingsSaving.value
-  && Boolean(databasePathDraft.value.trim())
-  && isSettingsDirty.value,
+const isSettingsDirty = computed(
+  () => isDatabasePathDirty.value || isUiSettingsDirty.value,
+);
+const canSaveSettings = computed(
+  () =>
+    !databaseLoading.value &&
+    !settingsSaving.value &&
+    Boolean(databasePathDraft.value.trim()) &&
+    isSettingsDirty.value,
 );
 
 const selectedSourceName = computed(() =>
-  selectedSource.value && selectedSource.value.name ? selectedSource.value.name : "Все источники",
+  selectedSource.value && selectedSource.value.name
+    ? selectedSource.value.name
+    : "Все источники",
 );
 const reportFilesCount = computed(() =>
-  report.value && report.value.overview && typeof report.value.overview.files !== "undefined"
+  report.value &&
+  report.value.overview &&
+  typeof report.value.overview.files !== "undefined"
     ? report.value.overview.files
     : 0,
 );
 const reportSourcesCount = computed(() =>
-  report.value && report.value.overview && typeof report.value.overview.sources !== "undefined"
+  report.value &&
+  report.value.overview &&
+  typeof report.value.overview.sources !== "undefined"
     ? report.value.overview.sources
     : 0,
 );
-const defaultAnalysisTabLabel = computed(() =>
-  getAnalysisSectionByKey(defaultAnalysisTabKey.value)?.label || "Источники",
+const defaultAnalysisTabLabel = computed(
+  () =>
+    getAnalysisSectionByKey(defaultAnalysisTabKey.value)?.label || "Источники",
 );
 const openTabsLabel = computed(() =>
   openAnalysisTabKeys.value
@@ -348,23 +375,27 @@ const loadDatabaseSettings = async () => {
   settingsErrorMessage.value = "";
 
   try {
-    const settings = await get<DatabaseConnectionSettings>("/settings/database");
+    const settings = await get<DatabaseConnectionSettings>(
+      "/settings/database",
+    );
     applyDatabaseSettings(settings);
 
     if (route.query.focusDatabasePath) {
       focusDatabasePathInput();
     }
   } catch (error: unknown) {
-    settingsErrorMessage.value = error instanceof Error
-      ? error.message
-      : "Не удалось загрузить настройки базы данных.";
+    settingsErrorMessage.value =
+      error instanceof Error
+        ? error.message
+        : "Не удалось загрузить настройки базы данных.";
   } finally {
     databaseLoading.value = false;
   }
 };
 
 const handleThemeChange = (event: Event) => {
-  themeDraft.value = ((event.target as HTMLSelectElement)?.value || "light") as ThemeMode;
+  themeDraft.value = ((event.target as HTMLSelectElement)?.value ||
+    "light") as ThemeMode;
   clearSettingsMessages();
 };
 
@@ -374,13 +405,15 @@ const handleDatabasePathInput = (event: Event) => {
 };
 
 const handleAutoRefreshToggle = (event: Event) => {
-  autoRefreshEnabledDraft.value = Boolean((event.target as HTMLInputElement)?.checked);
+  autoRefreshEnabledDraft.value = Boolean(
+    (event.target as HTMLInputElement)?.checked,
+  );
   clearSettingsMessages();
 };
 
 const handleDefaultAnalysisTabChange = (event: Event) => {
-  defaultAnalysisTabKeyDraft.value =
-    (event.target as HTMLSelectElement)?.value as TAnalysisSectionKey;
+  defaultAnalysisTabKeyDraft.value = (event.target as HTMLSelectElement)
+    ?.value as TAnalysisSectionKey;
   clearSettingsMessages();
 };
 
@@ -419,7 +452,10 @@ const saveAllSettings = async () => {
 
   try {
     if (isDatabasePathDirty.value) {
-      const settings = await patch<DatabaseConnectionSettings, UpdateDatabaseSettingsRequest>("/settings/database", {
+      const settings = await patch<
+        DatabaseConnectionSettings,
+        UpdateDatabaseSettingsRequest
+      >("/settings/database", {
         databasePath: nextDatabasePath,
       });
 
@@ -433,9 +469,10 @@ const saveAllSettings = async () => {
     setDefaultAnalysisTabKey(defaultAnalysisTabKeyDraft.value);
     settingsSuccessMessage.value = "Настройки сохранены.";
   } catch (error: unknown) {
-    settingsErrorMessage.value = error instanceof Error
-      ? error.message
-      : "Не удалось сохранить настройки.";
+    settingsErrorMessage.value =
+      error instanceof Error
+        ? error.message
+        : "Не удалось сохранить настройки.";
   } finally {
     settingsSaving.value = false;
   }
@@ -643,7 +680,8 @@ watch(
   padding: 0.65rem 0.95rem;
   cursor: pointer;
   font-weight: 600;
-  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+  transition: border-color 0.2s ease, color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .analysis-settings-inline-button:hover,

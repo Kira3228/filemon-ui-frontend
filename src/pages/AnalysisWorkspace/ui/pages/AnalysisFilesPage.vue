@@ -68,31 +68,31 @@
                   </button>
                 </span>
               </template>
-              <template #item.name="{ item }">
+              <template #[`item.name`]="{ item }">
                 <div class="analysis-file-cell" :title="`${item.name}\n${item.path}`">
                   <strong class="analysis-file-title">{{ item.name }}</strong>
                   <span class="analysis-file-caption">{{ item.path }}</span>
                 </div>
               </template>
-              <template #item.pathHistory="{ item }">
+              <template #[`item.pathHistory`]="{ item }">
                 <div class="analysis-file-inline" :title="item.pathHistory.join(' -> ')">
                   {{ item.pathHistory.join(" -> ") }}
                 </div>
               </template>
-              <template #item.sourceLabels="{ item }">
+              <template #[`item.sourceLabels`]="{ item }">
                 <div class="analysis-file-inline" :title="formatLinks(item.sourceLabels)">
                   {{ formatLinks(item.sourceLabels) }}
                 </div>
               </template>
-              <template #item.filesystem="{ item }">{{ item.filesystem || item.filesystemUuid || "—" }}</template>
-              <template #item.inode="{ value }">{{ value === null || value === undefined ? "—" : value }}</template>
-              <template #item.originProcess="{ value }">{{ value || "—" }}</template>
-              <template #item.currentStatus="{ value }">
+              <template #[`item.filesystem`]="{ item }">{{ item.filesystem || item.filesystemUuid || "—" }}</template>
+              <template #[`item.inode`]="{ value }">{{ value === null || value === undefined ? "—" : value }}</template>
+              <template #[`item.originProcess`]="{ value }">{{ value || "—" }}</template>
+              <template #[`item.currentStatus`]="{ value }">
                 <span class="analysis-badge" :class="statusBadgeClass(value)">{{ value || "—" }}</span>
               </template>
-              <template #item.user="{ value }">{{ value || "—" }}</template>
-              <template #item.birthTime="{ value }">{{ formatTs(value) }}</template>
-              <template #item.trackingStartedAt="{ value }">{{ formatTs(value) }}</template>
+              <template #[`item.user`]="{ value }">{{ value || "—" }}</template>
+              <template #[`item.birthTime`]="{ value }">{{ formatTs(value) }}</template>
+              <template #[`item.trackingStartedAt`]="{ value }">{{ formatTs(value) }}</template>
             </DataTable>
           </div>
         </section>
