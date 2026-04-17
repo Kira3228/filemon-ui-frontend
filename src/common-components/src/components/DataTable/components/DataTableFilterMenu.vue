@@ -10,20 +10,16 @@
       {{ header.text }}
     </div>
     <div class="compact-data-table__filter-modes">
-      <UiButton variant="secondary" active size="medium">Список</UiButton>
-      <UiButton variant="secondary" size="medium">Вхождение</UiButton>
-      <button
+      <UiButton
         v-for="mode in availableModes"
         :key="mode"
-        type="button"
-        class="compact-data-table__filter-mode"
-        :class="{
-          'compact-data-table__filter-mode--active': activeMode === mode,
-        }"
+        variant="secondary"
+        size="small"
+        :active="activeMode === mode"
         @click="$emit('set-mode', mode)"
       >
         {{ filterModeLabels[mode] }}
-      </button>
+      </UiButton>
     </div>
     <template v-if="activeMode === 'select'">
       <input
@@ -34,20 +30,17 @@
         @input="handleSearchInput"
       />
       <div class="compact-data-table__filter-actions">
-        <button
-          type="button"
-          class="compact-data-table__filter-action"
-          @click="$emit('select-all')"
-        >
+        <UiButton size="small" variant="secondary" @click="$emit('select-all')">
           Выделить все
-        </button>
-        <button
-          type="button"
-          class="compact-data-table__filter-action"
+        </UiButton>
+
+        <UiButton
+          size="small"
+          variant="secondary"
           @click="$emit('clear-draft')"
         >
           Снять все
-        </button>
+        </UiButton>
       </div>
       <div class="compact-data-table__filter-options">
         <label
@@ -117,20 +110,12 @@
       </div>
     </template>
     <div class="compact-data-table__filter-footer">
-      <button
-        type="button"
-        class="compact-data-table__filter-footer-button"
-        @click="$emit('close')"
-      >
+      <UiButton variant="secondary" size="small" @click="$emit('close')">
         Отмена
-      </button>
-      <button
-        type="button"
-        class="compact-data-table__filter-footer-button compact-data-table__filter-footer-button--primary"
-        @click="$emit('apply')"
-      >
+      </UiButton>
+      <UiButton variant="primary" size="small" @click="$emit('apply')">
         Применить
-      </button>
+      </UiButton>
     </div>
   </div>
 </template>
