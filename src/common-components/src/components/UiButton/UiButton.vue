@@ -2,7 +2,7 @@
   <PrimeButton
     @click="$emit('click', $event)"
     :disabled="isDisabled"
-    :class="[buttonVariant, buttonSize, activeStyle]"
+    :class="[buttonVariant, sizeVariant, activeState]"
     class="app-button"
     v-bind="$attrs"
   >
@@ -33,7 +33,7 @@ interface Props {
     | "icon"
     | "small-text"
     | "small-icon";
-  size?: "small" | "medium" | "large";
+  size?: "small" | "medium" | "large" | "xSmall";
   active?: boolean;
 }
 
@@ -47,124 +47,203 @@ const props = withDefaults(defineProps<Props>(), {
 
 const buttonVariant = computed(() => {
   return {
-    "p-button-rounded primary": props.variant === "primary",
-    "p-button-outlined p-button-rounded secondary":
-      props.variant === "secondary",
-    "p-button-rounded text":
-      props.variant === "text" || props.variant === "small-text",
-    "icon text": props.variant === "icon" || props.variant === "small-icon",
+    primary: props.variant === "primary",
+    secondary: props.variant === "secondary",
+    text: props.variant === "text",
   };
 });
 
-const activeStyle = computed(() => {
+const sizeVariant = computed(() => {
+  return {
+    "size-extra-small": props.size === "xSmall",
+    "size-small": props.size === "small",
+    "size-medium": props.size === "medium",
+    "size-large": props.size === "large",
+  };
+});
+
+const activeState = computed(() => {
   return {
     active: props.active,
   };
 });
 
-const buttonSize = computed(() => {
-  return {
-    "p-button-sm size-small":
-      props.size === "small" ||
-      props.variant === "small-text" ||
-      props.variant === "small-icon",
-    "size-medium": props.size === "medium",
-    "p-button-lg size-large": props.size === "large",
-  };
-});
+// const buttonVariant = computed(() => {
+//   return {
+//     "p-button-rounded primary": props.variant === "primary",
+//     "p-button-outlined p-button-rounded secondary":
+//       props.variant === "secondary",
+//     "p-button-rounded text":
+//       props.variant === "text" || props.variant === "small-text",
+//     "icon text": props.variant === "icon" || props.variant === "small-icon",
+//   };
+// });
+
+// const activeStyle = computed(() => {
+//   return {
+//     active: props.active,
+//   };
+// });
+
+// const buttonSize = computed(() => {
+//   return {
+//     "p-button-sm size-small":
+//       props.size === "small" ||
+//       props.variant === "small-text" ||
+//       props.variant === "small-icon",
+//     "size-medium": props.size === "medium",
+//     "p-button-lg size-large": props.size === "large",
+//   };
+// });
 </script>
 <style scoped lang="scss">
 .app-button {
   display: inline-flex;
   gap: 0.35rem;
   justify-content: center;
-}
-
-.p-button.p-button-outlined {
-  color: var(--app-text);
-  border-color: var(--app-border);
-  font-size: 12px;
+  border-radius: 999px;
   font-weight: 600;
-  box-shadow: var(--dt-button-shadow);
-  border: 1px solid var(--app-border);
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.p-button.primary {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 600;
-  box-shadow: var(--dt-button-shadow);
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.p-button.primary:hover:not(:disabled) {
-  background-color: var(--hover-color-primary);
-  border-color: var(--hover-color-primary);
-  color: #ffffff;
-}
-
-.secondary {
-  background-color: var(--color-secondary);
-  border-color: var(--app-primary);
-  color: var(--app-text);
-}
-
-.p-button.p-button-outlined.secondary:hover:not(:disabled) {
-  background-color: rgba(0, 0, 0, 0.04);
-  border-color: var(--app-border);
-  color: var(--app-text);
-}
-
-.text {
-  background-color: transparent;
-  border-color: transparent;
-  color: #5d6b82;
-  font-weight: 600;
-}
-.text:hover:not(:disabled) {
-  background-color: transparent;
-  border-color: transparent;
-  color: #5d6b82;
-}
-.text:focus {
-  box-shadow: none;
-}
-
-.size-small {
-  font-size: 0.625rem;
-  padding: 0px;
-}
-
-.size-medium {
-  font-size: 12px;
-}
-
-.size-large {
-  font-size: 14px;
-}
-
-.icon {
-  padding: 0;
-  ium {
-    font-size: 12px;
+  &:focus {
+    box-shadow: none;
   }
 }
 
-.size-large {
-  font-size: 14px;
+.primary {
+  background-color: var(--color-primary);
+  &:hover:not(:disabled) {
+    background-color: var(--hover-color-primary);
+  }
+}
+.secondary {
+  background-color: var(--color-secondary);
+  color: var(--app-text);
+  border: 1px solid rgba(37, 99, 235, 0.24);
+  &:hover:not(:disabled) {
+    color: var(--app-text);
+    background-color: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(37, 99, 235, 0.24);
+  }
+}
+.text {
+  background-color: transparent;
+  color: var(--app-text);
+  border-color: transparent;
+
+  &:hover:not(:disabled),
+  &:enabled:hover {
+    background-color: transparent;
+    color: var(--app-text);
+    border-color: transparent;
+  }
+
+  &:focus {
+    box-shadow: none;
+  }
+}
+.size-extra-small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
 }
 
-.icon {
-  padding: 0;
+.size-small {
+  font-size: 0.655rem;
+  padding: 0.3125rem 0.625rem;
+}
+
+.size-medium {
+  padding: 0.42rem 0.92rem;
+  font-size: 0.75rem;
 }
 
 .active {
   background-color: var(--active-bg-color-primary);
   border-color: var(--color-primary);
-  // color: var(--color-primary);
-  color: blue;
 }
+// .p-button.p-button-outlined {
+//   color: var(--app-text);
+//   border-color: var(--app-border);
+//   font-size: 12px;
+//   font-weight: 600;
+//   box-shadow: var(--dt-button-shadow);
+//   border: 1px solid var(--app-border);
+//   transition: background-color 0.15s ease, border-color 0.15s ease;
+// }
+
+// .p-button.primary {
+//   background-color: var(--color-primary);
+//   border-color: var(--color-primary);
+//   color: #ffffff;
+//   font-size: 12px;
+//   font-weight: 600;
+//   box-shadow: var(--dt-button-shadow);
+//   transition: background-color 0.15s ease, border-color 0.15s ease;
+// }
+
+// .p-button.primary:hover:not(:disabled) {
+//   background-color: var(--hover-color-primary);
+//   border-color: var(--hover-color-primary);
+//   color: #ffffff;
+// }
+
+// .secondary {
+//   background-color: var(--color-secondary);
+//   border-color: var(--app-primary);
+//   color: var(--app-text);
+// }
+
+// .p-button.p-button-outlined.secondary:hover:not(:disabled) {
+//   background-color: rgba(0, 0, 0, 0.04);
+//   border-color: var(--app-border);
+//   color: var(--app-text);
+// }
+
+// .text {
+//   background-color: transparent;
+//   border-color: transparent;
+//   color: #5d6b82;
+//   font-weight: 600;
+// }
+// .text:hover:not(:disabled) {
+//   background-color: transparent;
+//   border-color: transparent;
+//   color: #5d6b82;
+// }
+// .text:focus {
+//   box-shadow: none;
+// }
+
+// .size-small {
+//   font-size: 0.625rem;
+//   padding: 0px;
+// }
+
+// .size-medium {
+//   font-size: 12px;
+// }
+
+// .size-large {
+//   font-size: 14px;
+// }
+
+// .icon {
+//   padding: 0;
+//   ium {
+//     font-size: 12px;
+//   }
+// }
+
+// .size-large {
+//   font-size: 14px;
+// }
+
+// .icon {
+//   padding: 0;
+// }
+
+// .active {
+//   background-color: var(--active-bg-color-primary);
+//   border-color: var(--color-primary);
+//   // color: var(--color-primary);
+//   color: blue;
+// }
 </style>

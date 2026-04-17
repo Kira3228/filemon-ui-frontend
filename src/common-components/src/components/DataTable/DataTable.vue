@@ -20,6 +20,7 @@
         <slot name="toolbar-actions" />
         <UiButton
           :variant="isColumnsPanelOpen ? 'primary' : 'secondary'"
+          size="medium"
           @click="toggleColumnsPanel"
         >
           <span class="pi pi-sliders-h" />
@@ -131,7 +132,8 @@
           <template #header>
             <div class="compact-data-table__header-inner">
               <UiButton
-                variant="small-text"
+                variant="text"
+                size="xSmall"
                 @click="handleHeaderSort(header, $event)"
               >
                 <span>
@@ -146,7 +148,8 @@
               <UiButton
                 @click.stop="toggleColumnFilter($event, header)"
                 v-if="header.filterable !== false"
-                variant="small-icon"
+                variant="text"
+                size="xSmall"
               >
                 <span class="pi pi-filter" />
                 <span
@@ -196,8 +199,8 @@
         </div>
       </div>
       <div
-        v-if="activeFilterSummaries.length || $slots['status-filters']"
         class="compact-data-table__status-filters"
+        v-if="activeFilterSummaries.length || $slots['status-filters']"
       >
         <span class="compact-data-table__status-filters-label">Фильтры:</span>
         <slot name="status-filters" />
@@ -212,7 +215,8 @@
           </span>
           <UiButton
             :aria-label="`Удалить фильтр ${filter.label}`"
-            variant="small-icon"
+            variant="text"
+            size="xSmall"
             @click="clearColumnFilter(filter.key)"
           >
             <span class="pi pi-times" />
