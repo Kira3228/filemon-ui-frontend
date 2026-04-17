@@ -105,7 +105,7 @@
         <template #loading>
           <div class="compact-data-table__empty-state">Загрузка данных</div>
         </template>
-        <template v-if="$scopedSlots.groupheader" #groupheader="slotProps">
+        <template #groupheader="slotProps">
           <slot
             name="groupheader"
             :item="slotProps.data"
@@ -293,6 +293,7 @@ import { useDataTableKeyboardNavigation } from "./composables/useDataTableKeyboa
 import DataTableColumnsPanel from "./components/DataTableColumnsPanel.vue";
 import DataTableFilterMenu from "./components/DataTableFilterMenu.vue";
 import UiButton from "../UiButton/UiButton.vue";
+import { useDataTableSorting } from "./composables/useDataTableSorting";
 
 interface Props<I = unknown> {
   isLoading?: boolean;
@@ -374,11 +375,13 @@ const controlledActiveRowKey = computed<RowKey | null | undefined>(() => {
 
   return undefined;
 });
+
 const activeRowKey = computed<RowKey | null>(() =>
   controlledActiveRowKey.value !== undefined
     ? controlledActiveRowKey.value
     : internalActiveRowKey.value,
 );
+
 const {
   columnLayouts,
   orderedHeaders,
@@ -431,6 +434,25 @@ const {
   visibleHeaders,
 });
 
+const {
+  resolvedMultiSortMeta,
+  handleSort,
+  handleHeaderSort,
+  getSortIconClass,
+} = useDataTableSorting({
+  sortByList: computed(() => props.sortByList),
+  sortDescList: computed(() => props.sortDescList),
+  groupSortField,
+  rowGroupMode,
+  filteredItems,
+  visibleHeaders,
+  emitSortState: ({ sortBy, sortDesc }) => {
+    emits("update:sortBy", sortBy);
+    emits("update:sortDesc", sortDesc);
+    emits("change", { sortBy, sortDesc });
+  },
+});
+
 const normalizeSortMeta = (sortByList: unknown, sortDescList: unknown) => {
   const sortFields = Array.isArray(sortByList)
     ? sortByList
@@ -460,17 +482,6 @@ const stripForcedGroupSort = (meta: SortMeta[]) => {
 
   return meta.filter((item, index) => !(index === 0 && item.field === field));
 };
-const resolveMultiSortMeta = (meta: SortMeta[]) => {
-  const field = groupSortField.value;
-  if (!field || !rowGroupMode.value) {
-    return meta;
-  }
-
-  return [{ field, order: 1 }, ...meta.filter((item) => item.field !== field)];
-};
-const resolvedMultiSortMeta = computed(() =>
-  resolveMultiSortMeta(multiSortMeta.value),
-);
 
 watch(
   () => [props.sortByList, props.sortDescList],
@@ -495,12 +506,6 @@ const emitSortState = (meta: SortMeta[]) => {
   emits("update:sortBy", sortBy);
   emits("update:sortDesc", sortDesc);
   emits("change", { sortBy, sortDesc });
-};
-
-const handleSort = (event: { multiSortMeta?: SortMeta[] }) => {
-  const meta = stripForcedGroupSort(event.multiSortMeta || []);
-  multiSortMeta.value = meta;
-  emitSortState(meta);
 };
 
 const handleExpandedRowGroupsUpdate = (groups: unknown[]) => {
@@ -771,50 +776,6 @@ const autoFitVisibleColumns = () => {
       };
     }),
   );
-};
-
-const getSortOrder = (header: Header) =>
-  multiSortMeta.value.find((item) => item.field === header.value)?.order ??
-  null;
-
-const getSortIconClass = (header: Header) => {
-  const order = getSortOrder(header);
-  if (order === 1) {
-    return "pi-sort-amount-up-alt";
-  }
-  if (order === -1) {
-    return "pi-sort-amount-down";
-  }
-  return "pi-sort-alt";
-};
-
-const handleHeaderSort = (header: Header, event: MouseEvent) => {
-  if (!header.sortable) {
-    return;
-  }
-
-  const withExisting = event.ctrlKey || event.metaKey || event.shiftKey;
-  const currentSort =
-    multiSortMeta.value.find((item) => item.field === header.value) || null;
-  const nextMeta = withExisting
-    ? [...multiSortMeta.value]
-    : currentSort
-    ? [{ ...currentSort }]
-    : [];
-  const currentIndex = nextMeta.findIndex(
-    (item) => item.field === header.value,
-  );
-
-  if (currentIndex === -1) {
-    nextMeta.push({ field: header.value, order: 1 });
-  } else if (nextMeta[currentIndex].order === 1) {
-    nextMeta[currentIndex] = { field: header.value, order: -1 };
-  } else {
-    nextMeta.splice(currentIndex, 1);
-  }
-
-  multiSortMeta.value = nextMeta;
-  emitSortState(nextMeta);
 };
 
 const clearColumnDecorators = (columnValue: string) => {
