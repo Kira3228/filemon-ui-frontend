@@ -5,7 +5,7 @@ module.exports = {
   configureWebpack: {
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "src"), 
+        "@": path.resolve(__dirname, "src"),
         "@shared": path.resolve(__dirname, "src/shared-ui/src"),
       },
     },
@@ -13,11 +13,14 @@ module.exports = {
   css: {
     loaderOptions: {
       sass: {
-        additionalData: `@import "@/sass/variables.scss"`
+        additionalData: `@import "@/sass/variables.scss"`,
       },
       scss: {
-        additionalData: `@import "@/sass/variables.scss";`
-      }
-    }
+        additionalData: `@import "@/sass/variables.scss";`,
+      },
+    },
+  },
+  devServer: {
+    port: 3000,
   },
 };

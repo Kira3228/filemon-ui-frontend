@@ -29,6 +29,8 @@
           <span class="pi pi-sliders-h" />
           <span>Колонки</span>
         </button>
+        <UiButton variant="secondary" type="button">secondary</UiButton>
+        <UiButton variant="primary" type="button">primary</UiButton>
         <button
           v-for="action in exportActions"
           :key="action.format"
@@ -308,6 +310,7 @@ import { useDataTableExport } from "./composables/useDataTableExport";
 import { useDataTableKeyboardNavigation } from "./composables/useDataTableKeyboardNavigation";
 import DataTableColumnsPanel from "./components/DataTableColumnsPanel.vue";
 import DataTableFilterMenu from "./components/DataTableFilterMenu.vue";
+import UiButton from "../UiButton/UiButton.vue";
 
 interface Props<I = unknown> {
   isLoading?: boolean;

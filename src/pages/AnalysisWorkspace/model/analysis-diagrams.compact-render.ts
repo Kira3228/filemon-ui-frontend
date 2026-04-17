@@ -26,12 +26,14 @@ interface CompactRenderState {
 export const renderCompactFileTreeMermaid = ({
   fileItems,
   filteredFileVersions,
+  filteredProcessVersions,
   report,
   result,
   sourceFileIds,
 }: CompactRenderState) => {
   const { nodeFileIds, edgeCounts, edgeProcessIds } = result;
   const fileItemsById = new Map<number, AnalysisFileItem>(fileItems.map((item) => [Number(item.fileId), item] as const));
+  const processesById = new Map<number, AnalysisDiagramProcessVersion>(filteredProcessVersions.map((item) => [Number(item.processId), item] as const));
   const renameRowsByFile = groupRenameRowsByFile(report);
 
   const firstSeenByFile = new Map<number, string | null>();
@@ -59,6 +61,7 @@ export const renderCompactFileTreeMermaid = ({
 
   lines.push("classDef file fill:#eef2ff,stroke:#4f46e5,stroke-width:2px");
   lines.push("classDef source fill:#c8e6c9,stroke:#2e7d32,stroke-width:4px");
+
   for (const fileId of [...nodeFileIds].sort((a, b) => a - b)) {
     if (sourceFileIds.has(fileId)) {
       lines.push(`    class F${fileId} source`);
