@@ -263,14 +263,7 @@
 <script lang="ts" setup>
 import PrimeDataTable from "primevue/datatable";
 import Column from "primevue/column";
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  watch,
-} from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import type { Header } from "./header.type";
 import type { RowKey, SortMeta } from "./data-table.types";
 import {
@@ -279,21 +272,20 @@ import {
   getCellTitle,
   getFilterSourceValue,
   inferPrimaryItemKey,
-  isSameRowKey,
-  normalizeColumnWidth,
   resolveExportValue,
   resolveFieldData,
-  resolveRowKey,
-  stringifyExportValue,
 } from "./data-table.utils";
 import { useDataTableStatePersistence } from "./composables/useDataTableStatePersistence";
 import { useDataTableFiltering } from "./composables/useDataTableFiltering";
 import { useDataTableExport } from "./composables/useDataTableExport";
 import { useDataTableKeyboardNavigation } from "./composables/useDataTableKeyboardNavigation";
+import { useDataTableActiveRow } from "./composables/useDataTableActiveRow";
+import { useDataTableColumnAutoFit } from "./composables/useDataTableColumnAutoFit";
 import DataTableColumnsPanel from "./components/DataTableColumnsPanel.vue";
 import DataTableFilterMenu from "./components/DataTableFilterMenu.vue";
 import UiButton from "../UiButton/UiButton.vue";
 import { useDataTableSorting } from "./composables/useDataTableSorting";
+import { useDataTableFilterDismiss } from "./composables/useDataTableFilterDismiss";
 
 interface Props<I = unknown> {
   isLoading?: boolean;
@@ -359,27 +351,9 @@ const groupSortField = computed(() => {
 const rootRef = ref<HTMLElement | null>(null);
 const tableFocusRef = ref<HTMLElement | null>(null);
 const isColumnsPanelOpen = ref(false);
-const internalActiveRowKey = ref<RowKey | null>(null);
 
 const isKeyboardNavigationEnabled = computed(
   () => props.enableKeyboardNavigation !== false,
-);
-const controlledActiveRowKey = computed<RowKey | null | undefined>(() => {
-  if (props.activeRowKey !== undefined) {
-    return props.activeRowKey ?? null;
-  }
-
-  if (props.activeRow !== undefined) {
-    return resolveRowKey(props.activeRow, resolvedItemKey.value);
-  }
-
-  return undefined;
-});
-
-const activeRowKey = computed<RowKey | null>(() =>
-  controlledActiveRowKey.value !== undefined
-    ? controlledActiveRowKey.value
-    : internalActiveRowKey.value,
 );
 
 const {
@@ -539,60 +513,30 @@ const sortedExportItems = computed(() => {
   });
 });
 
-const isActiveRow = (item: unknown) =>
-  isSameRowKey(resolveRowKey(item, resolvedItemKey.value), activeRowKey.value);
+let activateKeyboardScopeHandler: (() => void) | null = null;
 
-const getActiveRowIndex = () =>
-  sortedExportItems.value.findIndex((item) =>
-    isSameRowKey(
-      resolveRowKey(item, resolvedItemKey.value),
-      activeRowKey.value,
-    ),
-  );
-
-const scrollActiveRowIntoView = () => {
-  nextTick(() => {
-    const row = rootRef.value?.querySelector(
-      ".compact-data-table__row--active",
-    );
-    if (!(row instanceof HTMLElement)) {
-      return;
-    }
-    row.scrollIntoView({ block: "nearest", inline: "nearest" });
-  });
-};
-
-const focusTableRoot = () => {
-  if (!isKeyboardNavigationEnabled.value) {
-    return;
-  }
-  tableFocusRef.value?.focus({ preventScroll: true });
-};
-
-const setActiveRow = (
-  item: unknown | null,
-  options: { emitClick?: boolean; scrollIntoView?: boolean } = {},
-) => {
-  const nextKey = resolveRowKey(item, resolvedItemKey.value);
-
-  if (controlledActiveRowKey.value === undefined) {
-    internalActiveRowKey.value = nextKey;
-  }
-
-  emits(`update:activeRow`, item);
-  emits(`update:activeRowKey`, nextKey);
-
-  if (item && options.emitClick) {
-    emits(`click-row`, item);
-  }
-
-  if (item && options.scrollIntoView !== false) {
-    scrollActiveRowIntoView();
-  }
-};
-
-const getRowClass = (item: unknown) => ({
-  "compact-data-table__row--active": isActiveRow(item),
+const {
+  activeRowKey,
+  focusTableRoot,
+  getActiveRowIndex,
+  getRowClass,
+  handleRowClick,
+  handleRowDblClick,
+  isActiveRow,
+  setActiveRow,
+} = useDataTableActiveRow({
+  activeRow: computed(() => props.activeRow),
+  activeRowKey: computed(() => props.activeRowKey),
+  enableKeyboardNavigation: isKeyboardNavigationEnabled,
+  itemKey: resolvedItemKey,
+  items: sortedExportItems,
+  rootRef,
+  tableFocusRef,
+  activateKeyboardScope: () => activateKeyboardScopeHandler?.(),
+  emitClickRow: (item) => emits(`click-row`, item),
+  emitDblClickRow: (item) => emits(`dblclick-row`, item),
+  emitActiveRow: (item) => emits(`update:activeRow`, item),
+  emitActiveRowKey: (key) => emits(`update:activeRowKey`, key),
 });
 
 const {
@@ -614,6 +558,8 @@ const {
   rootRef,
   tableFocusRef,
 });
+
+activateKeyboardScopeHandler = activateKeyboardScope;
 
 const totalRowsCount = computed(() => rawItems.value.length);
 const filteredRowsCount = computed(() => filteredItems.value.length);
@@ -639,18 +585,13 @@ const { exportActions, exportError, handleExport, isExporting } =
     visibleHeaders,
   });
 
-const handleRowClick = (event: { data: unknown }) => {
-  activateKeyboardScope();
-  focusTableRoot();
-  setActiveRow(event.data, { emitClick: true });
-};
-
-const handleRowDblClick = (event: { data: unknown }) => {
-  activateKeyboardScope();
-  focusTableRoot();
-  setActiveRow(event.data);
-  emits(`dblclick-row`, event.data);
-};
+const { autoFitVisibleColumns } = useDataTableColumnAutoFit({
+  columnLayouts,
+  items: sortedExportItems,
+  rootRef,
+  setColumnLayouts,
+  visibleHeaders,
+});
 
 const handleInput = (data: unknown) => {
   emits(`input`, Array.isArray(data) ? data : []);
@@ -685,99 +626,6 @@ const getContentClass = (header: Header) => ({
   "compact-data-table__content--wrap": header.wrap,
 });
 
-const getMeasurementFont = (selector: string, fallback: string) => {
-  if (typeof window === "undefined") {
-    return fallback;
-  }
-
-  const element = rootRef.value?.querySelector(selector);
-  if (!(element instanceof HTMLElement)) {
-    return fallback;
-  }
-
-  const styles = window.getComputedStyle(element);
-  const fontStyle = styles.fontStyle || "normal";
-  const fontVariant = styles.fontVariant || "normal";
-  const fontWeight = styles.fontWeight || "400";
-  const fontSize = styles.fontSize || "12px";
-  const lineHeight =
-    styles.lineHeight && styles.lineHeight !== "normal"
-      ? `/${styles.lineHeight}`
-      : "";
-  const fontFamily = styles.fontFamily || "sans-serif";
-
-  return `${fontStyle} ${fontVariant} ${fontWeight} ${fontSize}${lineHeight} ${fontFamily}`;
-};
-
-const measureTextWidth = (text: string, font: string) => {
-  if (typeof document === "undefined") {
-    return text.length * 8;
-  }
-
-  const canvas = document.createElement("canvas");
-  const context = canvas.getContext("2d");
-  if (!context) {
-    return text.length * 8;
-  }
-
-  context.font = font;
-  return context.measureText(text).width;
-};
-
-const resolveAutoFitValue = (item: unknown, header: Header) => {
-  const directValue = resolveExportValue(item, header);
-  const stringified = stringifyExportValue(directValue);
-  if (stringified) {
-    return stringified;
-  }
-
-  return getCellTitle(getFilterSourceValue(item, header));
-};
-
-const autoFitVisibleColumns = () => {
-  const headerFont = getMeasurementFont(
-    ".compact-data-table__header-label",
-    "normal normal 600 12px sans-serif",
-  );
-  const bodyFont = getMeasurementFont(
-    ".compact-data-table__content",
-    "normal normal 400 12px sans-serif",
-  );
-  const sampleItems = sortedExportItems.value.slice(0, 120);
-
-  setColumnLayouts(
-    columnLayouts.value.map((layout) => {
-      const header = visibleHeaders.value.find(
-        (entry) => entry.value === layout.value,
-      );
-      if (!header) {
-        return layout;
-      }
-
-      const headerWidth =
-        measureTextWidth(String(header.text || ""), headerFont) +
-        (header.filterable === false ? 44 : 76) +
-        (header.sortable ? 18 : 0);
-
-      const contentWidth = sampleItems.reduce((maxWidth: number, item) => {
-        const text = resolveAutoFitValue(item, header);
-        if (!text) {
-          return maxWidth;
-        }
-        return Math.max(maxWidth, measureTextWidth(text, bodyFont) + 28);
-      }, 0);
-
-      return {
-        ...layout,
-        width: normalizeColumnWidth(
-          Math.max(headerWidth, contentWidth, MIN_COLUMN_WIDTH),
-          layout.width,
-        ),
-      };
-    }),
-  );
-};
-
 const clearColumnDecorators = (columnValue: string) => {
   clearColumnFilter(columnValue);
 
@@ -804,75 +652,14 @@ const toggleColumnsPanel = () => {
   isColumnsPanelOpen.value = !isColumnsPanelOpen.value;
 };
 
-const getActiveFilterMenuElement = () => {
-  const menu = rootRef.value?.querySelector(".compact-data-table__filter-menu");
-  return menu instanceof HTMLElement ? menu : null;
-};
-
-const isEventInsideActiveFilterMenu = (event: MouseEvent | Event) => {
-  const menu = getActiveFilterMenuElement();
-  if (!menu) {
-    return false;
-  }
-
-  const target = event.target as Node | null;
-  if (target && menu.contains(target)) {
-    return true;
-  }
-
-  if (event instanceof MouseEvent) {
-    const rect = menu.getBoundingClientRect();
-    const { clientX, clientY } = event;
-
-    return (
-      clientX >= rect.left &&
-      clientX <= rect.right &&
-      clientY >= rect.top &&
-      clientY <= rect.bottom
-    );
-  }
-
-  return false;
-};
-
-const handleFilterPointerDown = (event: MouseEvent) => {
-  const target = event.target as Node | null;
-  if (!target) {
-    return;
-  }
-
-  if (rootRef.value?.contains(target)) {
-    return;
-  }
-  if (!activeFilterHeader.value) {
-    return;
-  }
-  if (isEventInsideActiveFilterMenu(event)) {
-    return;
-  }
-  closeColumnFilter();
-};
-
-const handleViewportChange = (event?: Event) => {
-  if (activeFilterHeader.value) {
-    if (event && isEventInsideActiveFilterMenu(event)) {
-      return;
-    }
-    closeColumnFilter();
-  }
-};
-
-onMounted(() => {
-  document.addEventListener("mousedown", handleFilterPointerDown);
-  window.addEventListener("resize", handleViewportChange);
-  window.addEventListener("scroll", handleViewportChange, true);
-  syncKeyboardScope();
+useDataTableFilterDismiss({
+  rootRef,
+  activeFilterHeader,
+  closeColumnFilter,
 });
 
-onBeforeUnmount(() => {
-  document.removeEventListener("mousedown", handleFilterPointerDown);
-  window.removeEventListener("resize", handleViewportChange);
-  window.removeEventListener("scroll", handleViewportChange, true);
+onMounted(() => {
+  syncKeyboardScope();
 });
 
 watch(
@@ -890,4 +677,688 @@ watch(tableRenderKey, () => {
 });
 </script>
 
-<style scoped src="./DataTable.css"></style>
+<style scoped src="./DataTable.css">
+.compact-data-table-shell {
+  --dt-surface: var(--app-surface);
+  --dt-surface-muted: var(--app-surface-muted);
+  --dt-muted-strip-bg: var(--app-surface-muted);
+  --dt-topbar-border: rgba(37, 99, 235, 0.18);
+  --dt-topbar-bg: radial-gradient(
+      circle at top left,
+      rgba(59, 130, 246, 0.14),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at top right,
+      rgba(14, 165, 233, 0.12),
+      transparent 30%
+    ),
+    linear-gradient(180deg, var(--app-surface-muted), var(--app-surface));
+  --dt-topbar-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 10px 24px rgba(37, 99, 235, 0.08);
+  --dt-toolbar-panel-bg: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.18),
+      rgba(255, 255, 255, 0.04)
+    ),
+    var(--app-surface);
+  --dt-panel-bg: var(--app-surface);
+  --dt-panel-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  --dt-panel-header-bg: var(--app-surface-muted);
+  --dt-rowgroup-bg: var(--app-surface-muted);
+  --dt-rowgroup-border: var(--app-border);
+  --dt-row-bg: var(--dt-surface);
+  --dt-row-alt-bg: var(--app-surface-muted);
+  --dt-row-hover-bg: rgba(37, 99, 235, 0.16);
+  --dt-active-row-bg: rgba(37, 99, 235, 0.28);
+  --dt-active-row-hover-bg: rgba(37, 99, 235, 0.36);
+  --dt-active-row-text: var(--app-text);
+  --dt-text-selection-bg: rgba(37, 99, 235, 0.42);
+  --dt-text-selection-text: #ffffff;
+  --dt-filter-panel-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+  --dt-filter-options-bg: var(--app-surface-muted);
+  --dt-chip-remove-hover-bg: var(--app-surface-muted);
+  --dt-button-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  --dt-resizer-bg: rgba(37, 99, 235, 0.2);
+}
+
+.compact-data-table-host {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  outline: none;
+  border-radius: 1rem;
+  background: var(--dt-surface);
+}
+
+.compact-data-table-host:focus-visible {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+:deep(.compact-data-table__keyboard-scope) {
+  outline: none;
+}
+
+:deep(.compact-data-table__keyboard-scope:focus-visible) {
+  box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.28);
+}
+
+:deep(.no-wrap-table th),
+:deep(.no-wrap-table td) {
+  white-space: nowrap !important;
+}
+
+:deep(.compact-data-table .p-datatable-wrapper) {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--app-border) var(--dt-surface);
+  background: var(--dt-surface);
+}
+
+:deep(.compact-data-table .p-datatable-wrapper::-webkit-scrollbar) {
+  width: 10px;
+  height: 10px;
+}
+
+:deep(.compact-data-table .p-datatable-wrapper::-webkit-scrollbar-track) {
+  background: var(--dt-surface);
+}
+
+:deep(.compact-data-table .p-datatable-wrapper::-webkit-scrollbar-thumb) {
+  border: 2px solid var(--dt-surface);
+  border-radius: 999px;
+  background: var(--app-border);
+}
+
+:deep(.compact-data-table .p-datatable-wrapper::-webkit-scrollbar-thumb:hover) {
+  background: var(--app-text-muted);
+}
+
+:deep(.compact-data-table) {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  border: 1px solid var(--app-border);
+  border-radius: 1rem;
+  overflow: hidden;
+  background: var(--app-surface);
+}
+
+:deep(.compact-data-table .p-datatable-wrapper),
+:deep(.compact-data-table .p-datatable-table),
+:deep(.compact-data-table .p-datatable-tbody),
+:deep(.compact-data-table .p-datatable-emptymessage),
+:deep(.compact-data-table .p-datatable-emptymessage > td) {
+  background: var(--dt-surface) !important;
+  background-color: var(--dt-surface) !important;
+  color: var(--app-text);
+}
+
+:deep(.compact-data-table .p-datatable-table) {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 100%;
+  background: var(--dt-surface);
+}
+
+:deep(.compact-data-table .p-rowgroup-header > td) {
+  padding: 0.5rem 0.7rem;
+  background: var(--dt-rowgroup-bg);
+  border-top: 1px solid var(--dt-rowgroup-border);
+  color: var(--app-text);
+}
+
+:deep(.compact-data-table .p-rowgroup-header:first-child > td) {
+  border-top: none;
+}
+
+.compact-data-table__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--dt-topbar-border);
+  border-radius: 0.9rem;
+  background: var(--dt-topbar-bg);
+  box-shadow: var(--dt-topbar-shadow);
+  position: sticky;
+  top: 0;
+  z-index: 6;
+}
+
+.compact-data-table__topbar-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.compact-data-table__export-panel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid rgba(37, 99, 235, 0.24);
+  border-radius: 0.85rem;
+  background: var(--dt-toolbar-panel-bg);
+}
+
+.compact-data-table__columns-panel {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.75rem;
+  max-height: min(70vh, calc(100vh - 160px));
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: 1rem;
+  background: var(--dt-panel-bg);
+  box-shadow: var(--dt-panel-shadow);
+  overflow: hidden;
+}
+
+.compact-data-table__columns-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--app-border);
+  background: var(--dt-panel-header-bg);
+}
+
+.compact-data-table__columns-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.compact-data-table__columns-meta {
+  margin-top: 0.2rem;
+  font-size: 11px;
+  color: var(--app-text-muted);
+}
+
+.compact-data-table__columns-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.compact-data-table__panel-action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--app-border);
+  border-radius: 0.75rem;
+  background: var(--dt-surface);
+  color: var(--app-text);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0.48rem 0.8rem;
+  box-shadow: var(--dt-button-shadow);
+  transition: border-color 0.18s ease, background-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.compact-data-table__panel-action-button:hover:not(:disabled) {
+  border-color: #2563eb;
+  background: var(--app-surface-muted);
+}
+
+.compact-data-table__panel-action-button .pi {
+  font-size: 0.8rem;
+}
+
+.compact-data-table__panel-action-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.compact-data-table__panel-action-button--primary {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.compact-data-table__panel-action-button--primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.compact-data-table__columns-list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.9rem 1rem 1rem;
+}
+
+.compact-data-table__column-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.9rem;
+  align-items: center;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--app-border);
+  border-radius: 0.85rem;
+  background: var(--dt-surface);
+}
+
+.compact-data-table__column-label {
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compact-data-table__column-width {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 11px;
+  color: var(--app-text-muted);
+}
+
+.compact-data-table__column-width input {
+  width: 84px;
+  border: 1px solid var(--app-border);
+  border-radius: 0.65rem;
+  padding: 0.35rem 0.55rem;
+  font-size: 12px;
+  color: var(--app-text);
+  background: var(--app-surface);
+}
+
+.compact-data-table__column-order {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.compact-data-table__column-order-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--app-border);
+  border-radius: 0.65rem;
+  background: var(--app-surface);
+  color: var(--app-text);
+  cursor: pointer;
+}
+
+.compact-data-table__column-order-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.compact-data-table__active-filters {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 11px;
+  color: var(--app-text-muted);
+}
+
+.compact-data-table__shadow-state {
+  font-size: 11px;
+  color: var(--app-text-muted);
+}
+
+.compact-data-table__export-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--app-border);
+  background: var(--dt-surface);
+  color: var(--app-text);
+  border-radius: 999px;
+  padding: 0.42rem 0.92rem;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--dt-button-shadow);
+}
+
+.compact-data-table__export-button--primary {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.compact-data-table__export-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.compact-data-table__export-error {
+  font-size: 11px;
+  color: #b91c1c;
+}
+
+
+
+
+:deep(.compact-data-table .p-datatable-thead > tr > th) {
+  white-space: nowrap;
+  padding: 3px 6px !important;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--app-text-muted);
+  background: var(--dt-surface-muted);
+  border-color: var(--app-border);
+}
+
+:deep(.compact-data-table .p-datatable-thead),
+:deep(.compact-data-table .p-datatable-thead > tr) {
+  background: var(--dt-surface-muted);
+  color: var(--app-text-muted);
+}
+
+:deep(.compact-data-table .p-datatable-tbody > tr) {
+  background: var(--dt-row-bg);
+  color: var(--app-text);
+}
+
+:deep(.compact-data-table .p-datatable-tbody > tr:nth-child(even)) {
+  background: var(--dt-row-alt-bg);
+}
+
+:deep(.compact-data-table .p-datatable-tbody > tr > td) {
+  padding: 3px 6px !important;
+  height: auto !important;
+  font-size: 10px;
+  line-height: 1.2;
+  vertical-align: top;
+  overflow: hidden;
+  border-color: var(--app-border);
+  background: transparent;
+  color: var(--app-text);
+}
+
+:deep(.compact-data-table .p-datatable-tbody > tr:hover) {
+  background: var(--dt-row-hover-bg);
+}
+
+:deep(.compact-data-table .p-datatable-tbody > tr:hover > td) {
+  background: transparent;
+}
+
+:deep(
+    .compact-data-table.p-datatable.p-datatable-hoverable-rows
+      .p-datatable-tbody
+      > tr:not(.p-highlight):hover
+  ) {
+  background: var(--dt-row-hover-bg) !important;
+  color: var(--app-text) !important;
+}
+
+:deep(
+    .compact-data-table.p-datatable.p-datatable-hoverable-rows
+      .p-datatable-tbody
+      > tr:not(.p-highlight):hover
+      > td
+  ) {
+  background: transparent !important;
+  color: var(--app-text) !important;
+}
+
+:deep(
+    .compact-data-table .p-datatable-tbody > tr.compact-data-table__row--active
+  ) {
+  background: var(--dt-active-row-bg);
+  box-shadow: inset 0 1px 0 rgba(37, 99, 235, 0.24),
+    inset 0 -1px 0 rgba(37, 99, 235, 0.24);
+}
+
+:deep(
+    .compact-data-table
+      .p-datatable-tbody
+      > tr.compact-data-table__row--active:hover
+  ) {
+  background: var(--dt-active-row-hover-bg);
+}
+
+:deep(
+    .compact-data-table
+      .p-datatable-tbody
+      > tr.compact-data-table__row--active
+      > td
+  ) {
+  background: transparent;
+  color: var(--dt-active-row-text);
+}
+
+:deep(
+    .compact-data-table
+      .p-datatable-tbody
+      > tr.compact-data-table__row--active:hover
+      > td
+  ) {
+  background: transparent;
+  color: var(--dt-active-row-text);
+}
+
+:deep(
+    .compact-data-table
+      .p-datatable-tbody
+      > tr.compact-data-table__row--active
+      .compact-data-table__content
+  ),
+:deep(
+    .compact-data-table
+      .p-datatable-tbody
+      > tr.compact-data-table__row--active
+      a
+  ),
+:deep(
+    .compact-data-table
+      .p-datatable-tbody
+      > tr.compact-data-table__row--active
+      button
+  ) {
+  color: var(--dt-active-row-text);
+}
+
+:deep(.compact-data-table .p-datatable-tbody > tr > td ::selection),
+:deep(.compact-data-table .p-datatable-thead > tr > th ::selection),
+.compact-data-table__content::selection,
+.compact-data-table__header-label::selection {
+  background: var(--dt-text-selection-bg);
+  color: var(--dt-text-selection-text);
+}
+
+:deep(.compact-data-table .p-selection-column) {
+  width: 3rem;
+}
+
+:deep(.compact-data-table .p-checkbox .p-checkbox-box) {
+  border-color: var(--app-border);
+  background: var(--dt-surface);
+  color: #2563eb;
+}
+
+:deep(
+    .compact-data-table
+      .p-checkbox:not(.p-checkbox-disabled)
+      .p-checkbox-box:hover
+  ) {
+  border-color: #2563eb;
+}
+
+:deep(.compact-data-table .p-checkbox .p-checkbox-box.p-highlight) {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+:deep(.compact-data-table .p-column-resizer) {
+  background: var(--dt-resizer-bg);
+}
+
+:deep(.compact-data-table .p-column-resizer-helper) {
+  background: #2563eb;
+}
+
+.compact-data-table__header--dense {
+  height: auto;
+  padding: 3px 6px !important;
+}
+
+.compact-data-table__cell--dense {
+  padding: 3px 6px !important;
+}
+
+.compact-data-table__content {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.compact-data-table__empty-state {
+  padding: 1.5rem 0.75rem;
+  text-align: center;
+  color: var(--app-text-muted);
+  background: var(--dt-surface);
+}
+
+.compact-data-table__content--truncate {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.compact-data-table__content--wrap {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.compact-data-table__header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+
+
+.compact-data-table__header-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compact-data-table__sort-icon {
+  font-size: 10px;
+  color: black;
+}
+
+.compact-data-table__filter-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 8px;
+  line-height: 12px;
+  text-align: center;
+}
+
+.compact-data-table__status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--app-border);
+  padding: 0.45rem 0.75rem;
+  background: var(--dt-muted-strip-bg);
+  color: var(--app-text-muted);
+  font-size: 11px;
+}
+
+.compact-data-table__status-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.compact-data-table__status-filters {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.compact-data-table__status-filters-label {
+  color: var(--app-text-muted);
+}
+
+.compact-data-table__status-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--app-text);
+  padding: 0.18rem 0.55rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compact-data-table__status-filter-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compact-data-table__status-item strong {
+  color: var(--app-text);
+  font-weight: 600;
+}
+
+.compact-data-table__status-item--muted {
+  color: var(--app-text-muted);
+}
+
+@media (max-width: 960px) {
+  .compact-data-table__columns-header,
+  .compact-data-table__column-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .compact-data-table__columns-header {
+    display: flex;
+    flex-direction: column;
+  }
+}
+</style>
