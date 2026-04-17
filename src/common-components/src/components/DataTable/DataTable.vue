@@ -18,35 +18,27 @@
       </div>
       <div class="compact-data-table__export-panel">
         <slot name="toolbar-actions" />
-        <button
-          type="button"
-          class="compact-data-table__export-button"
-          :class="{
-            'compact-data-table__export-button--primary': isColumnsPanelOpen,
-          }"
+        <UiButton
+          :variant="isColumnsPanelOpen ? 'primary' : 'secondary'"
           @click="toggleColumnsPanel"
         >
           <span class="pi pi-sliders-h" />
-          <span>Колонки</span>
-        </button>
-        <UiButton variant="secondary" type="button">secondary</UiButton>
-        <UiButton variant="primary" type="button">primary</UiButton>
-        <button
+          <span> Колонки </span>
+        </UiButton>
+        <UiButton
           v-for="action in exportActions"
           :key="action.format"
-          type="button"
-          class="compact-data-table__export-button"
-          :class="{
-            'compact-data-table__export-button--primary': action.primary,
-          }"
+          :variant="action.primary ? 'primary' : 'secondary'"
           :disabled="isExporting !== null"
           @click="handleExport(action.format)"
         >
           <span class="pi" :class="action.icon" />
-          <span>{{
-            isExporting === action.format ? action.pendingLabel : action.label
-          }}</span>
-        </button>
+          <span>
+            {{
+              isExporting === action.format ? action.pendingLabel : action.label
+            }}
+          </span>
+        </UiButton>
       </div>
     </div>
     <DataTableColumnsPanel
@@ -138,32 +130,23 @@
         >
           <template #header>
             <div class="compact-data-table__header-inner">
-              <button
-                type="button"
-                class="compact-data-table__sort-trigger"
-                :class="{
-                  'compact-data-table__sort-trigger--sortable': header.sortable,
-                }"
+              <UiButton
+                variant="small-text"
                 @click="handleHeaderSort(header, $event)"
               >
-                <span class="compact-data-table__header-label">{{
-                  header.text
-                }}</span>
+                <span>
+                  {{ header.text }}
+                </span>
                 <span
                   v-if="header.sortable"
                   class="compact-data-table__sort-icon pi"
                   :class="getSortIconClass(header)"
                 />
-              </button>
-              <button
-                v-if="header.filterable !== false"
-                type="button"
-                class="compact-data-table__filter-trigger"
-                :class="{
-                  'compact-data-table__filter-trigger--active':
-                    isColumnFiltered(header),
-                }"
+              </UiButton>
+              <UiButton
                 @click.stop="toggleColumnFilter($event, header)"
+                v-if="header.filterable !== false"
+                variant="small-icon"
               >
                 <span class="pi pi-filter" />
                 <span
@@ -172,7 +155,7 @@
                 >
                   {{ getColumnFilterCount(header) }}
                 </span>
-              </button>
+              </UiButton>
             </div>
           </template>
           <template #body="slotProps">
@@ -227,22 +210,17 @@
           <span class="compact-data-table__status-filter-text">
             <strong>{{ filter.label }}:</strong> {{ filter.text }}
           </span>
-          <button
-            type="button"
-            class="compact-data-table__status-filter-remove"
+          <UiButton
             :aria-label="`Удалить фильтр ${filter.label}`"
+            variant="small-icon"
             @click="clearColumnFilter(filter.key)"
           >
             <span class="pi pi-times" />
-          </button>
+          </UiButton>
         </span>
-        <button
-          type="button"
-          class="compact-data-table__clear-all compact-data-table__clear-all--status"
-          @click="clearAllFilters"
-        >
+        <UiButton variant="secondary" @click="clearAllFilters">
           Сбросить все
-        </button>
+        </UiButton>
       </div>
       <div
         class="compact-data-table__status-item compact-data-table__status-item--muted"
@@ -434,7 +412,6 @@ const {
   filteredItems,
   getColumnFilterCount,
   hasActiveFilters,
-  isColumnFiltered,
   rangeEndPlaceholder,
   rangeInputType,
   rangeStartPlaceholder,
@@ -773,7 +750,7 @@ const autoFitVisibleColumns = () => {
         (header.filterable === false ? 44 : 76) +
         (header.sortable ? 18 : 0);
 
-      const contentWidth = sampleItems.reduce((maxWidth, item) => {
+      const contentWidth = sampleItems.reduce((maxWidth: number, item) => {
         const text = resolveAutoFitValue(item, header);
         if (!text) {
           return maxWidth;

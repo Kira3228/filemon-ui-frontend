@@ -10,12 +10,16 @@
       {{ header.text }}
     </div>
     <div class="compact-data-table__filter-modes">
+      <UiButton variant="secondary" active size="medium">Список</UiButton>
+      <UiButton variant="secondary" size="medium">Вхождение</UiButton>
       <button
         v-for="mode in availableModes"
         :key="mode"
         type="button"
         class="compact-data-table__filter-mode"
-        :class="{ 'compact-data-table__filter-mode--active': activeMode === mode }"
+        :class="{
+          'compact-data-table__filter-mode--active': activeMode === mode,
+        }"
         @click="$emit('set-mode', mode)"
       >
         {{ filterModeLabels[mode] }}
@@ -56,8 +60,12 @@
             :checked="activeDraft.includes(option.key)"
             @change="$emit('toggle-option', option.key)"
           />
-          <span class="compact-data-table__filter-option-label">{{ option.label }}</span>
-          <span class="compact-data-table__filter-option-count">{{ option.count }}</span>
+          <span class="compact-data-table__filter-option-label">{{
+            option.label
+          }}</span>
+          <span class="compact-data-table__filter-option-count">{{
+            option.count
+          }}</span>
         </label>
         <div
           v-if="!visibleOptions.length"
@@ -130,6 +138,7 @@
 <script lang="ts" setup>
 import type { Header } from "../header.type";
 import type { FilterMode, FilterOption } from "../data-table.types";
+import { UiButton } from "./../../UiButton";
 
 const props = defineProps<{
   activeDraft: string[];
@@ -160,11 +169,17 @@ const emits = defineEmits<{
 }>();
 
 const handleSearchInput = (event: Event) => {
-  emits("update:filterSearch", (event.target as HTMLInputElement | null)?.value || "");
+  emits(
+    "update:filterSearch",
+    (event.target as HTMLInputElement | null)?.value || "",
+  );
 };
 
 const handleContainsInput = (event: Event) => {
-  emits("update:contains", (event.target as HTMLInputElement | null)?.value || "");
+  emits(
+    "update:contains",
+    (event.target as HTMLInputElement | null)?.value || "",
+  );
 };
 
 const handleRangeInput = (key: "from" | "to", event: Event) => {

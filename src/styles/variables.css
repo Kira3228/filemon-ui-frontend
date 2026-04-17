@@ -1,0 +1,9 @@
+:root {
+  --color-primary: #2563eb;
+  --color-secondary: #ffffff;
+  --hover-color-primary: #1d55ce;
+  --active-bg-color-primary: rgba(37, 99, 235, 0.1);
+
+  --spacing-md: 16px;
+  --border-radius: 8px;
+}

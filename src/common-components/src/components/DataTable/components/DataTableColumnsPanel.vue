@@ -8,30 +8,19 @@
         </div>
       </div>
       <div class="compact-data-table__columns-actions">
-        <button
-          type="button"
-          class="compact-data-table__panel-action-button"
-          @click="$emit('auto-fit')"
-        >
+        <UiButton variant="secondary" @click="$emit('auto-fit')">
           <span class="pi pi-arrows-h" />
           <span>Автоподбор</span>
-        </button>
-        <button
-          type="button"
-          class="compact-data-table__panel-action-button"
-          @click="$emit('reset')"
-        >
+        </UiButton>
+        <UiButton variant="secondary" @click="$emit('reset')">
           <span class="pi pi-refresh" />
           <span>Сбросить</span>
-        </button>
-        <button
-          type="button"
-          class="compact-data-table__panel-action-button compact-data-table__panel-action-button--primary"
-          @click="$emit('close')"
-        >
+        </UiButton>
+
+        <UiButton variant="primary" @click="$emit('close')">
           <span class="pi pi-check" />
           <span>Готово</span>
-        </button>
+        </UiButton>
       </div>
     </div>
     <div class="compact-data-table__columns-list">
@@ -47,7 +36,9 @@
             :disabled="header.isVisible !== false && visibleHeadersCount <= 1"
             @change="$emit('visibility-change', header.value, $event)"
           />
-          <span class="compact-data-table__column-label">{{ header.text }}</span>
+          <span class="compact-data-table__column-label">{{
+            header.text
+          }}</span>
         </label>
         <div class="compact-data-table__column-controls">
           <label class="compact-data-table__column-width">
@@ -62,22 +53,20 @@
             />
           </label>
           <div class="compact-data-table__column-order">
-            <button
-              type="button"
-              class="compact-data-table__column-order-button"
+            <UiButton
+              variant="secondary"
               :disabled="index === 0"
               @click="$emit('move', header.value, -1)"
             >
               <span class="pi pi-arrow-up" />
-            </button>
-            <button
-              type="button"
-              class="compact-data-table__column-order-button"
+            </UiButton>
+            <UiButton
+              variant="secondary"
               :disabled="index === orderedHeaders.length - 1"
               @click="$emit('move', header.value, 1)"
             >
               <span class="pi pi-arrow-down" />
-            </button>
+            </UiButton>
           </div>
         </div>
       </div>
@@ -86,6 +75,7 @@
 </template>
 
 <script lang="ts" setup>
+import { UiButton } from "./../../UiButton";
 import type { Header } from "../header.type";
 
 defineProps<{
@@ -142,46 +132,6 @@ defineEmits<{
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
-}
-
-.compact-data-table__panel-action-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  border: 1px solid var(--app-border);
-  border-radius: 0.75rem;
-  background: var(--dt-surface);
-  color: var(--app-text);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 0.48rem 0.8rem;
-  box-shadow: var(--dt-button-shadow);
-  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease;
-}
-
-.compact-data-table__panel-action-button:hover:not(:disabled) {
-  border-color: #2563eb;
-  background: var(--app-surface-muted);
-}
-
-.compact-data-table__panel-action-button .pi {
-  font-size: 0.8rem;
-}
-
-.compact-data-table__panel-action-button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.compact-data-table__panel-action-button--primary {
-  border-color: #2563eb;
-  background: #2563eb;
-  color: #ffffff;
-}
-
-.compact-data-table__panel-action-button--primary:hover:not(:disabled) {
-  background: #1d4ed8;
 }
 
 .compact-data-table__columns-list {
@@ -254,23 +204,5 @@ defineEmits<{
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-}
-
-.compact-data-table__column-order-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border: 1px solid var(--app-border);
-  border-radius: 0.65rem;
-  background: var(--app-surface);
-  color: var(--app-text);
-  cursor: pointer;
-}
-
-.compact-data-table__column-order-button:disabled {
-  opacity: 0.45;
-  cursor: default;
 }
 </style>

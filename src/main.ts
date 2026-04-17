@@ -7,6 +7,7 @@ import VueRouter from "vue-router";
 import "./assets/global.css";
 import { createPinia, PiniaVuePlugin } from "pinia";
 import { initTheme } from "./shared-ui/theme/use-theme";
+import './styles/variables.css';
 Vue.use(VueRouter);
 
 Vue.config.productionTip = false;
