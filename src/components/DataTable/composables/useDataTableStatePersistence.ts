@@ -1,7 +1,18 @@
 import { computed, ComputedRef, ref, watch } from "vue";
 import { Header } from "../types/header.type";
 import { ColumnLayoutState } from "../types/data-table.types";
-import { normalizeColumnWidth, sanitizeStorageSegment } from "../utils/data-table.utils";
+import { normalizeColumnWidth } from "../utils/data-table.utils";
+import {
+  applyColumnLayoutsToHeaders,
+  moveColumnLayout,
+  normalizeColumnLayouts,
+  reorderVisibleColumnLayouts,
+} from "../utils/column-layout.utils";
+import {
+  buildDataTableStateKey,
+  loadColumnLayouts,
+  saveColumnLayouts,
+} from "../utils/column-layout-storage.utils";
 
 
 type UseDataTableStatePersistenceOptions = {
@@ -9,64 +20,6 @@ type UseDataTableStatePersistenceOptions = {
   stateKey: ComputedRef<string | undefined>;
   exportTitle: ComputedRef<string | undefined>;
   showSelect: ComputedRef<boolean>;
-};
-
-const normalizeColumnLayouts = (
-  headers: Header[],
-  incomingLayouts: ColumnLayoutState[] = [],
-) => {
-  const layoutMap = new Map(incomingLayouts.map((layout) => [layout.value, layout]));
-
-  return headers
-    .map((header, index) => {
-      const saved = layoutMap.get(header.value);
-      return {
-        value: header.value,
-        isVisible: saved?.isVisible ?? header.isVisible !== false,
-        width: normalizeColumnWidth(saved?.width, normalizeColumnWidth(header.width, 160)),
-        order: Number.isFinite(saved?.order) ? Number(saved?.order) : index,
-      };
-    })
-    .sort((first, second) => first.order - second.order)
-    .map((layout, index) => ({
-      ...layout,
-      order: index,
-    }));
-};
-
-const loadColumnLayouts = (storageKey: string): ColumnLayoutState[] => {
-  if (typeof window === "undefined") { return []; }
-
-  try {
-    const raw = window.localStorage.getItem(storageKey);
-    if (!raw) { return []; }
-
-    const parsed = JSON.parse(raw);
-    const layouts = Array.isArray(parsed)
-      ? parsed
-      : Array.isArray(parsed?.columns)
-        ? parsed.columns
-        : [];
-
-    return (layouts as Array<Record<string, unknown>>)
-      .filter((item) => item && typeof item.value === "string")
-      .map((item, index) => ({
-        value: String(item.value),
-        isVisible: item.isVisible !== false,
-        width: normalizeColumnWidth(item.width, 160),
-        order: Number.isFinite(item.order) ? Number(item.order) : index,
-      }));
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-};
-
-const reorderArray = <T,>(items: T[], fromIndex: number, toIndex: number) => {
-  const nextItems = [...items];
-  const [moved] = nextItems.splice(fromIndex, 1);
-  nextItems.splice(toIndex, 0, moved);
-  return nextItems;
 };
 
 export const useDataTableStatePersistence = ({
@@ -78,46 +31,19 @@ export const useDataTableStatePersistence = ({
   const columnLayouts = ref<ColumnLayoutState[]>([]);
 
   const tableStateKey = computed(() => {
-    const explicit = String(stateKey.value || "").trim();
-    if (explicit) {
-      return `compact-data-table:${sanitizeStorageSegment(explicit)}`;
-    }
-
-    const titleKey = String(exportTitle.value || "table");
-    const headersKey = headers.value.map((header) => header.value).join("_");
-    return `compact-data-table:${sanitizeStorageSegment(titleKey)}:${sanitizeStorageSegment(headersKey || "columns")}`;
+    return buildDataTableStateKey({
+      headers: headers.value,
+      stateKey: stateKey.value,
+      exportTitle: exportTitle.value,
+    });
   });
 
   const persistColumnLayouts = () => {
-    if (typeof window === "undefined") { return; }
-
-    try {
-      window.localStorage.setItem(tableStateKey.value, JSON.stringify({
-        columns: columnLayouts.value,
-      }));
-    } catch (error) {
-      console.error(error);
-    }
+    saveColumnLayouts(tableStateKey.value, columnLayouts.value);
   };
 
   const orderedHeaders = computed<Header[]>(() => {
-    const layoutMap = new Map(columnLayouts.value.map((layout) => [layout.value, layout]));
-
-    return [...headers.value]
-      .map((header, index) => {
-        const layout = layoutMap.get(header.value);
-        return {
-          ...header,
-          isVisible: layout?.isVisible ?? header.isVisible !== false,
-          width: normalizeColumnWidth(layout?.width, normalizeColumnWidth(header.width, 160)),
-          __order: layout?.order ?? index,
-        };
-      })
-      .sort((first, second) => (first as Header & { __order: number }).__order - (second as Header & { __order: number }).__order)
-      .map((header) => {
-        const { ...cleanHeader } = header as Header & { __order: number };
-        return cleanHeader;
-      });
+    return applyColumnLayoutsToHeaders(headers.value, columnLayouts.value);
   });
 
   const visibleHeaders = computed(() =>
@@ -167,46 +93,13 @@ export const useDataTableStatePersistence = ({
 
   const handleColumnReorder = (event: { dragIndex: number; dropIndex: number }) => {
     const offset = getVisibleColumnOffset();
-    const dragVisibleIndex = event.dragIndex - offset;
-    const dropVisibleIndex = event.dropIndex - offset;
-
-    if (
-      dragVisibleIndex < 0 ||
-      dropVisibleIndex < 0 ||
-      dragVisibleIndex === dropVisibleIndex
-    ) {
-      return;
-    }
-
-    const orderedLayouts = [...columnLayouts.value].sort((first, second) => first.order - second.order);
-    const visibleSlots = orderedLayouts
-      .map((layout, index) => ({ layout, index }))
-      .filter(({ layout }) => layout.isVisible !== false);
-
-    if (
-      dragVisibleIndex >= visibleSlots.length ||
-      dropVisibleIndex >= visibleSlots.length
-    ) {
-      return;
-    }
-
-    const reorderedVisibleValues = reorderArray(
-      visibleSlots.map(({ layout }) => layout.value),
-      dragVisibleIndex,
-      dropVisibleIndex,
+    const nextLayouts = reorderVisibleColumnLayouts(
+      columnLayouts.value,
+      event.dragIndex - offset,
+      event.dropIndex - offset,
     );
 
-    const nextOrderValues = orderedLayouts.map((layout) => layout.value);
-    visibleSlots.forEach(({ index }, visibleIndex) => {
-      nextOrderValues[index] = reorderedVisibleValues[visibleIndex];
-    });
-
-    setColumnLayouts(
-      orderedLayouts.map((layout) => ({
-        ...layout,
-        order: nextOrderValues.indexOf(layout.value),
-      })),
-    );
+    if (nextLayouts) { setColumnLayouts(nextLayouts); }
   };
 
   const handleHeaderVisibilityChange = (columnValue: string, event: Event) => {
@@ -234,25 +127,12 @@ export const useDataTableStatePersistence = ({
   };
 
   const moveColumn = (columnValue: string, delta: -1 | 1) => {
-    const orderedLayouts = [...columnLayouts.value].sort((first, second) => first.order - second.order);
-    const currentIndex = orderedLayouts.findIndex((layout) => layout.value === columnValue);
-    const nextIndex = currentIndex + delta;
-
-    if (currentIndex === -1 || nextIndex < 0 || nextIndex >= orderedLayouts.length) { return; }
-
-    const nextLayouts = [...orderedLayouts];
-    [nextLayouts[currentIndex], nextLayouts[nextIndex]] = [nextLayouts[nextIndex], nextLayouts[currentIndex]];
-
-    setColumnLayouts(
-      nextLayouts.map((layout, index) => ({
-        ...layout,
-        order: index,
-      })),
-    );
+    const nextLayouts = moveColumnLayout(columnLayouts.value, columnValue, delta);
+    if (nextLayouts) { setColumnLayouts(nextLayouts); }
   };
 
   const resetColumnLayouts = () => {
-    setColumnLayouts(normalizeColumnLayouts(headers.value, []));
+    setColumnLayouts([]);
   };
 
   return {
