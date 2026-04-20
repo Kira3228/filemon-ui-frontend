@@ -1,7 +1,16 @@
 import { computed, ComputedRef, ref, watch } from "vue";
 import { Header } from "../types/header.type";
 import { SortMeta } from "../types/data-table.types";
-import { compareValues, resolveExportValue, resolveFieldData } from "../utils/data-table.utils";
+import {
+  createSortStatePayload,
+  getNextHeaderSortMeta,
+  getSortIconClassByOrder,
+  getSortOrder,
+  normalizeSortMeta,
+  resolveMultiSortMeta,
+  sortDataTableItems,
+  stripForcedGroupSort,
+} from "../utils/data-table-sorting.utils";
 
 
 interface UseDataTableSortingOptions {
@@ -23,60 +32,25 @@ export const useDataTableSorting = ({
   visibleHeaders,
   emitSortState,
 }: UseDataTableSortingOptions) => {
-  const normalizeSortMeta = (
-    sortByListValue: unknown,
-    sortDescListValue: unknown,
-  ): SortMeta[] => {
-    const sortFields = Array.isArray(sortByListValue)
-      ? sortByListValue
-      : sortByListValue
-        ? [sortByListValue]
-        : [];
-
-    const sortDirections = Array.isArray(sortDescListValue)
-      ? sortDescListValue
-      : sortDescListValue !== undefined
-        ? [sortDescListValue]
-        : [];
-
-    return sortFields.filter(Boolean).map((field, index) => ({
-      field: String(field),
-      order: sortDirections[index] ? -1 : 1,
-    }));
-  };
-
   const multiSortMeta = ref<SortMeta[]>(
     normalizeSortMeta(sortByList.value, sortDescList.value),
   );
 
-  const stripForcedGroupSort = (meta: SortMeta[]) => {
-    const field = groupSortField.value;
-
-    if (!field || !rowGroupMode.value || !meta.length) {
-      return meta;
-    }
-
-    return meta.filter((item, index) => !(index === 0 && item.field === field));
-  };
-
-  const resolveMultiSortMeta = (meta: SortMeta[]) => {
-    const field = groupSortField.value;
-
-    if (!field || !rowGroupMode.value) {
-      return meta;
-    }
-
-    return [{ field, order: 1 }, ...meta.filter((item) => item.field !== field)];
-  };
+  const stripCurrentForcedGroupSort = (meta: SortMeta[]) =>
+    stripForcedGroupSort(meta, groupSortField.value, rowGroupMode.value);
 
   const resolvedMultiSortMeta = computed(() =>
-    resolveMultiSortMeta(multiSortMeta.value),
+    resolveMultiSortMeta(
+      multiSortMeta.value,
+      groupSortField.value,
+      rowGroupMode.value,
+    ),
   );
 
   watch(
     () => [sortByList.value, sortDescList.value],
     ([nextSortByList, nextSortDescList]) => {
-      multiSortMeta.value = stripForcedGroupSort(
+      multiSortMeta.value = stripCurrentForcedGroupSort(
         normalizeSortMeta(nextSortByList, nextSortDescList),
       );
     },
@@ -86,69 +60,33 @@ export const useDataTableSorting = ({
   watch(
     () => [rowGroupMode.value, groupSortField.value],
     () => {
-      multiSortMeta.value = stripForcedGroupSort(multiSortMeta.value);
+      multiSortMeta.value = stripCurrentForcedGroupSort(multiSortMeta.value);
     },
   );
 
   const emitCurrentSortState = (meta: SortMeta[]) => {
-    emitSortState({
-      sortBy: meta.map((item) => item.field),
-      sortDesc: meta.map((item) => item.order === -1),
-    });
+    emitSortState(createSortStatePayload(meta));
   };
 
   const handleSort = (event: { multiSortMeta?: SortMeta[] }) => {
-    const meta = stripForcedGroupSort(event.multiSortMeta || []);
+    const meta = stripCurrentForcedGroupSort(event.multiSortMeta || []);
     multiSortMeta.value = meta;
     emitCurrentSortState(meta);
   };
 
-  const sortedItems = computed(() => {
-    if (!resolvedMultiSortMeta.value.length) {
-      return filteredItems.value;
-    }
+  const sortedItems = computed(() =>
+    sortDataTableItems(
+      filteredItems.value,
+      resolvedMultiSortMeta.value,
+      visibleHeaders.value,
+    ),
+  );
 
-    return [...filteredItems.value].sort((first, second) => {
-      for (const sortMeta of resolvedMultiSortMeta.value) {
-        const sortHeader = visibleHeaders.value.find(
-          (header) => header.value === sortMeta.field,
-        );
-
-        const firstValue = sortHeader
-          ? resolveExportValue(first, sortHeader)
-          : resolveFieldData(first, sortMeta.field);
-
-        const secondValue = sortHeader
-          ? resolveExportValue(second, sortHeader)
-          : resolveFieldData(second, sortMeta.field);
-
-        const delta = compareValues(firstValue, secondValue);
-
-        if (delta !== 0) {
-          return sortMeta.order === -1 ? -delta : delta;
-        }
-      }
-
-      return 0;
-    });
-  });
-
-  const getSortOrder = (header: Header) =>
-    multiSortMeta.value.find((item) => item.field === header.value)?.order ??
-    null;
+  const getHeaderSortOrder = (header: Header) =>
+    getSortOrder(multiSortMeta.value, header.value);
 
   const getSortIconClass = (header: Header) => {
-    const order = getSortOrder(header);
-
-    if (order === 1) {
-      return "pi-sort-amount-up-alt";
-    }
-
-    if (order === -1) {
-      return "pi-sort-amount-down";
-    }
-
-    return "pi-sort-alt";
+    return getSortIconClassByOrder(getHeaderSortOrder(header));
   };
 
   const handleHeaderSort = (header: Header, event: MouseEvent) => {
@@ -157,26 +95,11 @@ export const useDataTableSorting = ({
     }
 
     const withExisting = event.ctrlKey || event.metaKey || event.shiftKey;
-    const currentSort =
-      multiSortMeta.value.find((item) => item.field === header.value) || null;
-
-    const nextMeta = withExisting
-      ? [...multiSortMeta.value]
-      : currentSort
-        ? [{ ...currentSort }]
-        : [];
-
-    const currentIndex = nextMeta.findIndex(
-      (item) => item.field === header.value,
+    const nextMeta = getNextHeaderSortMeta(
+      multiSortMeta.value,
+      header.value,
+      withExisting,
     );
-
-    if (currentIndex === -1) {
-      nextMeta.push({ field: header.value, order: 1 });
-    } else if (nextMeta[currentIndex].order === 1) {
-      nextMeta[currentIndex] = { field: header.value, order: -1 };
-    } else {
-      nextMeta.splice(currentIndex, 1);
-    }
 
     multiSortMeta.value = nextMeta;
     emitCurrentSortState(nextMeta);

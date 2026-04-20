@@ -244,25 +244,20 @@ import DataTableColumnsPanel from "./ui/DataTableColumnsPanel.vue";
 import PrimeDataTable from "primevue/datatable";
 import ColumnHeader from "./ui/ColumnHeader.vue";
 import {
-  compareValues,
   getAlign,
   getCellTitle,
   getFilterSourceValue,
   inferPrimaryItemKey,
-  resolveExportValue,
-  resolveFieldData,
 } from "./utils/data-table.utils";
 import { Header } from "./types/header.type";
-import { RowKey, SortMeta } from "./types/data-table.types";
-import { computed, onMounted, ref, watch } from "vue";
+import { RowKey } from "./types/data-table.types";
+import { computed, ref, watch } from "vue";
 import { useDataTableStatePersistence } from "./composables/useDataTableStatePersistence";
 import { useDataTableFiltering } from "./composables/useDataTableFiltering";
 import { useDataTableSorting } from "./composables/useDataTableSorting";
-import { useDataTableActiveRow } from "./composables/useDataTableActiveRow";
-import { useDataTableKeyboardNavigation } from "./composables/useDataTableKeyboardNavigation";
+import { useDataTableRowInteraction } from "./composables/useDataTableRowInteraction";
 import { useDataTableExport } from "./composables/useDataTableExport";
 import { useDataTableColumnAutoFit } from "./composables/useDataTableColumnAutoFit";
-import { useDataTableFilterDismiss } from "./composables/useDataTableFilterDismiss";
 
 interface Props<I = unknown> {
   isLoading?: boolean;
@@ -382,14 +377,17 @@ const {
   applyActiveFilter,
 } = useDataTableFiltering({
   rawItems,
+  rootRef,
   visibleHeaders,
 });
 
 const {
   resolvedMultiSortMeta,
+  sortedItems: sortedExportItems,
   handleSort,
   handleHeaderSort,
   getSortIconClass,
+  clearColumnSort,
 } = useDataTableSorting({
   sortByList: computed(() => props.sortByList),
   sortDescList: computed(() => props.sortDescList),
@@ -404,139 +402,33 @@ const {
   },
 });
 
-const normalizeSortMeta = (sortByList: unknown, sortDescList: unknown) => {
-  const sortFields = Array.isArray(sortByList)
-    ? sortByList
-    : sortByList
-    ? [sortByList]
-    : [];
-  const sortDirections = Array.isArray(sortDescList)
-    ? sortDescList
-    : sortDescList !== undefined
-    ? [sortDescList]
-    : [];
-
-  return sortFields.filter(Boolean).map((field, index) => ({
-    field: String(field),
-    order: sortDirections[index] ? -1 : 1,
-  }));
-};
-
-const multiSortMeta = ref(
-  normalizeSortMeta(props.sortByList, props.sortDescList),
-);
-const stripForcedGroupSort = (meta: SortMeta[]) => {
-  const field = groupSortField.value;
-  if (!field || !rowGroupMode.value || !meta.length) {
-    return meta;
-  }
-
-  return meta.filter((item, index) => !(index === 0 && item.field === field));
-};
-
-watch(
-  () => [props.sortByList, props.sortDescList],
-  ([sortByList, sortDescList]) => {
-    multiSortMeta.value = stripForcedGroupSort(
-      normalizeSortMeta(sortByList, sortDescList),
-    );
-  },
-  { deep: true },
-);
-
-watch(
-  () => [rowGroupMode.value, groupSortField.value],
-  () => {
-    multiSortMeta.value = stripForcedGroupSort(multiSortMeta.value);
-  },
-);
-
-const emitSortState = (meta: SortMeta[]) => {
-  const sortBy = meta.map((item) => item.field);
-  const sortDesc = meta.map((item) => item.order === -1);
-  emits("update:sortBy", sortBy);
-  emits("update:sortDesc", sortDesc);
-  emits("change", { sortBy, sortDesc });
-};
-
 const handleExpandedRowGroupsUpdate = (groups: unknown[]) => {
   emits("update:expandedRowGroups", Array.isArray(groups) ? groups : []);
 };
 
-const sortedExportItems = computed(() => {
-  if (!resolvedMultiSortMeta.value.length) {
-    return filteredItems.value;
-  }
-
-  return [...filteredItems.value].sort((first, second) => {
-    for (const sortMeta of resolvedMultiSortMeta.value) {
-      const sortHeader = visibleHeaders.value.find(
-        (header) => header.value === sortMeta.field,
-      );
-      const firstValue = sortHeader
-        ? resolveExportValue(first, sortHeader)
-        : resolveFieldData(first, sortMeta.field);
-      const secondValue = sortHeader
-        ? resolveExportValue(second, sortHeader)
-        : resolveFieldData(second, sortMeta.field);
-      const delta = compareValues(firstValue, secondValue);
-
-      if (delta !== 0) {
-        return sortMeta.order === -1 ? -delta : delta;
-      }
-    }
-
-    return 0;
-  });
-});
-
-let activateKeyboardScopeHandler: (() => void) | null = null;
-
 const {
-  activeRowKey,
-  focusTableRoot,
-  getActiveRowIndex,
+  activateKeyboardScope,
+  displayedItems,
+  shadowLoading,
   getRowClass,
   handleRowClick,
   handleRowDblClick,
-  isActiveRow,
-  setActiveRow,
-} = useDataTableActiveRow({
+  handleTableFocusOut,
+  syncKeyboardScope,
+} = useDataTableRowInteraction({
   activeRow: computed(() => props.activeRow),
   activeRowKey: computed(() => props.activeRowKey),
   enableKeyboardNavigation: isKeyboardNavigationEnabled,
   itemKey: resolvedItemKey,
   items: sortedExportItems,
+  itemsPerPage: computed(() => props.itemsPerPage),
   rootRef,
   tableFocusRef,
-  activateKeyboardScope: () => activateKeyboardScopeHandler?.(),
   emitClickRow: (item) => emits(`click-row`, item),
   emitDblClickRow: (item) => emits(`dblclick-row`, item),
   emitActiveRow: (item) => emits(`update:activeRow`, item),
   emitActiveRowKey: (key) => emits(`update:activeRowKey`, key),
 });
-
-const {
-  displayedItems,
-  shadowLoading,
-  activateKeyboardScope,
-  handleTableFocusOut,
-  syncKeyboardScope,
-} = useDataTableKeyboardNavigation({
-  activeRowKey,
-  enableKeyboardNavigation: isKeyboardNavigationEnabled,
-  findActiveRowIndex: getActiveRowIndex,
-  focusTableRoot,
-  hasActiveItem: (item) => isActiveRow(item),
-  items: sortedExportItems,
-  itemsPerPage: computed(() => props.itemsPerPage),
-  onActivateRow: setActiveRow,
-  onConfirmRow: (item) => emits(`dblclick-row`, item),
-  rootRef,
-  tableFocusRef,
-});
-
-activateKeyboardScopeHandler = activateKeyboardScope;
 
 const totalRowsCount = computed(() => rawItems.value.length);
 const filteredRowsCount = computed(() => filteredItems.value.length);
@@ -605,14 +497,7 @@ const getContentClass = (header: Header) => ({
 
 const clearColumnDecorators = (columnValue: string) => {
   clearColumnFilter(columnValue);
-
-  const nextMeta = multiSortMeta.value.filter(
-    (item) => item.field !== columnValue,
-  );
-  if (nextMeta.length !== multiSortMeta.value.length) {
-    multiSortMeta.value = nextMeta;
-    emitSortState(nextMeta);
-  }
+  clearColumnSort(columnValue);
 };
 
 const handleColumnVisibilityChange = (columnValue: string, event: Event) => {
@@ -628,16 +513,6 @@ const handleColumnVisibilityChange = (columnValue: string, event: Event) => {
 const toggleColumnsPanel = () => {
   isColumnsPanelOpen.value = !isColumnsPanelOpen.value;
 };
-
-useDataTableFilterDismiss({
-  rootRef,
-  activeFilterHeader,
-  closeColumnFilter,
-});
-
-onMounted(() => {
-  syncKeyboardScope();
-});
 
 watch(
   rawItems,

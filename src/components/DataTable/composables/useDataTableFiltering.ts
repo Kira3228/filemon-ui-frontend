@@ -1,17 +1,32 @@
-import { Header } from "@/common-components/src/components/DataTable";
-import { computed, ComputedRef, ref } from "vue";
-import { ActiveFilterSummary, ColumnFilters, ColumnFilterState, FILTER_MODE_LABELS, FilterMode, FilterOption, RangeValueType } from "../types/data-table.types";
-import { DataTableFilterValueType } from "../types/header.type";
-import { getFilterSourceValue, normalizeFilterKey, normalizeFilterLabel, normalizeScalarFilterValue, parseDateValue, parseNumberValue, resolveRangeComparableValue } from "../utils/data-table.utils";
-
+import { computed, ComputedRef, onBeforeUnmount, onMounted, ref, Ref } from "vue";
+import {
+  ActiveFilterSummary,
+  ColumnFilters,
+  FILTER_MODE_LABELS,
+  FilterMode,
+} from "../types/data-table.types";
+import { Header } from "../types/header.type";
+import {
+  applyColumnFilterState,
+  buildFilterSummary,
+  createFilterDraftState,
+  getAvailableFilterModes as resolveAvailableFilterModes,
+  getDefaultFilterMode as resolveDefaultFilterMode,
+  getFilteredItems,
+  getFilterOptions as resolveFilterOptions,
+  getRangeValueType as resolveRangeValueType,
+  passesColumnFilter as resolvePassesColumnFilter,
+} from "../utils/data-table-filtering.utils";
 
 type UseDataTableFilteringOptions = {
   rawItems: ComputedRef<unknown[]>;
+  rootRef?: Ref<HTMLElement | null>;
   visibleHeaders: ComputedRef<Header[]>;
 };
 
 export const useDataTableFiltering = ({
   rawItems,
+  rootRef,
   visibleHeaders,
 }: UseDataTableFilteringOptions) => {
   const columnFilters = ref<ColumnFilters>({});
@@ -23,186 +38,24 @@ export const useDataTableFiltering = ({
   const activeRangeDraft = ref({ from: "", to: "" });
   const activeFilterMenuStyle = ref<Record<string, string>>({});
 
-  const inferFilterValueType = (header: Header): DataTableFilterValueType => {
-    if (header.filterValueType) { return header.filterValueType; }
+  const getRangeValueType = (header: Header) =>
+    resolveRangeValueType(header, rawItems.value);
 
-    const samples = rawItems.value
-      .map((item) => getFilterSourceValue(item, header))
-      .map((value) => normalizeScalarFilterValue(value))
-      .filter((value) => value !== null && value !== undefined && value !== "")
-      .slice(0, 25);
+  const getAvailableFilterModes = (header: Header) =>
+    resolveAvailableFilterModes(header, rawItems.value);
 
-    if (!samples.length) { return "text"; }
-    if (samples.every((sample) => parseNumberValue(sample) !== null)) { return "number"; }
-    if (samples.every((sample) => parseDateValue(sample) !== null)) { return "date"; }
-    return "text";
-  };
+  const getDefaultFilterMode = (header: Header) =>
+    resolveDefaultFilterMode(header, rawItems.value);
 
-  const getRangeValueType = (header: Header): RangeValueType | null => {
-    const valueType = inferFilterValueType(header);
-    return valueType === "number" || valueType === "date" ? valueType : null;
-  };
+  const passesColumnFilter = (item: unknown, header: Header, skipColumn?: string | null) =>
+    resolvePassesColumnFilter(item, header, columnFilters.value, skipColumn);
 
-  const getAvailableFilterModes = (header: Header): FilterMode[] => {
-    const requestedModes: FilterMode[] = Array.isArray(header.filterModes) && header.filterModes.length
-      ? [...header.filterModes]
-      : ["select", "contains", "range"];
-
-    return requestedModes.filter((mode, index, list) => {
-      if (list.indexOf(mode) !== index) { return false; }
-      if (mode !== "range") { return true; }
-      return getRangeValueType(header) !== null;
-    });
-  };
-
-  const getDefaultFilterMode = (header: Header): FilterMode => {
-    const availableModes = getAvailableFilterModes(header);
-    if (header.filterMode && availableModes.includes(header.filterMode)) {
-      return header.filterMode;
-    }
-    return availableModes[0] || "select";
-  };
-
-  const formatRangeDraftValue = (value: string, valueType: RangeValueType) => {
-    if (!value) { return ""; }
-    if (valueType === "number") { return value; }
-
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) { return value; }
-    return parsed.toLocaleString("ru-RU");
-  };
-
-  const passesColumnFilter = (item: unknown, header: Header, skipColumn?: string | null) => {
-    if (header.filterable === false) { return true; }
-    if (skipColumn && header.value === skipColumn) { return true; }
-
-    const filterState = columnFilters.value[header.value];
-    if (!filterState) { return true; }
-
-    const rawValue = getFilterSourceValue(item, header);
-
-    if (filterState.mode === "select") {
-      const valueKey = normalizeFilterKey(rawValue);
-      return filterState.selectedKeys.includes(valueKey);
-    }
-
-    if (filterState.mode === "contains") {
-      const query = filterState.query.trim().toLowerCase();
-      if (!query) { return true; }
-      return normalizeFilterLabel(rawValue).toLowerCase().includes(query);
-    }
-
-    const comparableValue = resolveRangeComparableValue(rawValue, filterState.valueType);
-    if (comparableValue === null) { return false; }
-
-    const fromValue = filterState.from
-      ? resolveRangeComparableValue(filterState.from, filterState.valueType)
-      : null;
-    const toValue = filterState.to
-      ? resolveRangeComparableValue(filterState.to, filterState.valueType)
-      : null;
-
-    if (fromValue !== null && comparableValue < fromValue) { return false; }
-    if (toValue !== null && comparableValue > toValue) { return false; }
-    return true;
-  };
+  const getFilterOptions = (header: Header) =>
+    resolveFilterOptions(header, rawItems.value, visibleHeaders.value, columnFilters.value);
 
   const filteredItems = computed(() =>
-    rawItems.value.filter((item) =>
-      visibleHeaders.value.every((header) => passesColumnFilter(item, header)),
-    ),
+    getFilteredItems(rawItems.value, visibleHeaders.value, columnFilters.value),
   );
-
-  const getFilterOptions = (header: Header): FilterOption[] => {
-    const scopedItems = rawItems.value.filter((item) =>
-      visibleHeaders.value.every((columnHeader) =>
-        passesColumnFilter(item, columnHeader, header.value),
-      ),
-    );
-
-    const optionsMap = new Map<string, FilterOption>();
-
-    for (const item of scopedItems) {
-      const rawValue = getFilterSourceValue(item, header);
-      const key = normalizeFilterKey(rawValue);
-      const label = normalizeFilterLabel(rawValue);
-      const existing = optionsMap.get(key);
-
-      if (existing) {
-        existing.count += 1;
-      } else {
-        optionsMap.set(key, { key, label, count: 1 });
-      }
-    }
-
-    return Array.from(optionsMap.values()).sort((first, second) =>
-      first.label.localeCompare(second.label, "ru", { numeric: true, sensitivity: "base" }),
-    );
-  };
-
-  const buildSelectFilterSummary = (header: Header, selectedKeys: string[]) => {
-    const optionLabels = new Map(
-      getFilterOptions(header).map((option) => [option.key, option.label]),
-    );
-    const labels = selectedKeys.map((key) => optionLabels.get(key) || key);
-
-    if (!labels.length) {
-      return {
-        text: "ничего не выбрано",
-        fullText: "ничего не выбрано",
-      };
-    }
-
-    const preview = labels.length > 2
-      ? `${labels.slice(0, 2).join(", ")} +${labels.length - 2}`
-      : labels.join(", ");
-
-    return {
-      text: preview,
-      fullText: labels.join(", "),
-    };
-  };
-
-  const buildFilterSummary = (header: Header, filterState: ColumnFilterState): ActiveFilterSummary => {
-    if (filterState.mode === "contains") {
-      const summary = `содержит "${filterState.query}"`;
-      return {
-        key: header.value,
-        label: header.text,
-        text: summary,
-        fullText: summary,
-      };
-    }
-
-    if (filterState.mode === "range") {
-      const fromText = filterState.from
-        ? formatRangeDraftValue(filterState.from, filterState.valueType)
-        : "";
-      const toText = filterState.to
-        ? formatRangeDraftValue(filterState.to, filterState.valueType)
-        : "";
-      const summary = fromText && toText
-        ? `${fromText} - ${toText}`
-        : fromText
-          ? `от ${fromText}`
-          : `до ${toText}`;
-
-      return {
-        key: header.value,
-        label: header.text,
-        text: summary,
-        fullText: summary,
-      };
-    }
-
-    const selectSummary = buildSelectFilterSummary(header, filterState.selectedKeys);
-    return {
-      key: header.value,
-      label: header.text,
-      text: selectSummary.text,
-      fullText: selectSummary.fullText,
-    };
-  };
 
   const activeFilterHeader = computed(() =>
     visibleHeaders.value.find((header) => header.value === activeFilterColumn.value) || null,
@@ -213,7 +66,7 @@ export const useDataTableFiltering = ({
       .map((header) => {
         const filterState = columnFilters.value[header.value];
         if (!filterState) { return null; }
-        return buildFilterSummary(header, filterState);
+        return buildFilterSummary(header, filterState, getFilterOptions(header));
       })
       .filter(Boolean) as ActiveFilterSummary[],
   );
@@ -258,22 +111,16 @@ export const useDataTableFiltering = ({
   const syncDraftWithActiveColumn = () => {
     if (!activeFilterHeader.value) { return; }
 
-    const currentState = columnFilters.value[activeFilterHeader.value.value];
-    const availableKeys = getFilterOptions(activeFilterHeader.value).map((option) => option.key);
-    const defaultMode = getDefaultFilterMode(activeFilterHeader.value);
+    const currentHeader = activeFilterHeader.value;
+    const currentState = columnFilters.value[currentHeader.value];
+    const availableKeys = getFilterOptions(currentHeader).map((option) => option.key);
+    const defaultMode = getDefaultFilterMode(currentHeader);
+    const draft = createFilterDraftState(currentState, availableKeys, defaultMode);
 
-    activeFilterMode.value = currentState?.mode || defaultMode;
-    activeFilterDraft.value = currentState?.mode === "select"
-      ? currentState.selectedKeys.filter((key) => availableKeys.includes(key))
-      : availableKeys;
-    activeContainsDraft.value = currentState?.mode === "contains" ? currentState.query : "";
-    activeRangeDraft.value = currentState?.mode === "range"
-      ? { from: currentState.from, to: currentState.to }
-      : { from: "", to: "" };
-
-    if (!currentState && activeFilterMode.value === "select") {
-      activeFilterDraft.value = availableKeys;
-    }
+    activeFilterMode.value = draft.mode;
+    activeFilterDraft.value = draft.selectedKeys;
+    activeContainsDraft.value = draft.containsQuery;
+    activeRangeDraft.value = draft.range;
   };
 
   const updateFilterMenuPosition = (button: HTMLElement) => {
@@ -302,6 +149,63 @@ export const useDataTableFiltering = ({
     activeContainsDraft.value = "";
     activeRangeDraft.value = { from: "", to: "" };
   };
+
+  const getActiveFilterMenuElement = () => {
+    const menu = rootRef?.value?.querySelector(".compact-data-table__filter-menu");
+    return menu instanceof HTMLElement ? menu : null;
+  };
+
+  const isEventInsideActiveFilterMenu = (event: MouseEvent | Event) => {
+    const menu = getActiveFilterMenuElement();
+    if (!menu) { return false; }
+
+    const target = event.target as Node | null;
+    if (target && menu.contains(target)) { return true; }
+
+    if (!(event instanceof MouseEvent)) { return false; }
+
+    const rect = menu.getBoundingClientRect();
+    const { clientX, clientY } = event;
+
+    return (
+      clientX >= rect.left &&
+      clientX <= rect.right &&
+      clientY >= rect.top &&
+      clientY <= rect.bottom
+    );
+  };
+
+  const handleFilterPointerDown = (event: MouseEvent) => {
+    const target = event.target as Node | null;
+    if (!target) { return; }
+
+    if (rootRef?.value?.contains(target)) { return; }
+    if (!activeFilterHeader.value) { return; }
+    if (isEventInsideActiveFilterMenu(event)) { return; }
+
+    closeColumnFilter();
+  };
+
+  const handleViewportChange = (event?: Event) => {
+    if (!activeFilterHeader.value) { return; }
+    if (event && isEventInsideActiveFilterMenu(event)) { return; }
+
+    closeColumnFilter();
+  };
+
+  if (rootRef) {
+    onMounted(() => {
+      document.addEventListener("mousedown", handleFilterPointerDown);
+      window.addEventListener("resize", handleViewportChange);
+      window.addEventListener("scroll", handleViewportChange, true);
+    });
+
+    onBeforeUnmount(() => {
+      document.removeEventListener("mousedown", handleFilterPointerDown);
+      window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("scroll", handleViewportChange, true);
+    });
+  }
 
   const toggleColumnFilter = (event: Event, header: Header) => {
     const button = event.currentTarget as HTMLElement | null;
@@ -342,51 +246,16 @@ export const useDataTableFiltering = ({
   const applyActiveFilter = () => {
     if (!activeFilterHeader.value) { return; }
 
-    const columnKey = activeFilterHeader.value.value;
-    const nextFilters = { ...columnFilters.value };
-
-    if (activeFilterMode.value === "select") {
-      const allKeys = activeFilterOptions.value.map((option) => option.key);
-      const isUnfilteredState =
-        activeFilterDraft.value.length === allKeys.length &&
-        activeFilterDraft.value.every((key) => allKeys.includes(key));
-
-      if (isUnfilteredState) {
-        delete nextFilters[columnKey];
-      } else {
-        nextFilters[columnKey] = {
-          mode: "select",
-          selectedKeys: [...activeFilterDraft.value],
-        };
-      }
-    } else if (activeFilterMode.value === "contains") {
-      const query = activeContainsDraft.value.trim();
-      if (!query) {
-        delete nextFilters[columnKey];
-      } else {
-        nextFilters[columnKey] = {
-          mode: "contains",
-          query,
-        };
-      }
-    } else {
-      const valueType = activeRangeValueType.value;
-      const from = activeRangeDraft.value.from.trim();
-      const to = activeRangeDraft.value.to.trim();
-
-      if (!valueType || (!from && !to)) {
-        delete nextFilters[columnKey];
-      } else {
-        nextFilters[columnKey] = {
-          mode: "range",
-          from,
-          to,
-          valueType,
-        };
-      }
-    }
-
-    columnFilters.value = nextFilters;
+    columnFilters.value = applyColumnFilterState({
+      columnKey: activeFilterHeader.value.value,
+      currentFilters: columnFilters.value,
+      mode: activeFilterMode.value,
+      selectedKeys: activeFilterDraft.value,
+      availableKeys: activeFilterOptions.value.map((option) => option.key),
+      containsQuery: activeContainsDraft.value,
+      range: activeRangeDraft.value,
+      rangeValueType: activeRangeValueType.value,
+    });
     closeColumnFilter();
   };
 
