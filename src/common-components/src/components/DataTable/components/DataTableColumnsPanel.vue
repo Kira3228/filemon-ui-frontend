@@ -34,7 +34,14 @@
             type="checkbox"
             :checked="header.isVisible !== false"
             :disabled="header.isVisible !== false && visibleHeadersCount <= 1"
-            @change="$emit('visibility-change', header.value, $event)"
+            @change="
+              $emit(
+                'visibility-change',
+                header.value,
+                ($event.target as HTMLInputElement)?.checked ?? false,
+                $event,
+              )
+            "
           />
           <span class="compact-data-table__column-label">{{
             header.text
@@ -88,7 +95,7 @@ defineEmits<{
   (e: "close"): void;
   (e: "move", value: string, delta: -1 | 1): void;
   (e: "reset"): void;
-  (e: "visibility-change", value: string, event: Event): void;
+  (e: "visibility-change", value: string, isVisible: boolean, event: Event): void;
   (e: "width-input", value: string, event: Event): void;
 }>();
 </script>

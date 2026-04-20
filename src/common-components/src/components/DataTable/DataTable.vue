@@ -158,7 +158,7 @@
           </template>
         </Column>
 
-        <template v-if="$slots.footer || $scopedSlots.footer" #footer>
+        <template v-if="$slots.footer" #footer>
           <slot name="footer" />
         </template>
       </PrimeDataTable>
@@ -242,15 +242,12 @@ import PrimeDataTable from "primevue/datatable";
 import Column from "primevue/column";
 import { computed, onMounted, ref, watch } from "vue";
 import type { Header } from "./header.type";
-import type { RowKey, SortMeta } from "./data-table.types";
+import type { RowKey } from "./data-table.types";
 import {
-  compareValues,
   getAlign,
   getCellTitle,
   getFilterSourceValue,
   inferPrimaryItemKey,
-  resolveExportValue,
-  resolveFieldData,
 } from "./data-table.utils";
 import { useDataTableStatePersistence } from "./composables/useDataTableStatePersistence";
 import { useDataTableFiltering } from "./composables/useDataTableFiltering";
@@ -391,6 +388,8 @@ const {
   handleSort,
   handleHeaderSort,
   getSortIconClass,
+  sortedItems,
+  clearColumnSort,
 } = useDataTableSorting({
   sortByList: computed(() => props.sortByList),
   sortDescList: computed(() => props.sortDescList),
@@ -405,93 +404,9 @@ const {
   },
 });
 
-const normalizeSortMeta = (sortByList: unknown, sortDescList: unknown) => {
-  const sortFields = Array.isArray(sortByList)
-    ? sortByList
-    : sortByList
-    ? [sortByList]
-    : [];
-  const sortDirections = Array.isArray(sortDescList)
-    ? sortDescList
-    : sortDescList !== undefined
-    ? [sortDescList]
-    : [];
-
-  return sortFields.filter(Boolean).map((field, index) => ({
-    field: String(field),
-    order: sortDirections[index] ? -1 : 1,
-  }));
-};
-
-const multiSortMeta = ref(
-  normalizeSortMeta(props.sortByList, props.sortDescList),
-);
-const stripForcedGroupSort = (meta: SortMeta[]) => {
-  const field = groupSortField.value;
-  if (!field || !rowGroupMode.value || !meta.length) {
-    return meta;
-  }
-
-  return meta.filter((item, index) => !(index === 0 && item.field === field));
-};
-
-watch(
-  () => [props.sortByList, props.sortDescList],
-  ([sortByList, sortDescList]) => {
-    multiSortMeta.value = stripForcedGroupSort(
-      normalizeSortMeta(sortByList, sortDescList),
-    );
-  },
-  { deep: true },
-);
-
-watch(
-  () => [rowGroupMode.value, groupSortField.value],
-  () => {
-    multiSortMeta.value = stripForcedGroupSort(multiSortMeta.value);
-  },
-);
-
-const emitSortState = (meta: SortMeta[]) => {
-  const sortBy = meta.map((item) => item.field);
-  const sortDesc = meta.map((item) => item.order === -1);
-  emits("update:sortBy", sortBy);
-  emits("update:sortDesc", sortDesc);
-  emits("change", { sortBy, sortDesc });
-};
-
 const handleExpandedRowGroupsUpdate = (groups: unknown[]) => {
   emits("update:expandedRowGroups", Array.isArray(groups) ? groups : []);
 };
-
-const sortedExportItems = computed(() => {
-  if (!resolvedMultiSortMeta.value.length) {
-    return filteredItems.value;
-  }
-
-  return [...filteredItems.value].sort((first, second) => {
-    for (const sortMeta of resolvedMultiSortMeta.value) {
-      const sortHeader = visibleHeaders.value.find(
-        (header) => header.value === sortMeta.field,
-      );
-      const firstValue = sortHeader
-        ? resolveExportValue(first, sortHeader)
-        : resolveFieldData(first, sortMeta.field);
-      const secondValue = sortHeader
-        ? resolveExportValue(second, sortHeader)
-        : resolveFieldData(second, sortMeta.field);
-      const delta = compareValues(firstValue, secondValue);
-
-      if (delta !== 0) {
-        return sortMeta.order === -1 ? -delta : delta;
-      }
-    }
-
-    return 0;
-  });
-});
-
-let activateKeyboardScopeHandler: (() => void) | null = null;
 
 const {
   activeRowKey,
@@ -507,10 +422,9 @@ const {
   activeRowKey: computed(() => props.activeRowKey),
   enableKeyboardNavigation: isKeyboardNavigationEnabled,
   itemKey: resolvedItemKey,
-  items: sortedExportItems,
+  items: sortedItems,
   rootRef,
   tableFocusRef,
-  activateKeyboardScope: () => activateKeyboardScopeHandler?.(),
   emitClickRow: (item) => emits(`click-row`, item),
   emitDblClickRow: (item) => emits(`dblclick-row`, item),
   emitActiveRow: (item) => emits(`update:activeRow`, item),
@@ -529,15 +443,13 @@ const {
   findActiveRowIndex: getActiveRowIndex,
   focusTableRoot,
   hasActiveItem: (item) => isActiveRow(item),
-  items: sortedExportItems,
+  items: sortedItems,
   itemsPerPage: computed(() => props.itemsPerPage),
   onActivateRow: setActiveRow,
   onConfirmRow: (item) => emits(`dblclick-row`, item),
   rootRef,
   tableFocusRef,
 });
-
-activateKeyboardScopeHandler = activateKeyboardScope;
 
 const totalRowsCount = computed(() => rawItems.value.length);
 const filteredRowsCount = computed(() => filteredItems.value.length);
@@ -547,7 +459,7 @@ const selectedRowsCount = computed(() => {
   }
 
   if (props.value && typeof props.value === "object") {
-    return Object.keys(props.value).length;
+    return 1;
   }
 
   return props.value ? 1 : 0;
@@ -559,13 +471,13 @@ const { exportActions, exportError, handleExport, isExporting } =
     customExportRowKinds: computed(() => props.exportRowKinds),
     exportTitleInput: computed(() => props.exportTitle),
     filteredRowsCount,
-    sortedItems: sortedExportItems,
+    sortedItems: sortedItems,
     visibleHeaders,
   });
 
 const { autoFitVisibleColumns } = useDataTableColumnAutoFit({
   columnLayouts,
-  items: sortedExportItems,
+  items: sortedItems,
   rootRef,
   setColumnLayouts,
   visibleHeaders,
@@ -604,25 +516,16 @@ const getContentClass = (header: Header) => ({
   "compact-data-table__content--wrap": header.wrap,
 });
 
-const clearColumnDecorators = (columnValue: string) => {
-  clearColumnFilter(columnValue);
-
-  const nextMeta = multiSortMeta.value.filter(
-    (item) => item.field !== columnValue,
-  );
-  if (nextMeta.length !== multiSortMeta.value.length) {
-    multiSortMeta.value = nextMeta;
-    emitSortState(nextMeta);
-  }
-};
-
-const handleColumnVisibilityChange = (columnValue: string, event: Event) => {
-  const target = event.target as HTMLInputElement | null;
-  const isVisible = Boolean(target?.checked);
+const handleColumnVisibilityChange = (
+  columnValue: string,
+  isVisible: boolean,
+  event: Event,
+) => {
   handleHeaderVisibilityChange(columnValue, event);
 
   if (!isVisible) {
-    clearColumnDecorators(columnValue);
+    clearColumnFilter(columnValue);
+    clearColumnSort(columnValue);
   }
 };
 

@@ -6,6 +6,7 @@ import {
   watch,
 } from "vue";
 import type { ComputedRef, Ref } from "vue";
+import { scrollActiveRowIntoView } from "../data-table.utils";
 
 type UseDataTableKeyboardNavigationOptions<T> = {
   activeRowKey: ComputedRef<string | number | null>;
@@ -63,13 +64,7 @@ export const useDataTableKeyboardNavigation = <T>({
     shadowLoading.value = minimumCount < items.value.length;
   };
 
-  const scrollActiveRowIntoView = () => {
-    nextTick(() => {
-      const row = rootRef.value?.querySelector(".compact-data-table__row--active");
-      if (!(row instanceof HTMLElement)) { return; }
-      row.scrollIntoView({ block: "nearest", inline: "nearest" });
-    });
-  };
+
 
   const syncKeyboardScope = () => {
     nextTick(() => {
@@ -268,7 +263,7 @@ export const useDataTableKeyboardNavigation = <T>({
     if (index < 0) { return; }
 
     ensureRowRendered(index);
-    scrollActiveRowIntoView();
+    scrollActiveRowIntoView(rootRef);
   }, { immediate: true });
 
   return {
@@ -280,7 +275,6 @@ export const useDataTableKeyboardNavigation = <T>({
     handleDocumentPointerDown,
     handleTableFocusOut,
     isKeyboardScopeActive,
-    scrollActiveRowIntoView,
     shadowLoading,
     syncActiveRowWithItems,
     syncKeyboardScope,

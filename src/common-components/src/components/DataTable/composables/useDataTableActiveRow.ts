@@ -1,9 +1,10 @@
-import { computed, nextTick, ref } from "vue";
+import { computed, ref } from "vue";
 import type { ComputedRef, Ref } from "vue";
 import type { RowKey } from "../data-table.types";
 import {
   isSameRowKey,
   resolveRowKey,
+  scrollActiveRowIntoView,
 } from "../data-table.utils";
 
 type SetActiveRowOptions = {
@@ -19,7 +20,6 @@ type UseDataTableActiveRowOptions<T> = {
   items: ComputedRef<T[]>;
   rootRef: Ref<HTMLElement | null>;
   tableFocusRef: Ref<HTMLElement | null>;
-  activateKeyboardScope?: () => void;
   emitClickRow: (item: T) => void;
   emitDblClickRow: (item: T) => void;
   emitActiveRow: (item: T | null) => void;
@@ -34,7 +34,6 @@ export const useDataTableActiveRow = <T = unknown>({
   items,
   rootRef,
   tableFocusRef,
-  activateKeyboardScope,
   emitClickRow,
   emitDblClickRow,
   emitActiveRow,
@@ -68,17 +67,6 @@ export const useDataTableActiveRow = <T = unknown>({
       isSameRowKey(resolveRowKey(item, itemKey.value), activeRowKey.value),
     );
 
-  const scrollActiveRowIntoView = () => {
-    nextTick(() => {
-      const row = rootRef.value?.querySelector(
-        ".compact-data-table__row--active",
-      );
-      if (!(row instanceof HTMLElement)) {
-        return;
-      }
-      row.scrollIntoView({ block: "nearest", inline: "nearest" });
-    });
-  };
 
   const focusTableRoot = () => {
     if (!enableKeyboardNavigation.value) {
@@ -105,7 +93,7 @@ export const useDataTableActiveRow = <T = unknown>({
     }
 
     if (item && options.scrollIntoView !== false) {
-      scrollActiveRowIntoView();
+      scrollActiveRowIntoView(rootRef);
     }
   };
 
@@ -114,13 +102,11 @@ export const useDataTableActiveRow = <T = unknown>({
   });
 
   const handleRowClick = (event: { data: T }) => {
-    activateKeyboardScope?.();
     focusTableRoot();
     setActiveRow(event.data, { emitClick: true });
   };
 
   const handleRowDblClick = (event: { data: T }) => {
-    activateKeyboardScope?.();
     focusTableRoot();
     setActiveRow(event.data);
     emitDblClickRow(event.data);
