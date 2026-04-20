@@ -229,7 +229,7 @@
 <script lang="ts" setup>
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router/composables";
-import { useTheme } from "@/shared-ui/theme/use-theme";
+import { useTheme } from "@/plugins/theme";
 import { useApi } from "@/shared/api/http";
 import { useDatabaseState } from "@/shared/model/use-database-state";
 import { useAnalysisWorkspace } from "../../model/use-analysis-workspace";

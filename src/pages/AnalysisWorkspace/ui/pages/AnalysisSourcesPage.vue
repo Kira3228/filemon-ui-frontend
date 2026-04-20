@@ -104,12 +104,13 @@
 </template>
 
 <script lang="ts" setup>
-import { DataTable } from "@/common-components/src/components/DataTable";
+import { DataTable, Header } from "@/components/DataTable";
 import { ref, watch } from "vue";
 import { useRouter } from "vue-router/composables";
 import { useAnalysisUiSettings } from "../../model/use-analysis-ui-settings";
 import { useAnalysisWorkspace } from "../../model/use-analysis-workspace";
 import AnalysisFileDetailsToggle from "../components/AnalysisFileDetailsToggle.vue";
+import { AnalysisSourceItem } from "../../model/analysis-report.types";
 
 const router = useRouter();
 const {
