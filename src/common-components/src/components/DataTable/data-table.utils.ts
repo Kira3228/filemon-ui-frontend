@@ -5,7 +5,6 @@ import {
   MIN_COLUMN_WIDTH,
 } from "./data-table.types";
 import type { RangeValueType, RowKey } from "./data-table.types";
-import { nextTick, Ref } from "vue";
 
 export const sanitizeStorageSegment = (value: string) =>
   value
@@ -212,12 +211,4 @@ export const getAlign = (align?: string) => {
   if (align === "center") { return "center"; }
   if (align === "end" || align === "right") { return "right"; }
   return "left";
-};
-
-export const scrollActiveRowIntoView = (rootRef: Ref<HTMLElement | null>) => {
-  nextTick(() => {
-    const row = rootRef.value?.querySelector(".compact-data-table__row--active");
-    if (!(row instanceof HTMLElement)) { return; }
-    row.scrollIntoView({ block: "nearest", inline: "nearest" });
-  });
 };
