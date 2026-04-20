@@ -26,6 +26,7 @@ export const useDataTableSorting = ({
   filteredItems,
   visibleHeaders,
   emitSortState,
+
 }: UseDataTableSortingOptions) => {
   const normalizeSortMeta = (
     sortByListValue: unknown,

@@ -1,13 +1,17 @@
-import { Ref } from "vue";
+import { onBeforeUnmount, onMounted } from "vue";
+import type { Ref } from "vue";
 
 interface UseDataTableFilterDismissOptions {
   rootRef: Ref<HTMLElement | null>;
+  activeFilterHeader: Ref<unknown>;
+  closeColumnFilter: () => void;
 }
 
-
-
-export const useDataTableFilterDismiss = ({ rootRef }: UseDataTableFilterDismissOptions) => {
-
+export const useDataTableFilterDismiss = ({
+  rootRef,
+  activeFilterHeader,
+  closeColumnFilter,
+}: UseDataTableFilterDismissOptions): void => {
   const getActiveFilterMenuElement = () => {
     const menu = rootRef.value?.querySelector(".compact-data-table__filter-menu");
     return menu instanceof HTMLElement ? menu : null;
@@ -39,11 +43,42 @@ export const useDataTableFilterDismiss = ({ rootRef }: UseDataTableFilterDismiss
     return false;
   };
 
+  const handleFilterPointerDown = (event: MouseEvent) => {
+    const target = event.target as Node | null;
+    if (!target) {
+      return;
+    }
 
+    if (rootRef.value?.contains(target)) {
+      return;
+    }
+    if (!activeFilterHeader.value) {
+      return;
+    }
+    if (isEventInsideActiveFilterMenu(event)) {
+      return;
+    }
+    closeColumnFilter();
+  };
 
+  const handleViewportChange = (event?: Event) => {
+    if (activeFilterHeader.value) {
+      if (event && isEventInsideActiveFilterMenu(event)) {
+        return;
+      }
+      closeColumnFilter();
+    }
+  };
 
-  return {
-    getActiveFilterMenuElement,
-    isEventInsideActiveFilterMenu,
-  }
-}
+  onMounted(() => {
+    document.addEventListener("mousedown", handleFilterPointerDown);
+    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("scroll", handleViewportChange, true);
+  });
+
+  onBeforeUnmount(() => {
+    document.removeEventListener("mousedown", handleFilterPointerDown);
+    window.removeEventListener("resize", handleViewportChange);
+    window.removeEventListener("scroll", handleViewportChange, true);
+  });
+};

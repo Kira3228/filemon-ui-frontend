@@ -22,7 +22,7 @@
             :key="`${source.fileId}-level-${levelIndex}`"
             class="analysis-graph-level"
           >
-            <div class="analysis-graph-level-label tw-mb-2">Уровень {{ levelIndex + 1 }}</div>
+            <div class="analysis-graph-level-label mb-2">Уровень {{ levelIndex + 1 }}</div>
             <div class="analysis-graph-grid">
               <button
                 v-for="node in level"
@@ -33,11 +33,11 @@
                 @dblclick="openFile(node.fileId)"
               >
                 <div class="analysis-graph-title analysis-file-name">{{ node.name }}</div>
-                <div class="analysis-page-meta tw-mt-1">{{ node.path }}</div>
-                <div class="analysis-page-meta tw-mt-2">
+                <div class="analysis-page-meta mt-1">{{ node.path }}</div>
+                <div class="analysis-page-meta mt-2">
                   версий={{ node.versionCount }} · глубина={{ node.depth }} · {{ node.currentStatus }}
                 </div>
-                <span class="analysis-badge event_badge_gray tw-mt-2">
+                <span class="analysis-badge event_badge_gray mt-2">
                   {{ node.childIds.length ? `Порождает ${node.childIds.length} файл(ов)` : "Листовой узел" }}
                 </span>
               </button>

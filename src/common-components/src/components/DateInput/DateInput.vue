@@ -1,10 +1,10 @@
 <template>
-  <div class="tw-flex tw-items-center tw-gap-4 tw-w-full">
-    <span v-if="label" class="p-float-label tw-w-full">
+  <div class="flex items-center gap-4 w-full">
+    <span v-if="label" class="p-float-label w-full">
       <Calendar
         :id="inputId"
         :value="calendarValue"
-        class="tw-w-full"
+        class="w-full"
         date-format="dd/mm/yy"
         show-icon
         append-to="body"
@@ -17,7 +17,7 @@
     <Calendar
       v-else
       :value="calendarValue"
-      class="tw-w-full"
+      class="w-full"
       date-format="dd/mm/yy"
       show-icon
       append-to="body"

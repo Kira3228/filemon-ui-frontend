@@ -1,6 +1,6 @@
 <template>
-  <div class="tw-flex tw-flex-col tw-flex-1 tw-min-h-0">
-    <div v-if="isLoading" class="tw-flex tw-flex-col tw-gap-2">
+  <div class="flex flex-col flex-1 min-h-0">
+    <div v-if="isLoading" class="flex flex-col gap-2">
       <div
         v-for="skeleton in skeletonsQuantity"
         :key="skeleton"
@@ -13,7 +13,7 @@
     </div>
     <dynamic-scroller
       v-else
-      class="tw-flex-1 tw-min-h-0"
+      class="flex-1 min-h-0"
       :items="items"
       :min-item-size="150"
     >
@@ -24,7 +24,7 @@
           :size-dependencies="[item.id]"
           :data-index="index"
         >
-          <div class="my-item tw-flex tw-flex-col">
+          <div class="my-item flex flex-col">
             {{ item.id }}
           </div>
           <div

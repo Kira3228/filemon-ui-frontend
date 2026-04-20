@@ -1,7 +1,7 @@
 <template>
   <div
     ref="rootRef"
-    class="compact-data-table-shell tw-flex-1 tw-min-w-0 tw-min-h-0 tw-w-full tw-flex tw-flex-col"
+    class="compact-data-table-shell flex-1 min-w-0 min-h-0 w-full flex flex-col"
   >
     <div class="compact-data-table__topbar">
       <div class="compact-data-table__topbar-meta">
@@ -65,7 +65,7 @@
         :value="displayedItems"
         :data-key="resolvedItemKey"
         :row-class="getRowClass"
-        class="tw-text-xs compact-data-table"
+        class="text-xs compact-data-table"
         responsive-layout="scroll"
         sort-mode="multiple"
         :multi-sort-meta="resolvedMultiSortMeta"
@@ -130,36 +130,13 @@
           :body-class="getBodyClass()"
         >
           <template #header>
-            <div class="compact-data-table__header-inner">
-              <UiButton
-                variant="text"
-                size="xSmall"
-                @click="handleHeaderSort(header, $event)"
-              >
-                <span>
-                  {{ header.text }}
-                </span>
-                <span
-                  v-if="header.sortable"
-                  class="compact-data-table__sort-icon pi"
-                  :class="getSortIconClass(header)"
-                />
-              </UiButton>
-              <UiButton
-                @click.stop="toggleColumnFilter($event, header)"
-                v-if="header.filterable !== false"
-                variant="text"
-                size="xSmall"
-              >
-                <span class="pi pi-filter" />
-                <span
-                  v-if="getColumnFilterCount(header) !== null"
-                  class="compact-data-table__filter-badge"
-                >
-                  {{ getColumnFilterCount(header) }}
-                </span>
-              </UiButton>
-            </div>
+            <ColumnHeader
+              :header="header"
+              :sort-icon-class="getSortIconClass(header)"
+              :filter-count="getColumnFilterCount(header)"
+              @sort="handleHeaderSort(header, $event)"
+              @filter="toggleColumnFilter($event, header)"
+            />
           </template>
           <template #body="slotProps">
             <div
@@ -181,7 +158,7 @@
           </template>
         </Column>
 
-        <template v-if="$slots.footer || $scopedSlots.footer" #footer>
+        <template v-if="$slots.footer" #footer>
           <slot name="footer" />
         </template>
       </PrimeDataTable>
@@ -263,37 +240,27 @@
 <script lang="ts" setup>
 import PrimeDataTable from "primevue/datatable";
 import Column from "primevue/column";
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  watch,
-} from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import type { Header } from "./header.type";
-import type { RowKey, SortMeta } from "./data-table.types";
+import type { RowKey } from "./data-table.types";
 import {
-  compareValues,
   getAlign,
   getCellTitle,
   getFilterSourceValue,
   inferPrimaryItemKey,
-  isSameRowKey,
-  normalizeColumnWidth,
-  resolveExportValue,
-  resolveFieldData,
-  resolveRowKey,
-  stringifyExportValue,
 } from "./data-table.utils";
 import { useDataTableStatePersistence } from "./composables/useDataTableStatePersistence";
 import { useDataTableFiltering } from "./composables/useDataTableFiltering";
 import { useDataTableExport } from "./composables/useDataTableExport";
 import { useDataTableKeyboardNavigation } from "./composables/useDataTableKeyboardNavigation";
+import { useDataTableActiveRow } from "./composables/useDataTableActiveRow";
+import { useDataTableColumnAutoFit } from "./composables/useDataTableColumnAutoFit";
+import ColumnHeader from "./components/ColumnHeader.vue";
 import DataTableColumnsPanel from "./components/DataTableColumnsPanel.vue";
 import DataTableFilterMenu from "./components/DataTableFilterMenu.vue";
 import UiButton from "../UiButton/UiButton.vue";
 import { useDataTableSorting } from "./composables/useDataTableSorting";
+import { useDataTableFilterDismiss } from "./composables/useDataTableFilterDismiss";
 
 interface Props<I = unknown> {
   isLoading?: boolean;
@@ -359,27 +326,9 @@ const groupSortField = computed(() => {
 const rootRef = ref<HTMLElement | null>(null);
 const tableFocusRef = ref<HTMLElement | null>(null);
 const isColumnsPanelOpen = ref(false);
-const internalActiveRowKey = ref<RowKey | null>(null);
 
 const isKeyboardNavigationEnabled = computed(
   () => props.enableKeyboardNavigation !== false,
-);
-const controlledActiveRowKey = computed<RowKey | null | undefined>(() => {
-  if (props.activeRowKey !== undefined) {
-    return props.activeRowKey ?? null;
-  }
-
-  if (props.activeRow !== undefined) {
-    return resolveRowKey(props.activeRow, resolvedItemKey.value);
-  }
-
-  return undefined;
-});
-
-const activeRowKey = computed<RowKey | null>(() =>
-  controlledActiveRowKey.value !== undefined
-    ? controlledActiveRowKey.value
-    : internalActiveRowKey.value,
 );
 
 const {
@@ -439,6 +388,8 @@ const {
   handleSort,
   handleHeaderSort,
   getSortIconClass,
+  sortedItems,
+  clearColumnSort,
 } = useDataTableSorting({
   sortByList: computed(() => props.sortByList),
   sortDescList: computed(() => props.sortDescList),
@@ -453,146 +404,31 @@ const {
   },
 });
 
-const normalizeSortMeta = (sortByList: unknown, sortDescList: unknown) => {
-  const sortFields = Array.isArray(sortByList)
-    ? sortByList
-    : sortByList
-    ? [sortByList]
-    : [];
-  const sortDirections = Array.isArray(sortDescList)
-    ? sortDescList
-    : sortDescList !== undefined
-    ? [sortDescList]
-    : [];
-
-  return sortFields.filter(Boolean).map((field, index) => ({
-    field: String(field),
-    order: sortDirections[index] ? -1 : 1,
-  }));
-};
-
-const multiSortMeta = ref(
-  normalizeSortMeta(props.sortByList, props.sortDescList),
-);
-const stripForcedGroupSort = (meta: SortMeta[]) => {
-  const field = groupSortField.value;
-  if (!field || !rowGroupMode.value || !meta.length) {
-    return meta;
-  }
-
-  return meta.filter((item, index) => !(index === 0 && item.field === field));
-};
-
-watch(
-  () => [props.sortByList, props.sortDescList],
-  ([sortByList, sortDescList]) => {
-    multiSortMeta.value = stripForcedGroupSort(
-      normalizeSortMeta(sortByList, sortDescList),
-    );
-  },
-  { deep: true },
-);
-
-watch(
-  () => [rowGroupMode.value, groupSortField.value],
-  () => {
-    multiSortMeta.value = stripForcedGroupSort(multiSortMeta.value);
-  },
-);
-
-const emitSortState = (meta: SortMeta[]) => {
-  const sortBy = meta.map((item) => item.field);
-  const sortDesc = meta.map((item) => item.order === -1);
-  emits("update:sortBy", sortBy);
-  emits("update:sortDesc", sortDesc);
-  emits("change", { sortBy, sortDesc });
-};
-
 const handleExpandedRowGroupsUpdate = (groups: unknown[]) => {
   emits("update:expandedRowGroups", Array.isArray(groups) ? groups : []);
 };
 
-const sortedExportItems = computed(() => {
-  if (!resolvedMultiSortMeta.value.length) {
-    return filteredItems.value;
-  }
-
-  return [...filteredItems.value].sort((first, second) => {
-    for (const sortMeta of resolvedMultiSortMeta.value) {
-      const sortHeader = visibleHeaders.value.find(
-        (header) => header.value === sortMeta.field,
-      );
-      const firstValue = sortHeader
-        ? resolveExportValue(first, sortHeader)
-        : resolveFieldData(first, sortMeta.field);
-      const secondValue = sortHeader
-        ? resolveExportValue(second, sortHeader)
-        : resolveFieldData(second, sortMeta.field);
-      const delta = compareValues(firstValue, secondValue);
-
-      if (delta !== 0) {
-        return sortMeta.order === -1 ? -delta : delta;
-      }
-    }
-
-    return 0;
-  });
-});
-
-const isActiveRow = (item: unknown) =>
-  isSameRowKey(resolveRowKey(item, resolvedItemKey.value), activeRowKey.value);
-
-const getActiveRowIndex = () =>
-  sortedExportItems.value.findIndex((item) =>
-    isSameRowKey(
-      resolveRowKey(item, resolvedItemKey.value),
-      activeRowKey.value,
-    ),
-  );
-
-const scrollActiveRowIntoView = () => {
-  nextTick(() => {
-    const row = rootRef.value?.querySelector(
-      ".compact-data-table__row--active",
-    );
-    if (!(row instanceof HTMLElement)) {
-      return;
-    }
-    row.scrollIntoView({ block: "nearest", inline: "nearest" });
-  });
-};
-
-const focusTableRoot = () => {
-  if (!isKeyboardNavigationEnabled.value) {
-    return;
-  }
-  tableFocusRef.value?.focus({ preventScroll: true });
-};
-
-const setActiveRow = (
-  item: unknown | null,
-  options: { emitClick?: boolean; scrollIntoView?: boolean } = {},
-) => {
-  const nextKey = resolveRowKey(item, resolvedItemKey.value);
-
-  if (controlledActiveRowKey.value === undefined) {
-    internalActiveRowKey.value = nextKey;
-  }
-
-  emits(`update:activeRow`, item);
-  emits(`update:activeRowKey`, nextKey);
-
-  if (item && options.emitClick) {
-    emits(`click-row`, item);
-  }
-
-  if (item && options.scrollIntoView !== false) {
-    scrollActiveRowIntoView();
-  }
-};
-
-const getRowClass = (item: unknown) => ({
-  "compact-data-table__row--active": isActiveRow(item),
+const {
+  activeRowKey,
+  focusTableRoot,
+  getActiveRowIndex,
+  getRowClass,
+  handleRowClick,
+  handleRowDblClick,
+  isActiveRow,
+  setActiveRow,
+} = useDataTableActiveRow({
+  activeRow: computed(() => props.activeRow),
+  activeRowKey: computed(() => props.activeRowKey),
+  enableKeyboardNavigation: isKeyboardNavigationEnabled,
+  itemKey: resolvedItemKey,
+  items: sortedItems,
+  rootRef,
+  tableFocusRef,
+  emitClickRow: (item) => emits(`click-row`, item),
+  emitDblClickRow: (item) => emits(`dblclick-row`, item),
+  emitActiveRow: (item) => emits(`update:activeRow`, item),
+  emitActiveRowKey: (key) => emits(`update:activeRowKey`, key),
 });
 
 const {
@@ -607,7 +443,7 @@ const {
   findActiveRowIndex: getActiveRowIndex,
   focusTableRoot,
   hasActiveItem: (item) => isActiveRow(item),
-  items: sortedExportItems,
+  items: sortedItems,
   itemsPerPage: computed(() => props.itemsPerPage),
   onActivateRow: setActiveRow,
   onConfirmRow: (item) => emits(`dblclick-row`, item),
@@ -623,7 +459,7 @@ const selectedRowsCount = computed(() => {
   }
 
   if (props.value && typeof props.value === "object") {
-    return Object.keys(props.value).length;
+    return 1;
   }
 
   return props.value ? 1 : 0;
@@ -635,22 +471,17 @@ const { exportActions, exportError, handleExport, isExporting } =
     customExportRowKinds: computed(() => props.exportRowKinds),
     exportTitleInput: computed(() => props.exportTitle),
     filteredRowsCount,
-    sortedItems: sortedExportItems,
+    sortedItems: sortedItems,
     visibleHeaders,
   });
 
-const handleRowClick = (event: { data: unknown }) => {
-  activateKeyboardScope();
-  focusTableRoot();
-  setActiveRow(event.data, { emitClick: true });
-};
-
-const handleRowDblClick = (event: { data: unknown }) => {
-  activateKeyboardScope();
-  focusTableRoot();
-  setActiveRow(event.data);
-  emits(`dblclick-row`, event.data);
-};
+const { autoFitVisibleColumns } = useDataTableColumnAutoFit({
+  columnLayouts,
+  items: sortedItems,
+  rootRef,
+  setColumnLayouts,
+  visibleHeaders,
+});
 
 const handleInput = (data: unknown) => {
   emits(`input`, Array.isArray(data) ? data : []);
@@ -685,118 +516,16 @@ const getContentClass = (header: Header) => ({
   "compact-data-table__content--wrap": header.wrap,
 });
 
-const getMeasurementFont = (selector: string, fallback: string) => {
-  if (typeof window === "undefined") {
-    return fallback;
-  }
-
-  const element = rootRef.value?.querySelector(selector);
-  if (!(element instanceof HTMLElement)) {
-    return fallback;
-  }
-
-  const styles = window.getComputedStyle(element);
-  const fontStyle = styles.fontStyle || "normal";
-  const fontVariant = styles.fontVariant || "normal";
-  const fontWeight = styles.fontWeight || "400";
-  const fontSize = styles.fontSize || "12px";
-  const lineHeight =
-    styles.lineHeight && styles.lineHeight !== "normal"
-      ? `/${styles.lineHeight}`
-      : "";
-  const fontFamily = styles.fontFamily || "sans-serif";
-
-  return `${fontStyle} ${fontVariant} ${fontWeight} ${fontSize}${lineHeight} ${fontFamily}`;
-};
-
-const measureTextWidth = (text: string, font: string) => {
-  if (typeof document === "undefined") {
-    return text.length * 8;
-  }
-
-  const canvas = document.createElement("canvas");
-  const context = canvas.getContext("2d");
-  if (!context) {
-    return text.length * 8;
-  }
-
-  context.font = font;
-  return context.measureText(text).width;
-};
-
-const resolveAutoFitValue = (item: unknown, header: Header) => {
-  const directValue = resolveExportValue(item, header);
-  const stringified = stringifyExportValue(directValue);
-  if (stringified) {
-    return stringified;
-  }
-
-  return getCellTitle(getFilterSourceValue(item, header));
-};
-
-const autoFitVisibleColumns = () => {
-  const headerFont = getMeasurementFont(
-    ".compact-data-table__header-label",
-    "normal normal 600 12px sans-serif",
-  );
-  const bodyFont = getMeasurementFont(
-    ".compact-data-table__content",
-    "normal normal 400 12px sans-serif",
-  );
-  const sampleItems = sortedExportItems.value.slice(0, 120);
-
-  setColumnLayouts(
-    columnLayouts.value.map((layout) => {
-      const header = visibleHeaders.value.find(
-        (entry) => entry.value === layout.value,
-      );
-      if (!header) {
-        return layout;
-      }
-
-      const headerWidth =
-        measureTextWidth(String(header.text || ""), headerFont) +
-        (header.filterable === false ? 44 : 76) +
-        (header.sortable ? 18 : 0);
-
-      const contentWidth = sampleItems.reduce((maxWidth: number, item) => {
-        const text = resolveAutoFitValue(item, header);
-        if (!text) {
-          return maxWidth;
-        }
-        return Math.max(maxWidth, measureTextWidth(text, bodyFont) + 28);
-      }, 0);
-
-      return {
-        ...layout,
-        width: normalizeColumnWidth(
-          Math.max(headerWidth, contentWidth, MIN_COLUMN_WIDTH),
-          layout.width,
-        ),
-      };
-    }),
-  );
-};
-
-const clearColumnDecorators = (columnValue: string) => {
-  clearColumnFilter(columnValue);
-
-  const nextMeta = multiSortMeta.value.filter(
-    (item) => item.field !== columnValue,
-  );
-  if (nextMeta.length !== multiSortMeta.value.length) {
-    multiSortMeta.value = nextMeta;
-    emitSortState(nextMeta);
-  }
-};
-
-const handleColumnVisibilityChange = (columnValue: string, event: Event) => {
-  const target = event.target as HTMLInputElement | null;
-  const isVisible = Boolean(target?.checked);
+const handleColumnVisibilityChange = (
+  columnValue: string,
+  isVisible: boolean,
+  event: Event,
+) => {
   handleHeaderVisibilityChange(columnValue, event);
 
   if (!isVisible) {
-    clearColumnDecorators(columnValue);
+    clearColumnFilter(columnValue);
+    clearColumnSort(columnValue);
   }
 };
 
@@ -804,75 +533,14 @@ const toggleColumnsPanel = () => {
   isColumnsPanelOpen.value = !isColumnsPanelOpen.value;
 };
 
-const getActiveFilterMenuElement = () => {
-  const menu = rootRef.value?.querySelector(".compact-data-table__filter-menu");
-  return menu instanceof HTMLElement ? menu : null;
-};
-
-const isEventInsideActiveFilterMenu = (event: MouseEvent | Event) => {
-  const menu = getActiveFilterMenuElement();
-  if (!menu) {
-    return false;
-  }
-
-  const target = event.target as Node | null;
-  if (target && menu.contains(target)) {
-    return true;
-  }
-
-  if (event instanceof MouseEvent) {
-    const rect = menu.getBoundingClientRect();
-    const { clientX, clientY } = event;
-
-    return (
-      clientX >= rect.left &&
-      clientX <= rect.right &&
-      clientY >= rect.top &&
-      clientY <= rect.bottom
-    );
-  }
-
-  return false;
-};
-
-const handleFilterPointerDown = (event: MouseEvent) => {
-  const target = event.target as Node | null;
-  if (!target) {
-    return;
-  }
-
-  if (rootRef.value?.contains(target)) {
-    return;
-  }
-  if (!activeFilterHeader.value) {
-    return;
-  }
-  if (isEventInsideActiveFilterMenu(event)) {
-    return;
-  }
-  closeColumnFilter();
-};
-
-const handleViewportChange = (event?: Event) => {
-  if (activeFilterHeader.value) {
-    if (event && isEventInsideActiveFilterMenu(event)) {
-      return;
-    }
-    closeColumnFilter();
-  }
-};
-
-onMounted(() => {
-  document.addEventListener("mousedown", handleFilterPointerDown);
-  window.addEventListener("resize", handleViewportChange);
-  window.addEventListener("scroll", handleViewportChange, true);
-  syncKeyboardScope();
+useDataTableFilterDismiss({
+  rootRef,
+  activeFilterHeader,
+  closeColumnFilter,
 });
 
-onBeforeUnmount(() => {
-  document.removeEventListener("mousedown", handleFilterPointerDown);
-  window.removeEventListener("resize", handleViewportChange);
-  window.removeEventListener("scroll", handleViewportChange, true);
+onMounted(() => {
+  syncKeyboardScope();
 });
 
 watch(

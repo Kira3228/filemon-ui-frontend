@@ -1,5 +1,5 @@
 <template>
-  <aside class="app-menu tw-h-full">
+  <aside class="app-menu h-full">
     <nav class="app-menu__list">
       <div
         v-for="(item, idx) in items"
@@ -20,7 +20,7 @@
               <component
                 v-if="item.icon && typeof item.icon === 'object'"
                 :is="item.icon"
-                class="tw-w-6 tw-h-6"
+                class="w-6 h-6"
                 v-bind="item.iconProps"
               />
               <span v-else class="material-icons">{{ item.icon }}</span>
@@ -50,7 +50,7 @@
               <component
                 v-if="typeof sub.icon === 'object'"
                 :is="sub.icon"
-                class="tw-w-5 tw-h-5"
+                class="w-5 h-5"
                 v-bind="sub.iconProps"
               />
               <span v-else class="material-icons">{{ sub.icon }}</span>

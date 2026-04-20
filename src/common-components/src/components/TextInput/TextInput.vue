@@ -1,10 +1,10 @@
 <template>
-  <div class="tw-flex tw-items-center tw-w-full">
-    <span v-if="isTextarea && label" class="p-float-label tw-w-full">
+  <div class="flex items-center w-full">
+    <span v-if="isTextarea && label" class="p-float-label w-full">
       <PrimeTextarea
         :id="inputId"
         :value="valueAsString"
-        class="tw-w-full"
+        class="w-full"
         auto-resize
         v-bind="$attrs"
         @input="handleTextInput"
@@ -14,16 +14,16 @@
     <PrimeTextarea
       v-else-if="isTextarea"
       :value="valueAsString"
-      class="tw-w-full"
+      class="w-full"
       auto-resize
       v-bind="$attrs"
       @input="handleTextInput"
     />
-    <span v-else-if="label" class="p-float-label tw-w-full text-input-wrapper">
+    <span v-else-if="label" class="p-float-label w-full text-input-wrapper">
       <InputText
         :id="inputId"
         :value="valueAsString"
-        class="tw-w-full"
+        class="w-full"
         :placeholder="placeholder"
         v-bind="$attrs"
         @input="handleTextInput"
@@ -31,10 +31,10 @@
       <label :for="inputId">{{ label }}</label>
       <span v-if="isSearch" class="pi pi-search text-input-icon" aria-hidden="true" />
     </span>
-    <span v-else class="text-input-wrapper tw-w-full">
+    <span v-else class="text-input-wrapper w-full">
       <InputText
         :value="valueAsString"
-        class="tw-w-full"
+        class="w-full"
         :placeholder="placeholder"
         v-bind="$attrs"
         @input="handleTextInput"

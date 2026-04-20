@@ -1,11 +1,11 @@
 <template>
-  <div class="tw-flex tw-items-center tw-w-full">
-    <span v-if="label" class="p-float-label tw-w-full">
+  <div class="flex items-center w-full">
+    <span v-if="label" class="p-float-label w-full">
       <component
         :is="selectComponent"
         :id="inputId"
         :value="value"
-        class="tw-w-full"
+        class="w-full"
         :options="items"
         :placeholder="placeholder"
         :option-label="resolvedOptionLabel"
@@ -29,7 +29,7 @@
       :is="selectComponent"
       v-else
       :value="value"
-      class="tw-w-full"
+      class="w-full"
       :options="items"
       :placeholder="placeholder"
       :option-label="resolvedOptionLabel"
