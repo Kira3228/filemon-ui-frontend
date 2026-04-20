@@ -1,6 +1,6 @@
 <template>
   <div class="analysis-workspace-scroll">
-    <div class="tw-p-4 analysis-workspace-container">
+    <div class="p-4 analysis-workspace-container">
       <div
         ref="dockRef"
         class="analysis-workspace-layout"
@@ -9,8 +9,8 @@
           'analysis-workspace-layout--dragging': isDragging,
         }"
       >
-        <section class="tw-min-w-0 analysis-workspace-main">
-          <Message v-if="error" severity="error" :closable="false" class="tw-mb-4">
+        <section class="min-w-0 analysis-workspace-main">
+          <Message v-if="error" severity="error" :closable="false" class="mb-4">
             {{ error }}
           </Message>
           <Message
@@ -18,12 +18,12 @@
             :key="notice"
             severity="warn"
             :closable="false"
-            class="tw-mb-4"
+            class="mb-4"
           >
             {{ notice }}
           </Message>
 
-          <nav class="analysis-tabs tw-mb-4">
+          <nav class="analysis-tabs mb-4">
             <div
               v-for="section in openSections"
               :key="section.key"
@@ -67,7 +67,7 @@
 
         <aside
           v-if="showSharedDrawer"
-          class="tw-min-w-0 analysis-workspace-drawer-shell"
+          class="min-w-0 analysis-workspace-drawer-shell"
           :style="drawerStyle"
         >
           <AnalysisChainDrawer embedded />

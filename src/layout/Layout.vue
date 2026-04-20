@@ -3,9 +3,9 @@
     <div class="layout-main">
       <AppMenu :items="menuItems" @menu-click="handleMenuClick" />
       <div
-        class="tw-p-4 tw-flex-1 tw-min-w-0 tw-min-h-0 tw-overflow-hidden tw-flex tw-flex-col"
+        class="p-4 flex-1 min-w-0 min-h-0 overflow-hidden flex flex-col"
       >
-        <RouterView class="tw-flex-1 tw-min-h-0" />
+        <RouterView class="flex-1 min-h-0" />
       </div>
     </div>
 
