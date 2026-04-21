@@ -1,4 +1,4 @@
-import type { Header } from "@/common-components/src/components/DataTable";
+import { Header } from "@/components/DataTable";
 
 export const PROCESS_GROUP_MAX_TS = 9999999999999;
 

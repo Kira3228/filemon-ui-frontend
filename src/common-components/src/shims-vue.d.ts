@@ -1,5 +1,0 @@
-declare module "*.vue" {
-  import type { VueConstructor } from "vue";
-  const component: VueConstructor;
-  export default component;
-}

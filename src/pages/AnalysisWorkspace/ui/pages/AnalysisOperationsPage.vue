@@ -112,8 +112,8 @@
 </template>
 
 <script lang="ts" setup>
-import { DataTable } from "@/common-components/src/components/DataTable";
-import { Header } from "@/common-components/src/components/DataTable";
+import { DataTable } from "@/components/DataTable";
+import { Header } from "@/components/DataTable";
 import { computed } from "vue";
 import { filterItemsByFileId } from "../../model/file-route-filter";
 import type { AnalysisOperationItem } from "../../model/analysis-report.types";

@@ -2,9 +2,7 @@
   <div class="layout-shell">
     <div class="layout-main">
       <AppMenu :items="menuItems" @menu-click="handleMenuClick" />
-      <div
-        class="p-4 flex-1 min-w-0 min-h-0 overflow-hidden flex flex-col"
-      >
+      <div class="p-4 flex-1 min-w-0 min-h-0 overflow-hidden flex flex-col">
         <RouterView class="flex-1 min-h-0" />
       </div>
     </div>
@@ -110,10 +108,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import {
-  Menu as AppMenu,
-  TMenuItem,
-} from "@/common-components/src/components/Menu";
+import { Menu as AppMenu, TMenuItem } from "@/components/Menu";
 import {
   buildFileScopedLocation,
   parseRouteFileId,

@@ -119,8 +119,8 @@
 
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { DataTable } from "@/common-components/src/components/DataTable";
-import { Header } from "@/common-components/src/components/DataTable";
+import { DataTable } from "@/components/DataTable";
+import { Header } from "@/components/DataTable";
 import { filterItemsByFileId } from "../../model/file-route-filter";
 import type { AnalysisFileItem, MonitoringAction } from "../../model/analysis-report.types";
 import { useKeyboardTableSelection } from "../../model/use-keyboard-table-selection";

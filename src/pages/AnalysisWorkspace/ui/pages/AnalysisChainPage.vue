@@ -322,7 +322,7 @@ import { ref, watch } from "vue";
 import {
   DataTable,
   Header,
-} from "@/common-components/src/components/DataTable";
+} from "@/components/DataTable";
 import { useRoute, useRouter } from "vue-router/composables";
 import { buildFileScopedLocation } from "../../model/file-route-filter";
 import { useAnalysisChainPageModel } from "../../model/analysis-chain-page.model";

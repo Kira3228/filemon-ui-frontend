@@ -177,8 +177,8 @@
 </template>
 
 <script lang="ts" setup>
-import { DataTable } from "@/common-components/src/components/DataTable";
-import type { Header } from "@/common-components/src/components/DataTable";
+import { DataTable } from "@/components/DataTable";
+import type { Header } from "@/components/DataTable";
 import type { Nullable } from "../../model/analysis-report.types";
 import type { ProcessBucket, ProcessGroupRow, ProcessTableItem } from "../../model/analysis-processes-table.types";
 import { useAnalysisUiSettings } from "../../model/use-analysis-ui-settings";
