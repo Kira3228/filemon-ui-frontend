@@ -91,6 +91,11 @@ export const useDataTableKeyboardScope = ({
   };
 
   const handleDocumentPointerDown = (event: MouseEvent) => {
+    if (!enableKeyboardNavigation.value) {
+      deactivateKeyboardScope();
+      return;
+    }
+
     const target = event.target as Node | null;
     if (!target) {
       return;

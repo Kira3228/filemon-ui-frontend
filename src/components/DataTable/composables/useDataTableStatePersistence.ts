@@ -60,12 +60,21 @@ export const useDataTableStatePersistence = ({
     columnLayouts.value = normalizeColumnLayouts(headers.value, nextLayouts);
   };
 
+  let previousTableStateKey: string | null = null;
+
   watch(
     [headers, tableStateKey],
-    ([nextHeaders]) => {
-      const persistedLayouts = loadColumnLayouts(tableStateKey.value);
-      const sourceLayouts = persistedLayouts.length ? persistedLayouts : columnLayouts.value;
+    ([nextHeaders, nextTableStateKey]) => {
+      const persistedLayouts = loadColumnLayouts(nextTableStateKey);
+      const isSameStateKey = previousTableStateKey === nextTableStateKey;
+      const sourceLayouts = persistedLayouts.length
+        ? persistedLayouts
+        : isSameStateKey
+          ? columnLayouts.value
+          : [];
+
       columnLayouts.value = normalizeColumnLayouts(nextHeaders, sourceLayouts);
+      previousTableStateKey = nextTableStateKey;
     },
     { immediate: true, deep: true },
   );

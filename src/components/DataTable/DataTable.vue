@@ -449,7 +449,6 @@ const { exportActions, exportError, handleExport, isExporting } =
     customExportRows: computed(() => props.exportRows),
     customExportRowKinds: computed(() => props.exportRowKinds),
     exportTitleInput: computed(() => props.exportTitle),
-    filteredRowsCount,
     sortedItems: sortedExportItems,
     visibleHeaders,
   });

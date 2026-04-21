@@ -156,7 +156,6 @@ export const useDataTableRowInteraction = <T = unknown>({
     }
 
     setActiveRow(items.value[0], {
-      emitClick: true,
       scrollIntoView: false,
     });
   };
