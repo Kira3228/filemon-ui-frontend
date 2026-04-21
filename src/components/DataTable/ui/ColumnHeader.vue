@@ -32,7 +32,7 @@ import { Header } from "../types/header.type";
 interface Props {
   header: Header;
   sortIconClass: string | Record<string, boolean> | string[];
-  filterCount: number | null;
+  filterCount?: number;
 }
 
 defineProps<Props>();

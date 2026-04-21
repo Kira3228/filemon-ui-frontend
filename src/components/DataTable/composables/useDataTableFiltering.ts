@@ -280,7 +280,7 @@ export const useDataTableFiltering = ({
 
   const getColumnFilterCount = (header: Header) => {
     const filterState = columnFilters.value[header.value];
-    if (!filterState) { return null; }
+    if (!filterState) { return undefined; }
     if (filterState.mode === "select") { return filterState.selectedKeys.length; }
     return 1;
   };

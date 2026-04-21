@@ -258,6 +258,7 @@ import { useDataTableSorting } from "./composables/useDataTableSorting";
 import { useDataTableRowInteraction } from "./composables/useDataTableRowInteraction";
 import { useDataTableExport } from "./composables/useDataTableExport";
 import { useDataTableColumnAutoFit } from "./composables/useDataTableColumnAutoFit";
+import DataTableFilterMenu from "./ui/DataTableFilterMenu.vue";
 
 interface Props<I = unknown> {
   isLoading?: boolean;
@@ -479,15 +480,20 @@ const getBodyStyle = (header: Header) => ({
   textAlign: getAlign(header.align),
 });
 
-const getHeaderClass = () => ({
-  "compact-data-table__header": true,
-  "compact-data-table__header--dense": props.dense !== false,
-});
+const getHeaderClass = (): string => {
+  return `compact-data-table__header ${
+    props.dense !== false ? `compact-data-table__header--dense` : ""
+  }`;
+};
 
-const getBodyClass = () => ({
-  "compact-data-table__cell": true,
-  "compact-data-table__cell--dense": props.dense !== false,
-});
+const getBodyClass = (): string => {
+  return `compact-data-table__cell ${
+    props.dense !== false ? `compact-data-table__cell--dense` : ""
+  }`;
+
+  // "compact-data-table__cell": true,
+  // "compact-data-table__cell--dense": props.dense !== false,
+};
 
 const getContentClass = (header: Header) => ({
   "compact-data-table__content--truncate": !header.wrap,
