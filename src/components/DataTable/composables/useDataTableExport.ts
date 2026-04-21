@@ -8,7 +8,6 @@ type UseDataTableExportOptions = {
   customExportRows: ComputedRef<Array<Array<unknown>> | undefined>;
   customExportRowKinds: ComputedRef<string[] | undefined>;
   exportTitleInput: ComputedRef<string | undefined>;
-  filteredRowsCount: ComputedRef<number>;
   sortedItems: ComputedRef<unknown[]>;
   visibleHeaders: ComputedRef<Header[]>;
 };
@@ -35,7 +34,6 @@ export const useDataTableExport = ({
   customExportRows,
   customExportRowKinds,
   exportTitleInput,
-  filteredRowsCount,
   sortedItems,
   visibleHeaders,
 }: UseDataTableExportOptions) => {
@@ -175,7 +173,7 @@ export const useDataTableExport = ({
       return;
     }
 
-    if (!filteredRowsCount.value) {
+    if (!exportRows.value.length) {
       exportError.value = "Нет данных для выгрузки по текущему фильтру";
       return;
     }

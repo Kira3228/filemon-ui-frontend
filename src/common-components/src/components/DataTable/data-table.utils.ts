@@ -19,6 +19,8 @@ export const sanitizeFileName = (value: string) =>
     .replace(/^_+|_+$/g, "") || "table_export";
 
 export const normalizeColumnWidth = (value: unknown, fallback = 160) => {
+  console.log(value);
+
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) { return fallback; }
   return Math.max(MIN_COLUMN_WIDTH, Math.min(MAX_COLUMN_WIDTH, Math.round(parsed)));

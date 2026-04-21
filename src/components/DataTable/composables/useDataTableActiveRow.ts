@@ -1,7 +1,9 @@
 import { computed, ComputedRef, nextTick, Ref, ref } from "vue";
 import { RowKey } from "../types/data-table.types";
-import { isSameRowKey, resolveRowKey } from "../utils/data-table.utils";
-
+import {
+  isSameRowKey,
+  resolveRowKey,
+} from "../utils/data-table.utils";
 
 type SetActiveRowOptions = {
   emitClick?: boolean;
@@ -11,14 +13,10 @@ type SetActiveRowOptions = {
 type UseDataTableActiveRowOptions<T> = {
   activeRow: ComputedRef<T | null | undefined>;
   activeRowKey: ComputedRef<RowKey | null | undefined>;
-  enableKeyboardNavigation: ComputedRef<boolean>;
   itemKey: ComputedRef<string>;
   items: ComputedRef<T[]>;
   rootRef: Ref<HTMLElement | null>;
-  tableFocusRef: Ref<HTMLElement | null>;
-  activateKeyboardScope?: () => void;
   emitClickRow: (item: T) => void;
-  emitDblClickRow: (item: T) => void;
   emitActiveRow: (item: T | null) => void;
   emitActiveRowKey: (key: RowKey | null) => void;
 };
@@ -26,14 +24,10 @@ type UseDataTableActiveRowOptions<T> = {
 export const useDataTableActiveRow = <T = unknown>({
   activeRow,
   activeRowKey: activeRowKeyInput,
-  enableKeyboardNavigation,
   itemKey,
   items,
   rootRef,
-  tableFocusRef,
-  activateKeyboardScope,
   emitClickRow,
-  emitDblClickRow,
   emitActiveRow,
   emitActiveRowKey,
 }: UseDataTableActiveRowOptions<T>) => {
@@ -70,18 +64,13 @@ export const useDataTableActiveRow = <T = unknown>({
       const row = rootRef.value?.querySelector(
         ".compact-data-table__row--active",
       );
+
       if (!(row instanceof HTMLElement)) {
         return;
       }
+
       row.scrollIntoView({ block: "nearest", inline: "nearest" });
     });
-  };
-
-  const focusTableRoot = () => {
-    if (!enableKeyboardNavigation.value) {
-      return;
-    }
-    tableFocusRef.value?.focus({ preventScroll: true });
   };
 
   const setActiveRow = (
@@ -110,27 +99,12 @@ export const useDataTableActiveRow = <T = unknown>({
     "compact-data-table__row--active": isActiveRow(item),
   });
 
-  const handleRowClick = (event: { data: T }) => {
-    activateKeyboardScope?.();
-    focusTableRoot();
-    setActiveRow(event.data, { emitClick: true });
-  };
-
-  const handleRowDblClick = (event: { data: T }) => {
-    activateKeyboardScope?.();
-    focusTableRoot();
-    setActiveRow(event.data);
-    emitDblClickRow(event.data);
-  };
-
   return {
     activeRowKey,
-    focusTableRoot,
     getActiveRowIndex,
     getRowClass,
-    handleRowClick,
-    handleRowDblClick,
     isActiveRow,
+    scrollActiveRowIntoView,
     setActiveRow,
   };
 };
