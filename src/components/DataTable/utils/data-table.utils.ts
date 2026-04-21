@@ -1,5 +1,5 @@
-import { Header } from "@/common-components/src/components/DataTable";
 import { EMPTY_FILTER_KEY, MAX_COLUMN_WIDTH, MIN_COLUMN_WIDTH, RangeValueType, RowKey } from "../types/data-table.types";
+import { Header } from "../types/header.type";
 
 
 export const sanitizeStorageSegment = (value: string) =>

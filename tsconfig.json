@@ -21,9 +21,6 @@
       "@/*": [
         "src/*"
       ],
-      "~/*": [
-        "src/common-components/src/*"
-      ]
     },
     "lib": [
       "esnext",

@@ -65,7 +65,7 @@
 </template>
 
 <script lang="ts" setup>
-import { DataTable } from "@/common-components/src/components/DataTable";
+import { DataTable } from "@/components/DataTable";
 import { computed } from "vue";
 import { filterItemsByFileId } from "../../model/file-route-filter";
 import { useAnalysisUiSettings } from "../../model/use-analysis-ui-settings";
