@@ -54,8 +54,8 @@
 import Dropdown from "primevue/dropdown";
 import MultiSelect from "primevue/multiselect";
 import { computed } from "vue";
-import { useDebounce } from "../../lib/debounce";
-import { uid } from "../../lib/uid";
+import { useDebounce } from "../../../../shared/utils/lib/debounce";
+import { uid } from "../../../../shared/utils/lib/uid";
 
 type SelectPrimitive = string | number | boolean | null | undefined;
 type SelectOption = Record<string, unknown> | SelectPrimitive;

@@ -48,8 +48,8 @@
 import InputText from "primevue/inputtext";
 import PrimeTextarea from "primevue/textarea";
 import { computed } from "vue";
-import { useDebounce } from "../../lib/debounce";
-import { uid } from "../../lib/uid";
+import { useDebounce } from "../../../../shared/utils/lib/debounce";
+import { uid } from "../../../../shared/utils/lib/uid";
 
 interface Props {
   isSearch?: boolean;
