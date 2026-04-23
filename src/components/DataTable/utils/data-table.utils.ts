@@ -41,6 +41,7 @@ export const resolveRowKey = (item: unknown, itemKey: string): RowKey | null => 
 
   const explicitValue = resolveFieldData(item, itemKey);
   if (explicitValue !== null && explicitValue !== undefined && explicitValue !== "") {
+    
     return explicitValue as RowKey;
   }
 

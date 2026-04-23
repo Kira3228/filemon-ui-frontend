@@ -1,38 +1,23 @@
 <template>
   <div class="flex items-center gap-4 w-full">
-    <span v-if="label" class="p-float-label w-full">
-      <Calendar
-        :id="inputId"
-        :value="calendarValue"
-        class="w-full"
-        date-format="dd/mm/yy"
-        show-icon
-        append-to="body"
-        :manual-input="false"
-        v-bind="$attrs"
-        @input="handleSelect"
-      />
-      <label :for="inputId">{{ label }}</label>
-    </span>
     <Calendar
-      v-else
       :value="calendarValue"
-      class="w-full"
       date-format="dd/mm/yy"
       show-icon
+      class="my-calendar"
       append-to="body"
       :manual-input="false"
       v-bind="$attrs"
       @input="handleSelect"
+      panelClass="my-calendar-panel"
     />
   </div>
 </template>
 
 <script lang="ts" setup>
+import { useDebounce } from "@/shared/utils/lib";
 import Calendar from "primevue/calendar";
 import { computed } from "vue";
-import { useDebounce } from "../../lib/debounce";
-import { uid } from "../../lib/uid";
 
 interface Props {
   value?: string | null;
@@ -49,7 +34,7 @@ const emit = defineEmits<{
 }>();
 
 const { debounce } = useDebounce();
-const inputId = `date-input-${uid()}`;
+// const inputId = `date-input-${uid()}`;
 
 const parseDate = (dateStr: string | null) => {
   if (!dateStr) {
@@ -89,3 +74,27 @@ const handleSelect = (value: Date | Date[] | null) => {
   emitValue(formatDate(date));
 };
 </script>
+<style>
+.p-datepicker {
+  width: 220px;
+}
+:deep(.my-calendar-panel) {
+  width: 220px;
+  font-size: 12px;
+}
+
+:deep(.my-calendar-panel table) {
+  margin: 10px;
+}
+
+:deep(.my-calendar-panel table th),
+:deep(.my-calendar-panel table td) {
+  padding: 3.15rem;
+}
+
+:deep(.my-calendar-panel table td > span) {
+  width: 0.6rem;
+  height: 1.6rem;
+  line-height: 1.6rem;
+}
+</style>

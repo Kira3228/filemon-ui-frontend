@@ -1,16 +1,18 @@
 <template>
-  <button
+  <UiButton
     type="button"
-    class="analysis-toolbar-toggle"
+    variant="secondary"
     :class="{ 'analysis-toolbar-toggle--active': active }"
     @click="$emit('click')"
   >
     <span class="pi" :class="active ? 'pi-eye-slash' : 'pi-eye'" />
     <span>Детали файла</span>
-  </button>
+  </UiButton>
 </template>
 
 <script lang="ts" setup>
+import { UiButton } from "@/components/UiButton";
+
 defineProps<{
   active: boolean;
 }>();

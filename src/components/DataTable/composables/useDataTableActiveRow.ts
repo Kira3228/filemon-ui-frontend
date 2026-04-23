@@ -31,6 +31,7 @@ export const useDataTableActiveRow = <T = unknown>({
   emitActiveRow,
   emitActiveRowKey,
 }: UseDataTableActiveRowOptions<T>) => {
+  
   const internalActiveRowKey = ref<RowKey | null>(null);
 
   const controlledActiveRowKey = computed<RowKey | null | undefined>(() => {

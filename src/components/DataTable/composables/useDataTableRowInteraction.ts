@@ -39,6 +39,7 @@ export const useDataTableRowInteraction = <T = unknown>({
   emitActiveRow,
   emitActiveRowKey,
 }: UseDataTableRowInteractionOptions<T>) => {
+
   const {
     activeRowKey,
     getActiveRowIndex,
@@ -161,6 +162,8 @@ export const useDataTableRowInteraction = <T = unknown>({
   };
 
   const handleRowClick = (event: { data: T }) => {
+    console.log(event);
+    
     activateKeyboardScope();
     focusTableRoot();
     setActiveRow(event.data, { emitClick: true });

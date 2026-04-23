@@ -210,7 +210,7 @@
   flex-wrap: wrap;
 }
 
->>>>>>>parent of 58d6759 (Отрефакторил DataTable) .compact-data-table__panel-action-button {
+.compact-data-table__panel-action-button {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
