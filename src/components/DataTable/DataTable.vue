@@ -3,45 +3,25 @@
     ref="rootRef"
     class="compact-data-table-shell flex-1 min-w-0 min-h-0 w-full flex flex-col"
   >
-    <div class="compact-data-table__topbar">
-      <div class="compact-data-table__topbar-meta">
+    <DataTableTopbar
+      :has-active-filters="hasActiveFilters"
+      :shadow-loading="shadowLoading"
+      :displayed-items="displayedItems"
+      :filtered-items="filteredItems"
+      :export-error="exportError"
+      :is-columns-panel-open="isColumnsPanelOpen"
+      :export-actions="exportActions"
+      :is-exporting="isExporting"
+      @toggle-columns-panel="toggleColumnsPanel"
+      @export="handleExport"
+    >
+      <template #select-preset>
         <slot name="select-preset" />
-        <div v-if="hasActiveFilters" class="compact-data-table__active-filters">
-          <span>Фильтры по столбцам активны</span>
-        </div>
-        <div v-if="shadowLoading" class="compact-data-table__shadow-state">
-          Показано {{ displayedItems.length }} из {{ filteredItems.length }}
-        </div>
-        <div v-if="exportError" class="compact-data-table__export-error">
-          {{ exportError }}
-        </div>
-      </div>
-      <div class="compact-data-table__export-panel">
+      </template>
+      <template #toolbar-actions>
         <slot name="toolbar-actions" />
-        <UiButton
-          :variant="isColumnsPanelOpen ? 'primary' : 'secondary'"
-          size="medium"
-          @click="toggleColumnsPanel"
-        >
-          <span class="pi pi-sliders-h" />
-          <span> Колонки </span>
-        </UiButton>
-        <UiButton
-          v-for="action in exportActions"
-          :key="action.format"
-          :variant="action.primary ? 'primary' : 'secondary'"
-          :disabled="isExporting !== null"
-          @click="handleExport(action.format)"
-        >
-          <span class="pi" :class="action.icon" />
-          <span>
-            {{
-              isExporting === action.format ? action.pendingLabel : action.label
-            }}
-          </span>
-        </UiButton>
-      </div>
-    </div>
+      </template>
+    </DataTableTopbar>
     <DataTableColumnsPanel
       v-if="isColumnsPanelOpen"
       :ordered-headers="orderedHeaders"
@@ -112,7 +92,6 @@
             :index="slotProps.index"
           />
         </template>
-
         <Column
           v-if="showSelect"
           selection-mode="multiple"
@@ -157,7 +136,6 @@
             </div>
           </template>
         </Column>
-
         <template v-if="$slots.footer || $scopedSlots.footer" #footer>
           <slot name="footer" />
         </template>
@@ -259,6 +237,7 @@ import { useDataTableRowInteraction } from "./composables/useDataTableRowInterac
 import { useDataTableExport } from "./composables/useDataTableExport";
 import { useDataTableColumnAutoFit } from "./composables/useDataTableColumnAutoFit";
 import DataTableFilterMenu from "./ui/DataTableFilterMenu.vue";
+import DataTableTopbar from "../DataTableTopbar/ui/DataTableTopbar.vue";
 
 interface Props<I = unknown> {
   isLoading?: boolean;
@@ -490,9 +469,6 @@ const getBodyClass = (): string => {
   return `compact-data-table__cell ${
     props.dense !== false ? `compact-data-table__cell--dense` : ""
   }`;
-
-  // "compact-data-table__cell": true,
-  // "compact-data-table__cell--dense": props.dense !== false,
 };
 
 const getContentClass = (header: Header) => ({

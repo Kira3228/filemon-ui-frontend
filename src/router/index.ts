@@ -3,7 +3,6 @@ import VueRouter, { RouteConfig } from "vue-router";
 Vue.use(VueRouter);
 import { Layout } from "@/layout";
 import FileDetailsPage from "@/pages/FileDetailsPage/ui/FileDetailsPage.vue";
-import AnalysisSourcesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisSourcesPage.vue";
 import AnalysisTimelinePage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisTimelinePage.vue";
 import AnalysisFilesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisFilesPage.vue";
 import AnalysisPropagationDiagramPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisPropagationDiagramPage.vue";
@@ -16,6 +15,8 @@ import AnalysisGraphPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisGraphP
 import AnalysisChainPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisChainPage.vue";
 import AnalysisSettingsPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisSettingsPage.vue";
 import { getDefaultAnalysisTabPath } from "@/pages/AnalysisWorkspace/model/use-analysis-ui-settings";
+import AnalysisSourcesTestPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisSourcesTestPage.vue";
+import AnalysisSourcesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisSourcesPage/AnalysisSourcesPage.vue";
 
 const routes: RouteConfig[] = [
   {
@@ -39,6 +40,11 @@ const routes: RouteConfig[] = [
             path: "sources",
             name: "analysis-sources",
             component: AnalysisSourcesPage,
+          },
+          {
+            path: "sourcesTest",
+            name: "analysis-sources-test",
+            component: AnalysisSourcesTestPage,
           },
           {
             path: "timeline",

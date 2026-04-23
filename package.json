@@ -6,7 +6,7 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "contracts:sync": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sync-api-contracts.ps1",
-    "dev": "vue-cli-service serve --host localhost",
+    "dev": "npx vue-cli-service serve --host 0.0.0.0 --port 3000",
     "dev1": "vue-cli-service serve"
   },
   "dependencies": {
