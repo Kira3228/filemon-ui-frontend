@@ -32,10 +32,7 @@
               role="tab"
               :aria-selected="route.path === section.to ? 'true' : 'false'"
             >
-              <RouterLink
-                :to="section.to"
-                class="analysis-tab__link"
-              >
+              <RouterLink :to="section.to" class="analysis-tab__link">
                 {{ section.label }}
               </RouterLink>
               <button
@@ -102,15 +99,19 @@ const route = useRoute();
 const router = useRouter();
 const dockRef = ref<HTMLElement | null>(null);
 const isDragging = ref(false);
-const viewportWidth = ref(typeof window !== "undefined" ? window.innerWidth : 0);
+const viewportWidth = ref(
+  typeof window !== "undefined" ? window.innerWidth : 0,
+);
 const dockWidth = ref(0);
 const sharedDrawerRatio = ref(0.3);
 
+
 const {
-  ensureReportLoaded,
+  // ensureReportLoaded,
   error,
   report,
 } = useAnalysisWorkspace();
+
 const {
   closeAnalysisTab,
   defaultAnalysisTabKey,
@@ -119,20 +120,31 @@ const {
   openAnalysisTabKeys,
 } = useAnalysisUiSettings();
 
-const showSharedDrawer = computed(() =>
-  fileDetailsVisible.value
-  && route.name !== "analysis-file"
-  && route.name !== "analysis-files"
-  && route.name !== "analysis-settings",
+const showSharedDrawer = computed(
+  () =>
+    fileDetailsVisible.value &&
+    route.name !== "analysis-file" &&
+    route.name !== "analysis-files" &&
+    route.name !== "analysis-settings",
 );
-const isWideDockLayout = computed(() => viewportWidth.value >= SHARED_DOCK_BREAKPOINT);
+const isWideDockLayout = computed(
+  () => viewportWidth.value >= SHARED_DOCK_BREAKPOINT,
+);
 const openSections = computed(() =>
-  analysisSections.filter((section) => openAnalysisTabKeys.value.includes(section.key)),
+  analysisSections.filter((section) =>
+    openAnalysisTabKeys.value.includes(section.key),
+  ),
 );
 
 const clampDrawerWidth = (width: number) => {
-  if (typeof window === "undefined") { return width; }
-  const availableDockWidth = dockWidth.value || dockRef.value?.clientWidth || viewportWidth.value || window.innerWidth;
+  if (typeof window === "undefined") {
+    return width;
+  }
+  const availableDockWidth =
+    dockWidth.value ||
+    dockRef.value?.clientWidth ||
+    viewportWidth.value ||
+    window.innerWidth;
   const maxWidth = Math.max(
     SHARED_DOCK_MIN_WIDTH,
     Math.min(SHARED_DOCK_MAX_WIDTH, availableDockWidth - 320),
@@ -141,7 +153,11 @@ const clampDrawerWidth = (width: number) => {
 };
 
 const setDrawerWidthFromPx = (width: number) => {
-  const availableDockWidth = dockWidth.value || dockRef.value?.clientWidth || viewportWidth.value || width;
+  const availableDockWidth =
+    dockWidth.value ||
+    dockRef.value?.clientWidth ||
+    viewportWidth.value ||
+    width;
   if (!availableDockWidth) {
     return;
   }
@@ -150,26 +166,35 @@ const setDrawerWidthFromPx = (width: number) => {
 };
 
 const drawerStyle = computed(() => {
-  if (!showSharedDrawer.value) { return undefined; }
+  if (!showSharedDrawer.value) {
+    return undefined;
+  }
   if (!isWideDockLayout.value) {
     return { width: "100%", minWidth: "0" };
   }
 
   return {
-    width: `${clampDrawerWidth((dockWidth.value || viewportWidth.value || SHARED_DOCK_DEFAULT_WIDTH) * sharedDrawerRatio.value)}px`,
+    width: `${clampDrawerWidth(
+      (dockWidth.value || viewportWidth.value || SHARED_DOCK_DEFAULT_WIDTH) *
+        sharedDrawerRatio.value,
+    )}px`,
     minWidth: `${SHARED_DOCK_MIN_WIDTH}px`,
   };
 });
 
 const handleResize = (event: PointerEvent) => {
-  if (!dockRef.value) { return; }
+  if (!dockRef.value) {
+    return;
+  }
   const bounds = dockRef.value.getBoundingClientRect();
   dockWidth.value = bounds.width;
   setDrawerWidthFromPx(bounds.right - event.clientX);
 };
 
 const stopResize = () => {
-  if (typeof window === "undefined") { return; }
+  if (typeof window === "undefined") {
+    return;
+  }
   isDragging.value = false;
   window.removeEventListener("pointermove", handleResize);
   window.removeEventListener("pointerup", stopResize);
@@ -177,7 +202,9 @@ const stopResize = () => {
 };
 
 const startResize = (event: PointerEvent) => {
-  if (typeof window === "undefined" || !isWideDockLayout.value) { return; }
+  if (typeof window === "undefined" || !isWideDockLayout.value) {
+    return;
+  }
   event.preventDefault();
   isDragging.value = true;
   window.addEventListener("pointermove", handleResize);
@@ -186,20 +213,27 @@ const startResize = (event: PointerEvent) => {
 };
 
 const handleViewportResize = () => {
-  if (typeof window === "undefined") { return; }
+  if (typeof window === "undefined") {
+    return;
+  }
   viewportWidth.value = window.innerWidth;
   dockWidth.value = dockRef.value?.clientWidth || viewportWidth.value;
 };
 
 const resolveFallbackTabKey = (closedKey: TAnalysisSectionKey) => {
-  const currentIndex = openSections.value.findIndex((section) => section.key === closedKey);
-  const remainingSections = openSections.value.filter((section) => section.key !== closedKey);
+  const currentIndex = openSections.value.findIndex(
+    (section) => section.key === closedKey,
+  );
+  const remainingSections = openSections.value.filter(
+    (section) => section.key !== closedKey,
+  );
 
   if (!remainingSections.length) {
     return defaultAnalysisTabKey.value;
   }
 
-  return remainingSections[Math.min(currentIndex, remainingSections.length - 1)].key;
+  return remainingSections[Math.min(currentIndex, remainingSections.length - 1)]
+    .key;
 };
 
 const handleTabClose = async (key: TAnalysisSectionKey) => {
@@ -241,7 +275,7 @@ onMounted(async () => {
   }
 
   try {
-    await ensureReportLoaded();
+    // await ensureReportLoaded();
   } catch (err) {
     // Ошибка уже записана в store.
   }
@@ -265,21 +299,36 @@ onBeforeUnmount(() => {
   overflow-y: auto;
   overflow-x: hidden;
   --analysis-shell-border: var(--app-border);
-  --analysis-shell-bg:
-    linear-gradient(180deg, var(--app-surface-muted), var(--app-surface));
+  --analysis-shell-bg: linear-gradient(
+    180deg,
+    var(--app-surface-muted),
+    var(--app-surface)
+  );
   --analysis-main-bg: var(--app-surface);
   --analysis-resizer-left: var(--app-border);
   --analysis-resizer-right: var(--app-border);
-  --analysis-resizer-bg:
-    linear-gradient(180deg, var(--app-surface-muted), var(--app-surface));
+  --analysis-resizer-bg: linear-gradient(
+    180deg,
+    var(--app-surface-muted),
+    var(--app-surface)
+  );
   --analysis-drawer-border: var(--app-border);
   --analysis-drawer-bg: var(--app-surface);
-  --analysis-tab-bg:
-    linear-gradient(180deg, var(--app-surface-muted), var(--app-surface));
-  --analysis-tab-hover-bg:
-    linear-gradient(180deg, rgba(59, 130, 246, 0.12), var(--app-surface-muted));
-  --analysis-tab-active-bg:
-    linear-gradient(180deg, rgba(59, 130, 246, 0.2), var(--app-surface));
+  --analysis-tab-bg: linear-gradient(
+    180deg,
+    var(--app-surface-muted),
+    var(--app-surface)
+  );
+  --analysis-tab-hover-bg: linear-gradient(
+    180deg,
+    rgba(59, 130, 246, 0.12),
+    var(--app-surface-muted)
+  );
+  --analysis-tab-active-bg: linear-gradient(
+    180deg,
+    rgba(59, 130, 246, 0.2),
+    var(--app-surface)
+  );
   --analysis-tab-close-hover-bg: var(--app-surface-muted);
   --analysis-card-padding: 1rem;
   --analysis-card-radius: 0.95rem;
@@ -415,9 +464,11 @@ onBeforeUnmount(() => {
   background: var(--analysis-tab-bg);
   border: 1px solid transparent;
   border-bottom: 2px solid transparent;
-  border-radius: var(--analysis-surface-radius) var(--analysis-surface-radius) 0 0;
+  border-radius: var(--analysis-surface-radius) var(--analysis-surface-radius) 0
+    0;
   white-space: nowrap;
-  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .analysis-tab:hover {

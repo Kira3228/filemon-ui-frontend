@@ -33,9 +33,25 @@ import {
 
 interface Props {
   isColumnsPanelOpen?: boolean;
-  exportActions: ExportAction[];
   isExporting: ExportFormat | null;
 }
+
+const exportActions: ExportAction[] = [
+  {
+    format: "csv",
+    label: "Экспорт CSV",
+    pendingLabel: "Экспорт CSV...",
+    icon: "pi-download",
+    primary: false,
+  },
+  {
+    format: "pdf",
+    label: "Экспорт PDF",
+    pendingLabel: "Экспорт PDF...",
+    icon: "pi-file-pdf",
+    primary: true,
+  },
+];
 
 defineProps<Props>();
 

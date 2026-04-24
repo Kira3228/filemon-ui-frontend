@@ -113,8 +113,8 @@ export const getSortIconClassByOrder = (order: number | null) => {
   return "pi-sort-alt";
 };
 
-export const sortDataTableItems = <T>(
-  items: T[],
+export const sortDataTableItems = (
+  items: unknown[],
   sortMeta: SortMeta[],
   visibleHeaders: Header[],
 ) => {

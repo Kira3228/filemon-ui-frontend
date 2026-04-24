@@ -285,6 +285,7 @@ const emits = defineEmits<{
 }>();
 
 const rawItems = computed(() => props.items || []);
+
 const resolvedItemKey = computed(() =>
   String(props.itemKey || inferPrimaryItemKey(rawItems.value)),
 );

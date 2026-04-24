@@ -8,8 +8,11 @@ import "./assets/global.css";
 import { createPinia, PiniaVuePlugin } from "pinia";
 import './styles/variables.css';
 import { initTheme } from "./plugins/theme";
-Vue.use(VueRouter);
+import { VueQueryPlugin } from "@tanstack/vue-query";
 
+
+Vue.use(VueRouter);
+Vue.use(VueQueryPlugin)
 Vue.config.productionTip = false;
 Vue.use(PiniaVuePlugin);
 const pinia = createPinia();

@@ -14,7 +14,6 @@
     </div>
     <ExportPanel
       :is-columns-panel-open="isColumnsPanelOpen"
-      :export-actions="exportActions"
       :is-exporting="isExporting"
       @toggle-columns-panel="emit('toggle-columns-panel')"
       @export="emit('export', $event)"
@@ -27,10 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ExportAction,
-  ExportFormat,
-} from "@/components/DataTable/types/data-table.types";
+import { ExportFormat } from "@/components/DataTable/types/data-table.types";
 import ExportPanel from "./ExportPanel/ExportPanel.vue";
 
 interface Props {
@@ -40,7 +36,6 @@ interface Props {
   filteredItems: unknown[];
   exportError?: string | null;
   isColumnsPanelOpen?: boolean;
-  exportActions: ExportAction[];
   isExporting: ExportFormat | null;
 }
 

@@ -31,7 +31,8 @@ export const useAnalysisWorkspaceStore = defineStore("analysis-workspace", () =>
 
   let activeLoad: Promise<void> | null = null;
   let loadRequestId = 0;
-  const {
+  
+  const { 
     allSources,
     fileTreeDiagramMermaid,
     filesById,
@@ -57,103 +58,103 @@ export const useAnalysisWorkspaceStore = defineStore("analysis-workspace", () =>
     snapshotAt,
   });
 
-watch(allSources, (sources) => {
-  if (!selectedSourceId.value) { return; }
-  const hasSelectedSource = sources.some((item) => item.fileId === selectedSourceId.value);
-  if (!hasSelectedSource) {
-    selectedSourceId.value = null;
-    snapshotAt.value = "";
-  }
-}, { immediate: true });
-
-const ensureReportLoaded = async (force = false) => {
-  if (loading.value && activeLoad) {
-    await activeLoad;
-    return;
-  }
-
-  if (loadedOnce.value && report.value && !force) {
-    return;
-  }
-
-  loading.value = true;
-  error.value = "";
-  const requestId = ++loadRequestId;
-  activeLoad = (async () => {
-    try {
-      const nextReport = await get<AnalysisReportResult>("/analysis/report", {
-        limit: 500,
-        _ts: force ? Date.now() : undefined,
-      });
-
-      if (requestId !== loadRequestId) {
-        return;
-      }
-
-      report.value = nextReport;
-      loadedOnce.value = true;
-    } catch (err: unknown) {
-      if (requestId !== loadRequestId) {
-        return;
-      }
-
-      error.value = err instanceof Error ? err.message : "Не удалось загрузить аналитический отчет.";
-      throw err;
-    } finally {
-      if (requestId === loadRequestId) {
-        loading.value = false;
-        activeLoad = null;
-      }
+  watch(allSources, (sources) => {
+    if (!selectedSourceId.value) { return; }
+    const hasSelectedSource = sources.some((item) => item.fileId === selectedSourceId.value);
+    if (!hasSelectedSource) {
+      selectedSourceId.value = null;
+      snapshotAt.value = "";
     }
-  })();
+  }, { immediate: true });
 
-  await activeLoad;
-};
+  const ensureReportLoaded = async (force = false) => {
+    if (loading.value && activeLoad) {
+      await activeLoad;
+      return;
+    }
 
-const refreshReport = async () => {
-  await ensureReportLoaded(true);
-};
+    if (loadedOnce.value && report.value && !force) {
+      return;
+    }
 
-const resetWorkspaceState = () => {
-  loadRequestId += 1;
-  activeLoad = null;
-  loading.value = false;
-  error.value = "";
-  loadedOnce.value = false;
-  report.value = null;
-  selectedSourceId.value = null;
-  selectedFileId.value = null;
-  snapshotAt.value = "";
-};
+    loading.value = true;
+    error.value = "";
+    const requestId = ++loadRequestId;
+    activeLoad = (async () => {
+      try {
+        const nextReport = await get<AnalysisReportResult>("/analysis/report", {
+          limit: 500,
+          _ts: force ? Date.now() : undefined,
+        });
 
-const reloadReportForDatabaseChange = async () => {
-  resetWorkspaceState();
-  await ensureReportLoaded(true);
-};
+        if (requestId !== loadRequestId) {
+          return;
+        }
 
-const updateFileMonitoringStatus = async (fileId: number, action: MonitoringAction) => {
-  await patch<UpdateMonitoringStatusResult, UpdateMonitoringStatusRequest>(`/analysis/files/${fileId}/status`, { action });
-  await refreshReport();
-};
+        report.value = nextReport;
+        loadedOnce.value = true;
+      } catch (err: unknown) {
+        if (requestId !== loadRequestId) {
+          return;
+        }
 
-const setSelectedSource = (fileId: number | null) => {
-  selectedSourceId.value = fileId;
-  if (!selectedSourceId.value) {
+        error.value = err instanceof Error ? err.message : "Не удалось загрузить аналитический отчет.";
+        throw err;
+      } finally {
+        if (requestId === loadRequestId) {
+          loading.value = false;
+          activeLoad = null;
+        }
+      }
+    })();
+
+    await activeLoad;
+  };
+
+  const refreshReport = async () => {
+    await ensureReportLoaded(true);
+  };
+
+  const resetWorkspaceState = () => {
+    loadRequestId += 1;
+    activeLoad = null;
+    loading.value = false;
+    error.value = "";
+    loadedOnce.value = false;
+    report.value = null;
+    selectedSourceId.value = null;
+    selectedFileId.value = null;
     snapshotAt.value = "";
-  }
-};
+  };
 
-const toggleSelectedSource = (fileId: number) => {
-  setSelectedSource(selectedSourceId.value === fileId ? null : fileId);
-};
+  const reloadReportForDatabaseChange = async () => {
+    resetWorkspaceState();
+    await ensureReportLoaded(true);
+  };
 
-const resetDataFilters = () => {
-  setSelectedSource(null);
-};
+  const updateFileMonitoringStatus = async (fileId: number, action: MonitoringAction) => {
+    await patch<UpdateMonitoringStatusResult, UpdateMonitoringStatusRequest>(`/analysis/files/${fileId}/status`, { action });
+    await refreshReport();
+  };
 
-const setSelectedFile = (fileId: number | null) => {
-  selectedFileId.value = fileId;
-};
+  const setSelectedSource = (fileId: number | null) => {
+    selectedSourceId.value = fileId;
+    if (!selectedSourceId.value) {
+      snapshotAt.value = "";
+    }
+  };
+
+  const toggleSelectedSource = (fileId: number) => {
+    setSelectedSource(selectedSourceId.value === fileId ? null : fileId);
+  };
+
+  const resetDataFilters = () => {
+    setSelectedSource(null);
+  };
+
+  const setSelectedFile = (fileId: number | null) => {
+    selectedFileId.value = fileId;
+  };
 
   return {
     report,

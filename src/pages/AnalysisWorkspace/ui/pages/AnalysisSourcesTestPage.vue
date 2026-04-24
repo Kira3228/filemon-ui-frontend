@@ -5,100 +5,7 @@
       <span class="analysis-page-meta">{{ allSources.length }} строк</span>
     </header>
     <div class="analysis-page-table-shell">
-      <!-- <DataTable
-        :headers="headers"
-        :items="allSources"
-        :items-per-page="1000"
-        item-key="fileId"
-        :active-row-key="highlightedSourceId"
-        :enable-keyboard-navigation="false"
-        export-title="Источники"
-        @click-row="handleRowClick"
-        @dblclick-row="handleRowDblClick"
-      >
-        <template #toolbar-actions>
-          <AnalysisFileDetailsToggle
-            :active="fileDetailsVisible"
-            @click="setFileDetailsVisible(!fileDetailsVisible)"
-          />
-        </template>
-        <template #select-preset>
-          <div class="analysis-sources-toolbar">
-            <div class="analysis-sources-toolbar__controls">
-              <button
-                type="button"
-                class="analysis-sources-toolbar__button"
-                :disabled="!highlightedSourceId"
-                @click="assignHighlightedSource"
-              >
-                <span class="pi pi-bookmark" aria-hidden="true" />
-                <span>Источник</span>
-              </button>
-
-              <button
-                type="button"
-                class="analysis-sources-toolbar__button"
-                :disabled="!selectedSourceId"
-                @click="resetDataFilters"
-              >
-                <span class="pi pi-eye" aria-hidden="true" />
-                <span>Показать все</span>
-              </button>
-
-              <div class="analysis-sources-toolbar__snapshot-shell">
-                <span class="pi pi-calendar" aria-hidden="true" />
-                <div
-                  class="analysis-sources-toolbar__snapshot"
-                  :title="SNAPSHOT_HINT"
-                >
-                  <input
-                    :value="snapshotAt"
-                    type="datetime-local"
-                    class="analysis-sources-toolbar__input"
-                    :disabled="!selectedSourceId"
-                    :title="SNAPSHOT_HINT"
-                    @input="handleSnapshotInput"
-                  />
-                  <button
-                    type="button"
-                    class="analysis-sources-toolbar__button"
-                    :disabled="!selectedSourceId || !snapshotAt"
-                    :title="SNAPSHOT_HINT"
-                    @click="clearSnapshot"
-                  >
-                    Очистить
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </template>
-
-        <template #[`item.name`]="{ item }">
-          <div
-            class="analysis-source-cell"
-            :title="`${item.name}\n${item.path}`"
-          >
-            <strong class="analysis-source-title">{{ item.name }}</strong>
-            <span class="analysis-source-caption">{{ item.path || "—" }}</span>
-          </div>
-        </template>
-        <template #[`item.filesystem`]="{ item }">{{
-          item.filesystem || item.filesystemUuid || "—"
-        }}</template>
-        <template #[`item.processes`]="{ item }">{{
-          item.stats?.processes ?? 0
-        }}</template>
-        <template #[`item.producedFiles`]="{ item }">{{
-          item.stats?.producedFiles ?? 0
-        }}</template>
-        <template #[`item.maxDepth`]="{ item }">{{
-          item.stats?.maxDepth ?? 0
-        }}</template>
-        <template #[`item.readOps`]="{ item }">{{
-          item.stats?.readOps ?? 0
-        }}</template>
-      </DataTable> -->
+      <DataTable2 :headers="headers" />
     </div>
   </section>
 </template>
@@ -109,6 +16,8 @@ import { ref, watch } from "vue";
 // import { useRouter } from "vue-router/composables";
 // import { useAnalysisUiSettings } from "../../model/use-analysis-ui-settings";
 import { useAnalysisWorkspace } from "../../model/use-analysis-workspace";
+import DataTable2 from "@/components/Table/ui/DataTable2.vue";
+import { Header } from "@/components/Table/types/header.type";
 // import AnalysisFileDetailsToggle from "../components/AnalysisFileDetailsToggle.vue";
 // import { AnalysisSourceItem } from "../../model/analysis-report.types";
 
@@ -162,69 +71,59 @@ watch(
 // const sortSourceReadOps = (item: AnalysisSourceItem) =>
 //   item.stats?.readOps ?? 0;
 
-// const headers: Header[] = [
-//   {
-//     text: "Файл",
-//     value: "name",
-//     align: "start",
-//     sortable: true,
-//     isVisible: true,
-//     width: 240,
-//     wrap: true,
-//     filterBy: ["name", "path"],
-//     exportValue: exportSourceLabel,
-//   },
-//   {
-//     text: "Файловая система",
-//     value: "filesystem",
-//     align: "start",
-//     sortable: true,
-//     isVisible: true,
-//     width: 180,
-//     filterBy: ["filesystem", "filesystemUuid"],
-//     exportValue: exportSourceFilesystem,
-//   },
-//   {
-//     text: "Процессов",
-//     value: "processes",
-//     align: "start",
-//     sortable: true,
-//     isVisible: true,
-//     width: 92,
-//     sortBy: sortSourceProcesses,
-//     exportValue: sortSourceProcesses,
-//   },
-//   {
-//     text: "Порождено",
-//     value: "producedFiles",
-//     align: "start",
-//     sortable: true,
-//     isVisible: true,
-//     width: 92,
-//     sortBy: sortSourceProducedFiles,
-//     exportValue: sortSourceProducedFiles,
-//   },
-//   {
-//     text: "Глубина",
-//     value: "maxDepth",
-//     align: "start",
-//     sortable: true,
-//     isVisible: true,
-//     width: 84,
-//     sortBy: sortSourceMaxDepth,
-//     exportValue: sortSourceMaxDepth,
-//   },
-//   {
-//     text: "Чтений",
-//     value: "readOps",
-//     align: "start",
-//     sortable: true,
-//     isVisible: true,
-//     width: 84,
-//     sortBy: sortSourceReadOps,
-//     exportValue: sortSourceReadOps,
-//   },
-// ];
+const headers: Header[] = [
+  {
+    text: "Файл",
+    value: "name",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 240,
+    wrap: true,
+    filterBy: ["name", "path"],
+  },
+  {
+    text: "Файловая система",
+    value: "filesystem",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 180,
+    filterBy: ["filesystem", "filesystemUuid"],
+  },
+  {
+    text: "Процессов",
+    value: "processes",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 92,
+  },
+  {
+    text: "Порождено",
+    value: "producedFiles",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 92,
+  },
+  {
+    text: "Глубина",
+    value: "maxDepth",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 84,
+  },
+  {
+    text: "Чтений",
+    value: "readOps",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 84,
+  },
+];
 
 // const openSource = (fileId: number) => {
 //   highlightedSourceId.value = fileId;
