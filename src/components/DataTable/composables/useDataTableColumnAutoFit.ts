@@ -19,12 +19,14 @@ export const useDataTableColumnAutoFit = ({
   setColumnLayouts,
   visibleHeaders,
 }: UseDataTableColumnAutoFitOptions) => {
+
   const getMeasurementFont = (selector: string, fallback: string) => {
     if (typeof window === "undefined") {
       return fallback;
     }
 
     const element = rootRef.value?.querySelector(selector);
+
     if (!(element instanceof HTMLElement)) {
       return fallback;
     }
@@ -64,7 +66,6 @@ export const useDataTableColumnAutoFit = ({
     if (stringified) {
       return stringified;
     }
-
     return getCellTitle(getFilterSourceValue(item, header));
   };
 

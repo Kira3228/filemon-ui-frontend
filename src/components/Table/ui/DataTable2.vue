@@ -25,11 +25,12 @@
       v-if="isColumnsPanelOpen"
       :ordered-headers="orderedHeaders"
       :visible-headers-count="visibleHeaders.length"
+      @auto-fit="autoFitVisibleColumns"
       @close="isColumnsPanelOpen = false"
-    />
-    <!-- @auto-fit="autoFitVisibleColumns"
       @move="moveColumn"
       @reset="resetColumnLayouts"
+    />
+    <!-- 
       @visibility-change="handleColumnVisibilityChange"
       @width-input="handleHeaderWidthInput" -->
     <!-- 
@@ -220,8 +221,13 @@ import DataTableTopbar from "@/components/DataTableTopbar/ui/DataTableTopbar.vue
 import { ColumnLayoutState, ExportFormat } from "../types/data-table.types";
 import { computed, ref } from "vue";
 import { Header } from "../types/header.type";
-import { applyColumnLayoutsToHeaders } from "../utils/column-layout.utils";
+import {
+  applyColumnLayoutsToHeaders,
+  moveColumnLayout,
+  normalizeColumnLayouts,
+} from "../utils/column-layout.utils";
 import DataTableColumnsPanel from "@/components/DataTable/ui/DataTableColumnsPanel.vue";
+import { useDataTableColumnAutoFit } from "../hooks/useDataTableColumnAutoFit";
 interface Props {
   headers: Header[];
   items?: T[];
@@ -232,6 +238,7 @@ const props = defineProps<Props>();
 const isExporting = ref<ExportFormat | null>(null);
 const isColumnsPanelOpen = ref(false);
 const exportError = ref("");
+const rootRef = ref<HTMLElement | null>(null);
 
 const emits = defineEmits<{
   (e: `export`, data: ExportFormat): void;
@@ -250,8 +257,7 @@ const shadowLoading = ref(false);
 const displayedItems = ref();
 const filteredItems = ref();
 
-
-
+const rawItems = computed(() => props.items || []);
 const columnLayouts = ref<ColumnLayoutState[]>([]);
 
 const orderedHeaders = computed<Header[]>(() => {
@@ -262,15 +268,61 @@ const visibleHeaders = computed(() =>
   orderedHeaders.value.filter((header) => header?.isVisible !== false),
 );
 
-// const handleColumnVisibilityChange = (columnValue: string, event: Event) => {
-//   const target = event.target as HTMLInputElement | null;
-//   const isVisible = Boolean(target?.checked);
-//   handleHeaderVisibilityChange(columnValue, event);
+const setColumnLayouts = (nextLayouts: ColumnLayoutState[] = []) => {
+  columnLayouts.value = normalizeColumnLayouts(props.headers, nextLayouts);
+};
 
-//   if (!isVisible) {
-//     clearColumnDecorators(columnValue);
-//   }
-// };
+const { getAutoFitColumnLayouts } = useDataTableColumnAutoFit({
+  rootRef,
+  columnLayouts,
+  items: rawItems,
+  visibleHeaders,
+});
+
+const autoFitVisibleColumns = () => {
+  setColumnLayouts(getAutoFitColumnLayouts());
+};
+
+const moveColumn = (columnValue: string, delta: -1 | 1) => {
+  const nextLayouts = moveColumnLayout(columnLayouts.value, columnValue, delta);
+  if (nextLayouts) {
+    setColumnLayouts(nextLayouts);
+  }
+};
+
+const resetColumnLayouts = () => {
+  setColumnLayouts([]);
+};
+
+const handleColumnVisibilityChange = (columnValue: string, event: Event) => {
+  const target = event.target as HTMLInputElement | null;
+  const isVisible = Boolean(target?.checked);
+  handleHeaderVisibilityChange(columnValue, event);
+
+  if (!isVisible) {
+    clearColumnDecorators(columnValue);
+  }
+};
+
+const clearColumnDecorators = (columnValue: string) => {
+  clearColumnFilter(columnValue);
+  clearColumnSort(columnValue);
+};
+
+const handleHeaderVisibilityChange = (columnValue: string, event: Event) => {
+  const target = event.target as HTMLInputElement | null;
+  const isVisible = Boolean(target?.checked);
+
+  if (!isVisible && visibleHeaders.value.length <= 1) {
+    return;
+  }
+
+  setColumnLayouts(
+    columnLayouts.value.map((layout) =>
+      layout.value === columnValue ? { ...layout, isVisible } : layout,
+    ),
+  );
+};
 </script>
 
 <style scoped>

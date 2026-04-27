@@ -15,8 +15,7 @@ export interface AnalysisReportOverview {
 export const OverviewService: IOverviewService = {
   async getOverviews(force = false) {
     const api = useApi()
-    console.log(`ОВЕРВЮ`);
-    
+
     return await api.get<AnalysisReportOverview>("/analysis/report/overview", {
       limit: 500,
       _ts: force ? Date.now() : undefined,

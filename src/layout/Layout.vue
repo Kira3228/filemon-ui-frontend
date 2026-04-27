@@ -10,6 +10,19 @@
     <div v-if="showStatusBar" class="app-surface layout-status-bar">
       <div class="layout-status-bar__intro">
         <div class="layout-status-bar__headline">
+          <UiButton
+            @click="handleRefreshClick"
+            :disabled="loading"
+            variant="secondary"
+            size="xSmall"
+          >
+            <span
+              class="material-icons layout-status-bar__state-icon"
+              aria-hidden="true"
+              >{{ refreshStatusIcon }}</span
+            >
+            {{ refreshStatusLabel }}
+          </UiButton>
           <button
             type="button"
             class="layout-status-bar__state"
@@ -127,6 +140,7 @@ import {
 import { useAnalysisUiSettings } from "@/pages/AnalysisWorkspace/model/use-analysis-ui-settings";
 import { useDatabaseState } from "@/shared/model/use-database-state";
 import { useGetOverviewStats } from "./useGetOverviewStats";
+import UiButton from "@/components/UiButton/UiButton.vue";
 
 const { loading, formatTs, refreshReport, selectedSource, snapshotAt } =
   useAnalysisWorkspace();
