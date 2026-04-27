@@ -4,7 +4,6 @@ Vue.use(VueRouter);
 import { Layout } from "@/layout";
 import FileDetailsPage from "@/pages/FileDetailsPage/ui/FileDetailsPage.vue";
 import AnalysisTimelinePage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisTimelinePage.vue";
-import AnalysisFilesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisFilesPage.vue";
 import AnalysisPropagationDiagramPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisPropagationDiagramPage.vue";
 import AnalysisFilesTreePage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisFilesTreePage.vue";
 import AnalysisStatusesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisStatusesPage.vue";
@@ -17,6 +16,7 @@ import AnalysisSettingsPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisSet
 import { getDefaultAnalysisTabPath } from "@/pages/AnalysisWorkspace/model/use-analysis-ui-settings";
 
 import AnalysisSourcesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisSourcesPage/AnalysisSourcesPage.vue";
+import AnalysisFilesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisFilesPage/AnalysisFilesPage.vue";
 
 const routes: RouteConfig[] = [
   {

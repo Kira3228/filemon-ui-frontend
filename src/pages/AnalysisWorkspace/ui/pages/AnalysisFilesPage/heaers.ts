@@ -1,0 +1,116 @@
+import { Header } from "@/components/DataTable";
+import { AnalysisFileItem } from "@/services/files/types/file.types";
+import { formatAnalysisTimestamp } from "@/shared/utils/format-analysis-timestamp";
+
+export const headers: Header<AnalysisFileItem>[] = [
+  {
+    text: "Файл",
+    value: "name",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 200,
+    wrap: true,
+  },
+  {
+    text: "Статус",
+    value: "currentStatus",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 96,
+  },
+  {
+    text: "Источники",
+    value: "sourceLabels",
+    align: "start",
+    sortable: false,
+    isVisible: true,
+    width: 160,
+  },
+  {
+    text: "Пользователь",
+    value: "user",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 120,
+  },
+  {
+    text: "Исходный процесс",
+    value: "originProcess",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 140,
+  },
+  {
+    text: "Размер",
+    value: "sizeBytes",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 80,
+  },
+  {
+    text: "Время создания",
+    value: "birthTime",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 140,
+    exportValue: (item: AnalysisFileItem) =>
+      formatAnalysisTimestamp(item.birthTime),
+  },
+  {
+    text: "Начало мониторинга",
+    value: "trackingStartedAt",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 132,
+    exportValue: (item: AnalysisFileItem) =>
+      formatAnalysisTimestamp(item.trackingStartedAt),
+  },
+  {
+    text: "Файловая система",
+    value: "filesystem",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 170,
+  },
+  {
+    text: "Индексный дескриптор (inode)",
+    value: "inode",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 88,
+  },
+  {
+    text: "Версий",
+    value: "versionCount",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 64,
+  },
+  {
+    text: "Глубина",
+    value: "depth",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 64,
+  },
+  {
+    text: "История пути",
+    value: "pathHistory",
+    align: "start",
+    sortable: false,
+    isVisible: true,
+    width: 260,
+  },
+];
+
