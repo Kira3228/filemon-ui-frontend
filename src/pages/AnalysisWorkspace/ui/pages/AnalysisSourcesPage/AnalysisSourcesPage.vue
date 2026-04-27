@@ -102,7 +102,7 @@
 </template>
 
 <script lang="ts" setup>
-import { DataTable, Header } from "@/components/DataTable";
+import { DataTable } from "@/components/DataTable";
 import { ref, watch } from "vue";
 import { useRouter } from "vue-router/composables";
 import { useAnalysisUiSettings } from "../../../model/use-analysis-ui-settings";
@@ -112,7 +112,10 @@ import { AnalysisSourceItem } from "../../../model/analysis-report.types";
 import { UiButton } from "@/components/UiButton";
 import { useGetSources } from "./hooks/useGetSources";
 import { useTableStore } from "../../store/table.store";
+import { headers } from "./headers";
+
 const router = useRouter();
+
 const {
   resetDataFilters,
   selectedSourceId,
@@ -158,79 +161,6 @@ watch(
   },
   { immediate: true },
 );
-
-const exportSourceLabel = (item: AnalysisSourceItem) =>
-  `${item.name || "—"} | ${item.path || "—"}`;
-const exportSourceFilesystem = (item: AnalysisSourceItem) =>
-  item.filesystemUuid || "—";
-const sortSourceProcesses = (item: AnalysisSourceItem) =>
-  item.stats?.processes ?? 0;
-const sortSourceProducedFiles = (item: AnalysisSourceItem) =>
-  item.stats?.producedFiles ?? 0;
-const sortSourceMaxDepth = (item: AnalysisSourceItem) =>
-  item.stats?.maxDepth ?? 0;
-const sortSourceReadOps = (item: AnalysisSourceItem) =>
-  item.stats?.readOps ?? 0;
-
-const headers: Header<AnalysisSourceItem>[] = [
-  {
-    text: "Файл",
-    value: "name",
-    align: "start",
-    sortable: true,
-    isVisible: true,
-    width: 240,
-    wrap: true,
-    filterBy: ["name", "path"],
-    exportValue: exportSourceLabel,
-  },
-  {
-    text: "Файловая система",
-    value: "filesystem",
-    align: "start",
-    sortable: true,
-    isVisible: true,
-    width: 180,
-    filterBy: ["filesystem", "filesystemUuid"],
-    exportValue: exportSourceFilesystem,
-  },
-  {
-    text: "Процессов",
-    value: "processes",
-    align: "start",
-    sortable: true,
-    isVisible: true,
-    width: 92,
-    exportValue: sortSourceProcesses,
-  },
-  {
-    text: "Порождено",
-    value: "producedFiles",
-    align: "start",
-    sortable: true,
-    isVisible: true,
-    width: 92,
-    exportValue: sortSourceProducedFiles,
-  },
-  {
-    text: "Глубина",
-    value: "maxDepth",
-    align: "start",
-    sortable: true,
-    isVisible: true,
-    width: 84,
-    exportValue: sortSourceMaxDepth,
-  },
-  {
-    text: "Чтений",
-    value: "readOps",
-    align: "start",
-    sortable: true,
-    isVisible: true,
-    width: 84,
-    exportValue: sortSourceReadOps,
-  },
-];
 
 const openSource = (fileId: number) => {
   highlightedSourceId.value = fileId;

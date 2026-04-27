@@ -13,7 +13,7 @@ export const useTableStore = defineStore("table", () => {
     if (!tables[key]) {
       tables[key] = {
         page: 1,
-        limit: 1,
+        limit: 100,
       };
     }
 

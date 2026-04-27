@@ -1,10 +1,9 @@
+import { AnalysisSourceItem } from "./source.types";
+
 import { useApi } from "@/shared/api/http";
 
 interface ISourceService {
-  getServices: (params?: GetServicesParams) => Promise<AnalysisSource[]>
-}
-
-export interface AnalysisSource {
+  getServices: (params?: GetServicesParams) => Promise<AnalysisSourceItem[]>
 }
 
 interface GetServicesParams {
@@ -14,10 +13,10 @@ interface GetServicesParams {
 }
 
 export const SourceService: ISourceService = {
-  async getServices(params = {}): Promise<AnalysisSource[]> {
+  async getServices(params = {}): Promise<AnalysisSourceItem[]> {
     const api = useApi()
 
-    return await api.get<AnalysisSource[]>("/analysis/report/sources", {
+    return await api.get<AnalysisSourceItem[]>("/analysis/report/sources", {
       page: params.page,
       limit: params.limit,
       _ts: params.force ? Date.now() : undefined,
