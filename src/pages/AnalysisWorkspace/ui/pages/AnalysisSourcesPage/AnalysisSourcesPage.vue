@@ -2,17 +2,19 @@
   <section class="app-surface analysis-page-card">
     <header class="analysis-page-header">
       <span>Источники</span>
-      <span class="analysis-page-meta">{{ allSources.length }} строк</span>
+      <span class="analysis-page-meta">{{ sources.length }} строк</span>
     </header>
+
     <div class="analysis-page-table-shell">
       <DataTable
         :headers="headers"
-        :items="allSources"
+        :items="sources"
         :items-per-page="1000"
         item-key="fileId"
         :active-row-key="highlightedSourceId"
         :enable-keyboard-navigation="false"
         export-title="Источники"
+        @scroll-end="handleScrollEnd"
         @click-row="handleRowClick"
         @dblclick-row="handleRowDblClick"
       >
@@ -108,16 +110,27 @@ import { useAnalysisWorkspace } from "../../../model/use-analysis-workspace";
 import AnalysisFileDetailsToggle from "../../components/AnalysisFileDetailsToggle.vue";
 import { AnalysisSourceItem } from "../../../model/analysis-report.types";
 import { UiButton } from "@/components/UiButton";
-
+import { useGetSources } from "./hooks/useGetSources";
+import { useTableStore } from "../../store/table.store";
 const router = useRouter();
 const {
-  allSources,
   resetDataFilters,
   selectedSourceId,
   setSelectedFile,
   setSelectedSource,
   snapshotAt,
 } = useAnalysisWorkspace();
+
+const {
+  data: sources,
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage,
+} = useGetSources();
+
+const tableStore = useTableStore();
+const table = tableStore.getTable("sources");
+
 const { fileDetailsVisible, setFileDetailsVisible } = useAnalysisUiSettings();
 
 const SNAPSHOT_HINT = "Снимок на момент времени";
@@ -131,7 +144,7 @@ watch(selectedSourceId, (value) => {
 });
 
 watch(
-  allSources,
+  sources,
   (items) => {
     if (!highlightedSourceId.value) {
       return;
@@ -159,7 +172,7 @@ const sortSourceMaxDepth = (item: AnalysisSourceItem) =>
 const sortSourceReadOps = (item: AnalysisSourceItem) =>
   item.stats?.readOps ?? 0;
 
-const headers: Header[] = [
+const headers: Header<AnalysisSourceItem>[] = [
   {
     text: "Файл",
     value: "name",
@@ -188,7 +201,6 @@ const headers: Header[] = [
     sortable: true,
     isVisible: true,
     width: 92,
-    sortBy: sortSourceProcesses,
     exportValue: sortSourceProcesses,
   },
   {
@@ -198,7 +210,6 @@ const headers: Header[] = [
     sortable: true,
     isVisible: true,
     width: 92,
-    sortBy: sortSourceProducedFiles,
     exportValue: sortSourceProducedFiles,
   },
   {
@@ -208,7 +219,6 @@ const headers: Header[] = [
     sortable: true,
     isVisible: true,
     width: 84,
-    sortBy: sortSourceMaxDepth,
     exportValue: sortSourceMaxDepth,
   },
   {
@@ -218,7 +228,6 @@ const headers: Header[] = [
     sortable: true,
     isVisible: true,
     width: 84,
-    sortBy: sortSourceReadOps,
     exportValue: sortSourceReadOps,
   },
 ];
@@ -254,6 +263,15 @@ const handleSnapshotInput = (event: Event) => {
 
 const clearSnapshot = () => {
   snapshotAt.value = "";
+};
+
+const handleScrollEnd = () => {
+  if (isFetchingNextPage.value || hasNextPage?.value === false) {
+    return;
+  }
+  const nextPage = table.page + 1;
+  table.page = nextPage;
+  fetchNextPage();
 };
 </script>
 

@@ -107,7 +107,7 @@ const sharedDrawerRatio = ref(0.3);
 
 
 const {
-  // ensureReportLoaded,
+  ensureReportLoaded,
   error,
   report,
 } = useAnalysisWorkspace();
@@ -275,7 +275,7 @@ onMounted(async () => {
   }
 
   try {
-    // await ensureReportLoaded();
+    await ensureReportLoaded();
   } catch (err) {
     // Ошибка уже записана в store.
   }

@@ -1,14 +1,18 @@
 import {
   ComputedRef,
+  computed,
+  nextTick,
   onBeforeUnmount,
   onMounted,
   Ref,
+  ref,
   watch,
 } from "vue";
 import { RowKey } from "../types/data-table.types";
-import { useDataTableActiveRow } from "./useDataTableActiveRow";
-import { useDataTableKeyboardScope } from "./useDataTableKeyboardScope";
-import { useDataTableShadowItems } from "./useDataTableShadowItems";
+import {
+  isSameRowKey,
+  resolveRowKey,
+} from "../utils/data-table.utils";
 
 type UseDataTableRowInteractionOptions<T> = {
   activeRow: ComputedRef<T | null | undefined>;
@@ -25,6 +29,17 @@ type UseDataTableRowInteractionOptions<T> = {
   emitActiveRowKey: (key: RowKey | null) => void;
 };
 
+type SetActiveRowOptions = {
+  emitClick?: boolean;
+  scrollIntoView?: boolean;
+};
+
+const INTERACTIVE_SELECTOR =
+  "input, textarea, select, button, a, [role='button'], [contenteditable='true'], .compact-data-table__columns-panel";
+
+const TABLE_BODY_SELECTOR =
+  ".p-datatable-wrapper, .p-datatable-table, .p-datatable-tbody, td, tr";
+
 export const useDataTableRowInteraction = <T = unknown>({
   activeRow,
   activeRowKey: activeRowKeyInput,
@@ -39,47 +54,194 @@ export const useDataTableRowInteraction = <T = unknown>({
   emitActiveRow,
   emitActiveRowKey,
 }: UseDataTableRowInteractionOptions<T>) => {
+  const internalActiveRowKey = ref<RowKey | null>(null);
+  const displayedItems = ref([]) as Ref<T[]>;
+  const shadowLoading = ref(false);
+  const isKeyboardScopeActive = ref(false);
 
-  const {
-    activeRowKey,
-    getActiveRowIndex,
-    getRowClass,
-    isActiveRow,
-    scrollActiveRowIntoView,
-    setActiveRow,
-  } = useDataTableActiveRow({
-    activeRow,
-    activeRowKey: activeRowKeyInput,
-    itemKey,
-    items,
-    rootRef,
-    emitClickRow,
-    emitActiveRow,
-    emitActiveRowKey,
+  let shadowFrameId: number | null = null;
+  let shadowTimeoutId: number | null = null;
+
+  const controlledActiveRowKey = computed<RowKey | null | undefined>(() => {
+    if (activeRowKeyInput.value !== undefined) {
+      return activeRowKeyInput.value ?? null;
+    }
+
+    if (activeRow.value !== undefined) {
+      return resolveRowKey(activeRow.value, itemKey.value);
+    }
+
+    return undefined;
   });
 
-  const {
-    applyShadowLoading,
-    displayedItems,
-    ensureRowRendered,
-    shadowLoading,
-  } = useDataTableShadowItems({
-    items,
-    itemsPerPage,
+  const activeRowKey = computed<RowKey | null>(() =>
+    controlledActiveRowKey.value !== undefined
+      ? controlledActiveRowKey.value
+      : internalActiveRowKey.value,
+  );
+
+  const clearShadowSchedule = () => {
+    if (shadowFrameId !== null) {
+      window.cancelAnimationFrame(shadowFrameId);
+      shadowFrameId = null;
+    }
+
+    if (shadowTimeoutId !== null) {
+      window.clearTimeout(shadowTimeoutId);
+      shadowTimeoutId = null;
+    }
+  };
+
+  const getShadowChunkSize = () => {
+    const baseSize = Number(itemsPerPage.value) || 50;
+    return Math.max(40, Math.min(200, baseSize * 3));
+  };
+
+  const applyShadowLoading = () => {
+    clearShadowSchedule();
+
+    const chunkSize = getShadowChunkSize();
+    if (items.value.length <= chunkSize) {
+      displayedItems.value = items.value;
+      shadowLoading.value = false;
+      return;
+    }
+
+    displayedItems.value = items.value.slice(0, chunkSize);
+    shadowLoading.value = true;
+
+    const appendChunk = () => {
+      const nextCount = Math.min(
+        displayedItems.value.length + chunkSize,
+        items.value.length,
+      );
+      displayedItems.value = items.value.slice(0, nextCount);
+
+      if (nextCount >= items.value.length) {
+        shadowLoading.value = false;
+        clearShadowSchedule();
+        return;
+      }
+
+      shadowTimeoutId = window.setTimeout(() => {
+        shadowFrameId = window.requestAnimationFrame(appendChunk);
+      }, 16);
+    };
+
+    shadowTimeoutId = window.setTimeout(() => {
+      shadowFrameId = window.requestAnimationFrame(appendChunk);
+    }, 16);
+  };
+
+  const ensureRowRendered = (index: number) => {
+    if (index < 0) {
+      return;
+    }
+
+    const minimumCount = Math.max(displayedItems.value.length, index + 1);
+    if (minimumCount <= displayedItems.value.length) {
+      return;
+    }
+
+    displayedItems.value = items.value.slice(0, minimumCount);
+    shadowLoading.value = minimumCount < items.value.length;
+  };
+
+  const isActiveRow = (item: T) =>
+    isSameRowKey(resolveRowKey(item, itemKey.value), activeRowKey.value);
+
+  const getActiveRowIndex = () =>
+    items.value.findIndex((item) =>
+      isSameRowKey(resolveRowKey(item, itemKey.value), activeRowKey.value),
+    );
+
+  const scrollActiveRowIntoView = () => {
+    nextTick(() => {
+      const row = rootRef.value?.querySelector(
+        ".compact-data-table__row--active",
+      );
+
+      if (row instanceof HTMLElement) {
+        row.scrollIntoView({ block: "nearest", inline: "nearest" });
+      }
+    });
+  };
+
+  const setActiveRow = (
+    item: T | null,
+    options: SetActiveRowOptions = {},
+  ) => {
+    const nextKey = resolveRowKey(item, itemKey.value);
+
+    if (controlledActiveRowKey.value === undefined) {
+      internalActiveRowKey.value = nextKey;
+    }
+
+    emitActiveRow(item);
+    emitActiveRowKey(nextKey);
+
+    if (item && options.emitClick) {
+      emitClickRow(item);
+    }
+
+    if (item && options.scrollIntoView !== false) {
+      scrollActiveRowIntoView();
+    }
+  };
+
+  const getRowClass = (item: T) => ({
+    "compact-data-table__row--active": isActiveRow(item),
   });
 
-  const {
-    activateKeyboardScope,
-    focusTableRoot,
-    handleTableFocusOut,
-    isKeyboardEventTargetInteractive,
-    isKeyboardScopeActive,
-    syncKeyboardScope,
-  } = useDataTableKeyboardScope({
-    enableKeyboardNavigation,
-    rootRef,
-    tableFocusRef,
-  });
+  const focusTableRoot = () => {
+    if (enableKeyboardNavigation.value) {
+      tableFocusRef.value?.focus({ preventScroll: true });
+    }
+  };
+
+  const syncKeyboardScope = () => {
+    nextTick(() => {
+      const scopeElement = tableFocusRef.value;
+      if (!(scopeElement instanceof HTMLElement)) {
+        return;
+      }
+
+      scopeElement.tabIndex = enableKeyboardNavigation.value ? 0 : -1;
+      scopeElement.classList.add("compact-data-table__keyboard-scope");
+      scopeElement.setAttribute("role", "grid");
+    });
+  };
+
+  const activateKeyboardScope = () => {
+    isKeyboardScopeActive.value = true;
+  };
+
+  const deactivateKeyboardScope = () => {
+    isKeyboardScopeActive.value = false;
+  };
+
+  const handleTableFocusOut = (event: FocusEvent) => {
+    const nextTarget = event.relatedTarget as Node | null;
+    if (!nextTarget || !tableFocusRef.value?.contains(nextTarget)) {
+      deactivateKeyboardScope();
+    }
+  };
+
+  const isKeyboardEventTargetInteractive = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+
+    return target.isContentEditable || Boolean(target.closest(INTERACTIVE_SELECTOR));
+  };
+
+  const isTableBodyTarget = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+
+    return Boolean(rootRef.value?.contains(target) && target.closest(TABLE_BODY_SELECTOR));
+  };
 
   const moveActiveRow = (nextIndex: number) => {
     if (!items.value.length) {
@@ -162,8 +324,6 @@ export const useDataTableRowInteraction = <T = unknown>({
   };
 
   const handleRowClick = (event: { data: T }) => {
-    console.log(event);
-    
     activateKeyboardScope();
     focusTableRoot();
     setActiveRow(event.data, { emitClick: true });
@@ -176,12 +336,31 @@ export const useDataTableRowInteraction = <T = unknown>({
     emitDblClickRow(event.data);
   };
 
+  const handleDocumentPointerDown = (event: MouseEvent) => {
+    if (!enableKeyboardNavigation.value) {
+      deactivateKeyboardScope();
+      return;
+    }
+
+    if (isTableBodyTarget(event.target)) {
+      activateKeyboardScope();
+      focusTableRoot();
+      return;
+    }
+
+    deactivateKeyboardScope();
+  };
+
   onMounted(() => {
+    document.addEventListener("mousedown", handleDocumentPointerDown);
     window.addEventListener("keydown", handleTableKeydown, true);
+    syncKeyboardScope();
   });
 
   onBeforeUnmount(() => {
+    document.removeEventListener("mousedown", handleDocumentPointerDown);
     window.removeEventListener("keydown", handleTableKeydown, true);
+    clearShadowSchedule();
   });
 
   watch(

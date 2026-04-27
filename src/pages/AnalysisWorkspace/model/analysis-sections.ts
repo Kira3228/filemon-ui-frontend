@@ -22,7 +22,6 @@ export const DEFAULT_ANALYSIS_SECTION_KEY: TAnalysisSectionKey = "sources";
 
 export const analysisSections: TAnalysisSection[] = [
   { key: "sources", label: "Источники", to: "/analysis/sources" },
-  { key: "sourcesTest", label: "ИсточникиTest", to: "/analysis/sourcesTest" },
   { key: "files", label: "Файлы", to: "/analysis/files" },
   { key: "operations", label: "Операции", to: "/analysis/operations" },
   { key: "timeline", label: "События", to: "/analysis/timeline" },

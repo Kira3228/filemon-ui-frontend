@@ -23,21 +23,6 @@
             >
             {{ refreshStatusLabel }}
           </UiButton>
-          <button
-            type="button"
-            class="layout-status-bar__state"
-            :class="{ 'layout-status-bar__state--loading': loading }"
-            :title="loading ? 'Данные обновляются' : 'Обновить данные'"
-            :disabled="loading"
-            @click="handleRefreshClick"
-          >
-            <span
-              class="material-icons layout-status-bar__state-icon"
-              aria-hidden="true"
-              >{{ refreshStatusIcon }}</span
-            >
-            {{ refreshStatusLabel }}
-          </button>
         </div>
       </div>
 
@@ -60,7 +45,7 @@
           </RouterLink>
           <span
             v-else
-            :key="stat.label"
+            :key="`${stat.label}`"
             class="layout-status-metric"
             :class="`layout-status-metric--${stat.tone}`"
           >

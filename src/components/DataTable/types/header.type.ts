@@ -1,7 +1,7 @@
 export type DataTableFilterMode = "select" | "contains" | "range";
 export type DataTableFilterValueType = "text" | "number" | "date";
 
-export interface Header {
+export interface Header<T = unknown> {
   text: string;
   value: string;
   align: string;
@@ -16,5 +16,5 @@ export interface Header {
   filterModes?: DataTableFilterMode[];
   filterValueType?: DataTableFilterValueType;
   exportable?: boolean;
-  exportValue?: (item: unknown) => unknown;
+  exportValue?: (item: T) => number | string;
 }

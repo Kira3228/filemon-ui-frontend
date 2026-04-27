@@ -293,36 +293,6 @@ const moveColumn = (columnValue: string, delta: -1 | 1) => {
 const resetColumnLayouts = () => {
   setColumnLayouts([]);
 };
-
-const handleColumnVisibilityChange = (columnValue: string, event: Event) => {
-  const target = event.target as HTMLInputElement | null;
-  const isVisible = Boolean(target?.checked);
-  handleHeaderVisibilityChange(columnValue, event);
-
-  if (!isVisible) {
-    clearColumnDecorators(columnValue);
-  }
-};
-
-const clearColumnDecorators = (columnValue: string) => {
-  clearColumnFilter(columnValue);
-  clearColumnSort(columnValue);
-};
-
-const handleHeaderVisibilityChange = (columnValue: string, event: Event) => {
-  const target = event.target as HTMLInputElement | null;
-  const isVisible = Boolean(target?.checked);
-
-  if (!isVisible && visibleHeaders.value.length <= 1) {
-    return;
-  }
-
-  setColumnLayouts(
-    columnLayouts.value.map((layout) =>
-      layout.value === columnValue ? { ...layout, isVisible } : layout,
-    ),
-  );
-};
 </script>
 
 <style scoped>

@@ -41,6 +41,7 @@
       @focusout.capture="handleTableFocusOut"
     >
       <PrimeDataTable
+        ref="tableRef"
         :key="tableRenderKey"
         :value="displayedItems"
         :data-key="resolvedItemKey"
@@ -229,7 +230,14 @@ import {
 } from "./utils/data-table.utils";
 import { Header } from "./types/header.type";
 import { RowKey } from "./types/data-table.types";
-import { computed, ref, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 import { useDataTableStatePersistence } from "./composables/useDataTableStatePersistence";
 import { useDataTableFiltering } from "./composables/useDataTableFiltering";
 import { useDataTableSorting } from "./composables/useDataTableSorting";
@@ -241,7 +249,7 @@ import DataTableTopbar from "../DataTableTopbar/ui/DataTableTopbar.vue";
 
 interface Props<I = unknown> {
   isLoading?: boolean;
-  headers?: Header[];
+  headers?: Header<any>[];
   items?: I[];
   itemsPerPage?: number;
   paginationLength?: number;
@@ -282,6 +290,7 @@ const emits = defineEmits<{
   (e: `update:sortDesc`, value: unknown): void;
   (e: `update:expandedRowGroups`, value: unknown[]): void;
   (e: `change`, data: { sortBy: string[]; sortDesc: boolean[] }): void;
+  (e: `scroll-end`): void;
 }>();
 
 const rawItems = computed(() => props.items || []);
@@ -297,11 +306,12 @@ const groupSortField = computed(() => {
   if (Array.isArray(groupRowsBy.value)) {
     return groupRowsBy.value[0] || null;
   }
-
   return groupRowsBy.value || null;
 });
 
 const rootRef = ref<HTMLElement | null>(null);
+
+const tableRef = ref();
 const tableFocusRef = ref<HTMLElement | null>(null);
 const isColumnsPanelOpen = ref(false);
 
@@ -496,9 +506,39 @@ const toggleColumnsPanel = () => {
   isColumnsPanelOpen.value = !isColumnsPanelOpen.value;
 };
 
+let tableScrollEl: HTMLElement | null = null;
+let isTableScrollEndReached = false;
+
+const handleTableScroll = () => {
+  if (!tableScrollEl) {
+    return;
+  }
+
+  const isScrollEnd =
+    tableScrollEl.scrollTop + tableScrollEl.clientHeight >=
+    tableScrollEl.scrollHeight - 1;
+
+  if (isScrollEnd) {
+    syncKeyboardScope();
+
+    if (!isTableScrollEndReached) {
+      console.log(123123123);
+
+      emits("scroll-end");
+      isTableScrollEndReached = true;
+    }
+
+    return;
+  }
+
+  isTableScrollEndReached = false;
+};
+
 watch(
   rawItems,
   () => {
+    isTableScrollEndReached = false;
+
     if (activeFilterHeader.value) {
       syncDraftWithActiveColumn();
     }
@@ -508,6 +548,22 @@ watch(
 
 watch(tableRenderKey, () => {
   syncKeyboardScope();
+});
+
+onMounted(async () => {
+  await nextTick();
+
+  tableScrollEl = tableRef.value?.$el?.querySelector(
+    ".p-datatable-wrapper, .p-datatable-scrollable-body",
+  );
+
+  tableScrollEl?.addEventListener("scroll", handleTableScroll);
+});
+
+onBeforeUnmount(() => {
+  tableScrollEl?.removeEventListener("scroll", handleTableScroll);
+  tableScrollEl = null;
+  isTableScrollEndReached = false;
 });
 </script>
 
