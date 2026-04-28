@@ -7,14 +7,13 @@
       </div>
       <div class="mermaid-card__actions">
         <div class="mermaid-card__zoom-controls">
-          <button
-            type="button"
-            class="mermaid-card__action"
+          <UiButton
+            variant="secondary"
             title="Уменьшить масштаб"
             @click="zoomOut"
           >
             -
-          </button>
+          </UiButton>
           <label class="mermaid-card__zoom-input-shell">
             <input
               v-model="zoomInput"
@@ -30,40 +29,53 @@
             />
             <span class="mermaid-card__zoom-suffix">%</span>
           </label>
-          <button
-            type="button"
-            class="mermaid-card__action"
+          <UiButton
+            variant="secondary"
             title="Увеличить масштаб"
             @click="zoomIn"
           >
             +
-          </button>
-          <button
-            type="button"
+          </UiButton>
+          <UiButton
+            variant="secondary"
             class="mermaid-card__action mermaid-card__action--icon"
             title="Сбросить масштаб до 100%"
             aria-label="Сбросить масштаб до 100%"
             @click="resetZoom"
           >
             <span class="pi pi-refresh" />
-          </button>
+          </UiButton>
         </div>
-        <button type="button" class="mermaid-card__action" @click="copyCode">
+        <UiButton variant="secondary" @click="copyCode">
           Скопировать Mermaid
-        </button>
+        </UiButton>
       </div>
     </header>
 
-    <div class="mermaid-card__canvas">
+    <div
+      ref="canvasRef"
+      class="mermaid-card__canvas"
+      :class="{ 'mermaid-card__canvas--dragging': isDraggingDiagram }"
+      @pointerdown="startDiagramDrag"
+      @pointermove="dragDiagram"
+      @pointerup="stopDiagramDrag"
+      @pointercancel="stopDiagramDrag"
+      @pointerleave="stopDiagramDrag"
+    >
       <div
         ref="diagramRef"
         class="mermaid-card__diagram"
-        :class="{ 'mermaid-card__diagram--hidden': isRendering || !!renderError }"
+        :class="{
+          'mermaid-card__diagram--hidden': isRendering || !!renderError,
+        }"
       />
       <div v-if="renderError" class="mermaid-card__state mermaid-card__error">
         {{ renderError }}
       </div>
-      <div v-else-if="isRendering" class="mermaid-card__state mermaid-card__loading">
+      <div
+        v-else-if="isRendering"
+        class="mermaid-card__state mermaid-card__loading"
+      >
         Рендерим диаграмму...
       </div>
     </div>
@@ -73,7 +85,7 @@
 <script lang="ts" setup>
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { loadMermaid } from "@/shared/utils/mermaid";
-
+import { UiButton } from "@/components/UiButton";
 interface IProps {
   code: string;
   title: string;
@@ -88,17 +100,28 @@ const emit = defineEmits<{
 
 const DIAGRAM_ZOOM_STEP = 0.1;
 
+const canvasRef = ref<HTMLElement | null>(null);
 const diagramRef = ref<HTMLElement | null>(null);
 const isRendering = ref(false);
 const renderError = ref("");
 const diagramZoom = ref(1);
 const zoomInput = ref("100");
 const baseDiagramSize = ref<{ width: number; height: number } | null>(null);
+const isDraggingDiagram = ref(false);
 let detachInteractions: (() => void) | null = null;
 let themeObserver: MutationObserver | null = null;
+let dragStart = {
+  pointerId: 0,
+  clientX: 0,
+  clientY: 0,
+  scrollLeft: 0,
+  scrollTop: 0,
+};
 
 const isDarkTheme = () => {
-  if (typeof document === "undefined") { return false; }
+  if (typeof document === "undefined") {
+    return false;
+  }
   return document.documentElement.classList.contains("dark");
 };
 
@@ -136,7 +159,9 @@ const getMermaidThemeConfig = () => {
 
 const normalizeMermaidId = (value?: string | null) => {
   const text = String(value || "").trim();
-  if (!text) { return null; }
+  if (!text) {
+    return null;
+  }
   const primary = text.match(/^(?:flowchart|graphDiv)-(.+)$/)?.[1] || text;
   const normalized = primary.match(/^(.+)-\d+$/)?.[1] || primary;
   return normalized || null;
@@ -145,7 +170,9 @@ const normalizeMermaidId = (value?: string | null) => {
 const extractNodeId = (eventTarget: EventTarget | null) => {
   const element = eventTarget instanceof Element ? eventTarget : null;
   const node = element?.closest(".node, .cluster");
-  if (!node) { return null; }
+  if (!node) {
+    return null;
+  }
   return normalizeMermaidId(node.getAttribute("id"));
 };
 
@@ -155,7 +182,9 @@ const extractEdgeKey = (eventTarget: EventTarget | null) => {
   const className = edge?.getAttribute("class") || "";
   const fromId = className.match(/\bLS-([A-Za-z0-9_]+)\b/)?.[1];
   const toId = className.match(/\bLE-([A-Za-z0-9_]+)\b/)?.[1];
-  if (!fromId || !toId) { return null; }
+  if (!fromId || !toId) {
+    return null;
+  }
   return `${fromId}->${toId}`;
 };
 
@@ -190,15 +219,19 @@ const getSvgBaseSize = (svg: SVGSVGElement) => {
   const viewBox = svg.viewBox?.baseVal;
   const attrWidth = Number.parseFloat(svg.getAttribute("width") || "");
   const attrHeight = Number.parseFloat(svg.getAttribute("height") || "");
-  const width = viewBox?.width || attrWidth || svg.getBoundingClientRect().width || 0;
-  const height = viewBox?.height || attrHeight || svg.getBoundingClientRect().height || 0;
+  const width =
+    viewBox?.width || attrWidth || svg.getBoundingClientRect().width || 0;
+  const height =
+    viewBox?.height || attrHeight || svg.getBoundingClientRect().height || 0;
 
   return width > 0 && height > 0 ? { width, height } : null;
 };
 
 const applyDiagramZoom = () => {
   const svg = diagramRef.value?.querySelector("svg") as SVGSVGElement | null;
-  if (!svg) { return; }
+  if (!svg) {
+    return;
+  }
 
   if (!baseDiagramSize.value) {
     baseDiagramSize.value = getSvgBaseSize(svg);
@@ -243,7 +276,9 @@ const resetZoom = () => {
 };
 
 const applyZoomInput = () => {
-  const normalizedText = String(zoomInput.value || "").replace(",", ".").trim();
+  const normalizedText = String(zoomInput.value || "")
+    .replace(",", ".")
+    .trim();
   const nextPercent = Number.parseFloat(normalizedText);
 
   if (!Number.isFinite(nextPercent) || nextPercent <= 0) {
@@ -254,9 +289,56 @@ const applyZoomInput = () => {
   setDiagramZoom(nextPercent / 100);
 };
 
+const startDiagramDrag = (event: PointerEvent) => {
+  const canvas = canvasRef.value;
+  if (!canvas || event.button !== 0 || renderError.value || isRendering.value) {
+    return;
+  }
+
+  const element = event.target instanceof Element ? event.target : null;
+  if (element?.closest("button, input, textarea, select, a")) {
+    return;
+  }
+
+  isDraggingDiagram.value = true;
+  dragStart = {
+    pointerId: event.pointerId,
+    clientX: event.clientX,
+    clientY: event.clientY,
+    scrollLeft: canvas.scrollLeft,
+    scrollTop: canvas.scrollTop,
+  };
+  canvas.setPointerCapture(event.pointerId);
+};
+
+const dragDiagram = (event: PointerEvent) => {
+  const canvas = canvasRef.value;
+  if (!canvas || !isDraggingDiagram.value || event.pointerId !== dragStart.pointerId) {
+    return;
+  }
+
+  event.preventDefault();
+  canvas.scrollLeft = dragStart.scrollLeft - (event.clientX - dragStart.clientX);
+  canvas.scrollTop = dragStart.scrollTop - (event.clientY - dragStart.clientY);
+};
+
+const stopDiagramDrag = (event: PointerEvent) => {
+  const canvas = canvasRef.value;
+  if (!canvas || !isDraggingDiagram.value || event.pointerId !== dragStart.pointerId) {
+    return;
+  }
+
+  isDraggingDiagram.value = false;
+  if (canvas.hasPointerCapture(event.pointerId)) {
+    canvas.releasePointerCapture(event.pointerId);
+  }
+};
+
 const renderDiagram = async () => {
   const target = diagramRef.value;
-  if (!target) { return; }
+  if (!target) {
+    return;
+  }
 
   isRendering.value = true;
   renderError.value = "";
@@ -398,7 +480,8 @@ onBeforeUnmount(() => {
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
-  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+  transition: background-color 0.18s ease, border-color 0.18s ease,
+    color 0.18s ease;
 }
 
 .mermaid-card__action:hover {
@@ -459,6 +542,13 @@ onBeforeUnmount(() => {
   border-radius: var(--analysis-surface-radius);
   background: var(--mermaid-canvas-bg);
   padding: var(--analysis-surface-padding);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.mermaid-card__canvas--dragging {
+  cursor: grabbing;
 }
 
 .mermaid-card__diagram {

@@ -5,11 +5,11 @@ import { Layout } from "@/layout";
 import FileDetailsPage from "@/pages/FileDetailsPage/ui/FileDetailsPage.vue";
 
 import AnalysisFilesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisFilesPage/AnalysisFilesPage.vue";
-import AnalysisPropagationDiagramPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisPropagationDiagramPage.vue";
-import AnalysisFilesTreePage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisFilesTreePage.vue";
+import AnalysisPropagationDiagramPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisPropagationDiagramPage/AnalysisPropagationDiagramPage.vue";
+import AnalysisFilesTreePage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisFilesTreePage/AnalysisFilesTreePage.vue";
 
 import AnalysisChainPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisChainPage/AnalysisChainPage.vue";
-import AnalysisSettingsPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisSettingsPage.vue";
+import AnalysisSettingsPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisSettingsPage/AnalysisSettingsPage.vue";
 import { getDefaultAnalysisTabPath } from "@/pages/AnalysisWorkspace/model/use-analysis-ui-settings";
 
 import AnalysisSourcesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisSourcesPage/AnalysisSourcesPage.vue";
