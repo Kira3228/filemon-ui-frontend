@@ -323,7 +323,7 @@
 import { computed, ref, watch } from "vue";
 import { DataTable } from "@/components/DataTable";
 import { useRoute, useRouter } from "vue-router/composables";
-import { buildFileScopedLocation } from "../../../model/file-route-filter";
+
 import { useAnalysisChainPageModel } from "../../../model/analysis-chain-page.model";
 import { useAnalysisWorkspace } from "../../../model/use-analysis-workspace";
 import {
@@ -331,6 +331,7 @@ import {
   createTimelineHeaders,
   versionHeaders,
 } from "./headers";
+import { buildFileScopedLocation } from "@/shared/utils/buildFileScopedLocation";
 
 const route = useRoute();
 const router = useRouter();

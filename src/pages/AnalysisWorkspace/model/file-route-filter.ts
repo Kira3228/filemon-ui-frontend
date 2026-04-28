@@ -1,4 +1,4 @@
-import type { RawLocation, Route } from "vue-router";
+import type { Route } from "vue-router";
 
 type QueryValue = string | string[] | null | undefined;
 
@@ -26,10 +26,7 @@ export const filterItemsByFileId = <T extends { fileId?: number | string | null 
   return items.filter((item) => Number(item?.fileId) === fileId);
 };
 
-export const buildFileScopedLocation = (path: string, fileId?: number | null): RawLocation => ({
-  path,
-  query: fileId === null || fileId === undefined ? undefined : { fileId: String(fileId) },
-});
+
 
 export const stripFileIdFromQuery = (query: Route["query"]) => {
   const nextQuery = { ...query };

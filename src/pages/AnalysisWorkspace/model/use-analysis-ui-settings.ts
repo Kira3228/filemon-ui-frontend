@@ -115,17 +115,21 @@ const ensureInitialized = () => {
   }
 
   isInitialized = true;
+
   autoRefreshEnabled.value = readStoredBoolean(AUTO_REFRESH_ENABLED_KEY, false);
+
   autoRefreshIntervalSeconds.value = readStoredNumber(
     AUTO_REFRESH_INTERVAL_KEY,
     AUTO_REFRESH_INTERVAL_DEFAULT_SECONDS,
     AUTO_REFRESH_INTERVAL_MIN_SECONDS,
     AUTO_REFRESH_INTERVAL_MAX_SECONDS,
   );
+
   defaultAnalysisTabKey.value = readStoredTabKey(
     DEFAULT_ANALYSIS_TAB_KEY,
     DEFAULT_ANALYSIS_SECTION_KEY,
   );
+  
   fileDetailsVisible.value = readStoredBoolean(FILE_DETAILS_VISIBLE_KEY, true);
   openAnalysisTabKeys.value = readStoredTabKeys(
     OPEN_ANALYSIS_TABS_KEY,
@@ -206,7 +210,10 @@ export const useAnalysisUiSettings = () => {
   };
 };
 
-export const getDefaultAnalysisTabPath = () =>
-  getAnalysisSectionByKey(readStoredTabKey(DEFAULT_ANALYSIS_TAB_KEY, DEFAULT_ANALYSIS_SECTION_KEY))?.to
-  || getAnalysisSectionByKey(DEFAULT_ANALYSIS_SECTION_KEY)?.to
-  || "/analysis/sources";
+export const getDefaultAnalysisTabPath = () => {
+  return getAnalysisSectionByKey(readStoredTabKey(DEFAULT_ANALYSIS_TAB_KEY, DEFAULT_ANALYSIS_SECTION_KEY))?.to
+    || getAnalysisSectionByKey(DEFAULT_ANALYSIS_SECTION_KEY)?.to
+    || "/analysis/sources";
+
+}
+
