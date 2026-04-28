@@ -30,16 +30,12 @@
   position: relative;
   z-index: 15;
   overflow: hidden;
-  background: radial-gradient(
-      circle at top left,
+  background: radial-gradient(circle at top left,
       rgba(14, 165, 233, 0.12),
-      transparent 30%
-    ),
-    radial-gradient(
-      circle at top right,
+      transparent 30%),
+    radial-gradient(circle at top right,
       rgba(59, 130, 246, 0.1),
-      transparent 28%
-    ),
+      transparent 28%),
     linear-gradient(180deg, var(--app-surface), var(--app-surface-muted));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04),
     0 -1px 0 rgba(148, 163, 184, 0.08);
@@ -51,12 +47,10 @@
   position: absolute;
   inset: 0 0 auto;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(37, 99, 235, 0.28),
-    transparent
-  );
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(37, 99, 235, 0.28),
+      transparent);
 }
 
 .layout-status-bar__intro {
@@ -74,53 +68,9 @@
   gap: 0.45rem;
 }
 
-.layout-status-bar__state {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.28rem 0.58rem;
-  border: 0;
-  border-radius: 999px;
-  background: var(--app-surface-muted);
-  color: var(--app-text-muted);
-  font-size: 0.69rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease,
-    box-shadow 0.2s ease;
-}
 
-.layout-status-bar__state:hover {
-  transform: translateY(-1px);
-  background: rgba(37, 99, 235, 0.1);
-  color: #2563eb;
-  box-shadow: 0 10px 22px rgba(148, 163, 184, 0.12);
-}
 
-.layout-status-bar__state:disabled {
-  cursor: default;
-}
 
-.layout-status-bar__state--loading {
-  background: rgba(37, 99, 235, 0.12);
-  color: #1d4ed8;
-}
-
-.layout-status-bar__state--success {
-  background: rgba(220, 252, 231, 0.88);
-  color: #166534;
-}
-
-.layout-status-bar__state--neutral {
-  background: var(--app-surface-muted);
-  color: var(--app-text-muted);
-}
-
-.layout-status-bar__state--danger {
-  background: rgba(254, 226, 226, 0.92);
-  color: #991b1b;
-}
 
 .layout-status-bar__state-icon {
   font-size: 0.95rem;
@@ -129,26 +79,7 @@
   transition: color 0.2s ease;
 }
 
-.layout-status-bar__state--success .layout-status-bar__state-icon {
-  color: #16a34a;
-}
 
-.layout-status-bar__state--neutral .layout-status-bar__state-icon {
-  color: var(--app-text-muted);
-}
-
-.layout-status-bar__state--danger .layout-status-bar__state-icon {
-  color: #dc2626;
-}
-
-.layout-status-bar__state:hover .layout-status-bar__state-icon {
-  color: #2563eb;
-}
-
-.layout-status-bar__state--loading .layout-status-bar__state-icon {
-  color: #2563eb;
-  animation: layout-status-spin 0.9s linear infinite;
-}
 
 .layout-status-bar__content {
   display: flex;
@@ -176,6 +107,7 @@
   min-width: 18rem;
   max-width: min(100%, 42rem);
   cursor: pointer;
+  min-width: 0;
   transition: transform 0.2s ease, border-color 0.2s ease,
     background-color 0.2s ease;
 }
@@ -229,41 +161,33 @@
 }
 
 .layout-status-metric--blue {
-  background: linear-gradient(
-      180deg,
+  background: linear-gradient(180deg,
       rgba(37, 99, 235, 0.2),
-      rgba(29, 78, 216, 0.12)
-    ),
+      rgba(29, 78, 216, 0.12)),
     var(--app-surface-muted);
   border-color: rgba(59, 130, 246, 0.24);
 }
 
 .layout-status-metric--amber {
-  background: linear-gradient(
-      180deg,
+  background: linear-gradient(180deg,
       rgba(245, 158, 11, 0.2),
-      rgba(217, 119, 6, 0.12)
-    ),
+      rgba(217, 119, 6, 0.12)),
     var(--app-surface-muted);
   border-color: rgba(245, 158, 11, 0.24);
 }
 
 .layout-status-metric--emerald {
-  background: linear-gradient(
-      180deg,
+  background: linear-gradient(180deg,
       rgba(16, 185, 129, 0.2),
-      rgba(5, 150, 105, 0.12)
-    ),
+      rgba(5, 150, 105, 0.12)),
     var(--app-surface-muted);
   border-color: rgba(16, 185, 129, 0.24);
 }
 
 .layout-status-metric--slate {
-  background: linear-gradient(
-      180deg,
+  background: linear-gradient(180deg,
       rgba(148, 163, 184, 0.16),
-      rgba(100, 116, 139, 0.12)
-    ),
+      rgba(100, 116, 139, 0.12)),
     var(--app-surface-muted);
   border-color: rgba(148, 163, 184, 0.2);
 }
@@ -294,6 +218,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .layout-status-chip--link {

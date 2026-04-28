@@ -6,7 +6,6 @@ const normalizeQueryValue = (value: QueryValue) => {
   if (Array.isArray(value)) {
     return value[0];
   }
-
   return value;
 };
 

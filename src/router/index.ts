@@ -1,17 +1,13 @@
 import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
-Vue.use(VueRouter);
 import { Layout } from "@/layout";
 import FileDetailsPage from "@/pages/FileDetailsPage/ui/FileDetailsPage.vue";
-
 import AnalysisFilesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisFilesPage/AnalysisFilesPage.vue";
 import AnalysisPropagationDiagramPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisPropagationDiagramPage/AnalysisPropagationDiagramPage.vue";
 import AnalysisFilesTreePage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisFilesTreePage/AnalysisFilesTreePage.vue";
-
 import AnalysisChainPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisChainPage/AnalysisChainPage.vue";
 import AnalysisSettingsPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisSettingsPage/AnalysisSettingsPage.vue";
 import { getDefaultAnalysisTabPath } from "@/pages/AnalysisWorkspace/model/use-analysis-ui-settings";
-
 import AnalysisSourcesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisSourcesPage/AnalysisSourcesPage.vue";
 import AnalysisOperationsPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisOperationsPage/AnalysisOperationsPage.vue";
 import AnalysisTimelinePage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisTimelinePage/AnalysisTimelinePage.vue";
@@ -19,6 +15,8 @@ import AnalysisStatusesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisSta
 import AnalysisRenamePage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisRenamePage/AnalysisRenamePage.vue";
 import AnalysisProcessesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisProcessesPage/AnalysisProcessesPage.vue";
 import AnalysisGraphPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisGraphPage/AnalysisGraphPage.vue";
+
+Vue.use(VueRouter);
 
 const routes: RouteConfig[] = [
   {

@@ -75,7 +75,8 @@
           }}</strong>
         </span>
         <div class="layout-status-bar__database-group">
-          <span
+          <UiButton
+            variant="secondary"
             class="layout-status-chip layout-status-chip--neutral layout-status-bar__database"
             :title="databasePath || 'Путь к базе данных не задан'"
             @dblclick="handleDatabasePathDoubleClick"
@@ -88,7 +89,7 @@
             <strong class="layout-status-chip__value">
               {{ databasePath || "Путь не задан" }}
             </strong>
-          </span>
+          </UiButton>
           <span
             class="layout-status-chip layout-status-bar__database-status"
             :class="databaseStatusChipClass"
@@ -129,6 +130,7 @@ import UiButton from "@/components/UiButton/UiButton.vue";
 
 const { loading, formatTs, refreshReport, selectedSource, snapshotAt } =
   useAnalysisWorkspace();
+
 const { autoRefreshEnabled, autoRefreshIntervalSeconds, openAnalysisTab } =
   useAnalysisUiSettings();
 const route = useRoute();
@@ -143,7 +145,7 @@ const {
   loadDatabaseState,
 } = useDatabaseState();
 
-const { data, isLoading } = useGetOverviewStats();
+const { data, isLoading, refetch: refetchOverviewStats } = useGetOverviewStats();
 
 const isAnalysisRoute = computed(() => route.path.startsWith("/analysis"));
 const showStatusBar = computed(() => isAnalysisRoute.value);
@@ -225,12 +227,17 @@ const databaseStatusTitle = computed(() => {
   return `Не удалось использовать базу данных: ${databasePath.value}`;
 });
 
+const refreshReportAndOverviewStats = async () => {
+  await refreshReport();
+  await refetchOverviewStats();
+};
+
 const handleRefreshClick = () => {
   if (loading.value) {
     return;
   }
 
-  refreshReport().catch(() => {
+  refreshReportAndOverviewStats().catch(() => {
     // Ошибка уже записана в store.
   });
 };
@@ -285,7 +292,7 @@ const restartAutoRefreshTimer = () => {
   }
 
   autoRefreshTimerId = window.setInterval(() => {
-    refreshReport().catch(() => {
+    refreshReportAndOverviewStats().catch(() => {
       // Ошибка уже записана в store.
     });
   }, autoRefreshIntervalSeconds.value * 1000);
