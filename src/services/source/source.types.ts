@@ -1,5 +1,6 @@
-import { AnalysisFileItem } from "@/pages/AnalysisWorkspace/model/analysis-report.types";
+
 import { Nullable } from "@/types/nullable";
+import { AnalysisFileItem } from "../files/file.types";
 
 
 export interface AnalysisSourceItem {

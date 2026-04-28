@@ -1,6 +1,8 @@
 import { ProcessEventRow } from "@/services/process/process.type";
 import type { Nullable } from "./analysis-report.types";
 
+export type { ProcessGroupRow, ProcessTableItem } from "@/services/process/process.type";
+
 
 
 export interface ProcessGroup {

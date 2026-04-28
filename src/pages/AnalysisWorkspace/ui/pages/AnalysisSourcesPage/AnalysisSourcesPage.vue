@@ -108,11 +108,12 @@ import { useRouter } from "vue-router/composables";
 import { useAnalysisUiSettings } from "../../../model/use-analysis-ui-settings";
 import { useAnalysisWorkspace } from "../../../model/use-analysis-workspace";
 import AnalysisFileDetailsToggle from "../../components/AnalysisFileDetailsToggle.vue";
-import { AnalysisSourceItem } from "../../../model/analysis-report.types";
+
 import { UiButton } from "@/components/UiButton";
-import { useGetSources } from "./hooks/useGetSources";
+import { useGetSources } from "../../../model/queries/useGetSources";
 import { useTableStore } from "../../store/table.store";
 import { headers } from "./headers";
+import { AnalysisSourceItem } from "@/services/source/source.types";
 
 const router = useRouter();
 

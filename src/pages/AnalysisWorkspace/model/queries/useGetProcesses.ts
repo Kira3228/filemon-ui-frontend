@@ -1,17 +1,17 @@
 import { useInfiniteQuery } from "@tanstack/vue-query";
+import { useTableStore } from "../../ui/store/table.store";
 import { computed } from "vue";
-import { useTableStore } from "../../../store/table.store";
-import { AnalysisSourceItem } from "@/services/source/source.types";
-import { SourceService } from "@/services/source/source.service";
+import { AnalysisOperationItem } from "@/services/operations/analysis-operation-item.type";
+import { OperationsService } from "@/services/operations/operations.service";
 
-export const useGetSources = () => {
+export const useGetProcesses = () => {
   const tableStore = useTableStore();
-  const table = tableStore.getTable("sources");
+  const table = tableStore.getTable("processes");
 
-  const query = useInfiniteQuery<AnalysisSourceItem[]>(
+  const query = useInfiniteQuery<AnalysisOperationItem[]>(
     ["analysis-sources", table.limit],
     ({ pageParam = 1 }) =>
-      SourceService.getServices({
+      OperationsService.getOperation({
         page: pageParam,
         limit: table.limit,
       }),

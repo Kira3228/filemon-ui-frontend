@@ -1,7 +1,7 @@
 import { Header } from "@/components/DataTable";
 import { AnalysisTimelineEntry } from "@/services/timeline/timeline.types";
 import { formatAnalysisTimestamp } from "@/shared/utils/format-analysis-timestamp";
-import { getAnalysisEventTypeLabel } from "../../../model/analysis-workspace.presentation";
+import { getAnalysisEventTypeLabel } from "@/shared/utils/get-analysis-event-type-label";
 
 export const headers: Header<AnalysisTimelineEntry>[] = [
   {

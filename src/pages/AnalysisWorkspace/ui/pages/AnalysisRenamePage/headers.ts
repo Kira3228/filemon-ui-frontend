@@ -1,6 +1,6 @@
 import { Header } from "@/components/DataTable";
 import { AnalysisRenameHistoryItem } from "@/pages/AnalysisWorkspace/model/analysis-report.types";
-import { getAnalysisEventTypeLabel } from "@/pages/AnalysisWorkspace/model/analysis-workspace.presentation";
+import { getAnalysisEventTypeLabel } from "@/shared/utils/get-analysis-event-type-label";
 import { formatAnalysisTimestamp } from "@/shared/utils/format-analysis-timestamp";
 
 export const headers: Header<AnalysisRenameHistoryItem>[] = [

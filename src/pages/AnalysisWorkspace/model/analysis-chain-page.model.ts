@@ -1,13 +1,12 @@
 import { computed, ref, watch } from "vue";
-import type { ComputedRef } from "vue";
+import type { Ref } from "vue";
 import type {
-  AnalysisChainVersion,
-  AnalysisFileEventKind,
   AnalysisRenameHistoryItem,
 
 } from "./analysis-report.types";
 import { AnalysisTimelineEntry } from "@/services/timeline/timeline.types";
 import { AnalysisStatusHistoryItem } from "@/services/status/status.type";
+import { AnalysisFileEventKind } from "@/services/rename/rename-history.type";
 
 export interface CombinedHistoryEntry {
   id: string;
@@ -18,23 +17,21 @@ export interface CombinedHistoryEntry {
 
 interface UseAnalysisChainPageModelOptions {
   eventTypeLabel: (type: string) => string;
-  formatTs: (value?: string | null) => string;
-  selectedFileRenameHistory: ComputedRef<AnalysisRenameHistoryItem[]>;
-  selectedFileStatusHistory: ComputedRef<AnalysisStatusHistoryItem[]>;
-  selectedFileTimeline: ComputedRef<AnalysisTimelineEntry[]>;
+  selectedFileRenameHistory: Ref<AnalysisRenameHistoryItem[]>;
+  selectedFileStatusHistory: Ref<AnalysisStatusHistoryItem[]>;
+  selectedFileTimeline: Ref<AnalysisTimelineEntry[]>;
 }
 
 export const useAnalysisChainPageModel = ({
   eventTypeLabel,
-  formatTs,
   selectedFileRenameHistory,
   selectedFileStatusHistory,
   selectedFileTimeline,
 }: UseAnalysisChainPageModelOptions) => {
-  const exportVersionCreatedAt = (item: AnalysisChainVersion) => formatTs(item.createdAt);
-  const exportTimelineTimestamp = (item: AnalysisTimelineEntry) => formatTs(item.timestamp);
+
+
   const exportTimelineType = (item: AnalysisTimelineEntry) => eventTypeLabel(item.type);
-  const exportHistoryTimestamp = (item: CombinedHistoryEntry) => formatTs(item.ts);
+
   const exportHistoryType = (item: CombinedHistoryEntry) => eventTypeLabel(item.type);
 
   const selectedTimelineEventId = ref<string | null>(null);
@@ -81,11 +78,8 @@ export const useAnalysisChainPageModel = ({
 
   return {
     combinedHistory,
-    exportHistoryTimestamp,
     exportHistoryType,
-    exportTimelineTimestamp,
     exportTimelineType,
-    exportVersionCreatedAt,
     handleTimelineRowClick,
     selectedTimelineEvent,
     selectedTimelineEventId,

@@ -98,7 +98,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import AnalysisProcessesSelectionCards from "../../components/AnalysisProcessesSelectionCards.vue";
 import AnalysisProcessesTable from "../../components/AnalysisProcessesTable.vue";
 import { processExportHeaders, processHeaders } from "./headers";
-import { useGetProcesses } from "./hooks/useGetProcesses";
+import { useGetProcesses } from "../../../model/queries/useGetProcesses";
 
 const { data: processesData } = useGetProcesses();
 
@@ -107,7 +107,6 @@ const {
   eventTypeLabel,
   filesById,
   formatTs,
-  // report,
   selectedSourceId,
   setSelectedFile,
   snapshotAt,

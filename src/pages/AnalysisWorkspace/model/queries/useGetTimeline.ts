@@ -1,17 +1,17 @@
 import { useInfiniteQuery } from "@tanstack/vue-query";
+import { useTableStore } from "../../ui/store/table.store";
+import { AnalysisTimelineEntry } from "@/services/timeline/timeline.types";
+import { TimelineService } from "@/services/timeline/timeline.service";
 import { computed } from "vue";
-import { useTableStore } from "../../../store/table.store";
-import { AnalysisStatusHistoryItem } from "@/services/status/status.type";
-import { StatusService } from "@/services/status/status.service";
 
-export const useGetStatuses = () => {
+export const useGetTimeline = () => {
   const tableStore = useTableStore();
-  const table = tableStore.getTable("statuses");
+  const table = tableStore.getTable("timeline");
 
-  const query = useInfiniteQuery<AnalysisStatusHistoryItem[]>(
-    ["analysis-statuses", table.limit],
+  const query = useInfiniteQuery<AnalysisTimelineEntry[]>(
+    ["analysis-timeline", table.limit],
     ({ pageParam = 1 }) =>
-      StatusService.getStatuses({
+      TimelineService.getTimeline({
         page: pageParam,
         limit: table.limit,
       }),

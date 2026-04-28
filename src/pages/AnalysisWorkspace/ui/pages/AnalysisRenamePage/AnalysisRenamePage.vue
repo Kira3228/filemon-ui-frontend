@@ -78,7 +78,7 @@ import { AnalysisRenameHistoryItem } from "@/services/rename/rename-history.type
 import { computed } from "vue";
 import AnalysisFileDetailsToggle from "../../components/AnalysisFileDetailsToggle.vue";
 import { UiButton } from "@/components/UiButton";
-import { useGetRenameHistory } from "./hooks/useGetRenameHistory";
+import { useGetRenameHistory } from "../../../model/queries/useGetRenameHistory";
 import { headers } from "./headers";
 
 const { data: renameHistory } = useGetRenameHistory();

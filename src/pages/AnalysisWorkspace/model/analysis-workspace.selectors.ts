@@ -4,24 +4,14 @@ import {
   buildCompactFileTreeMermaid,
   buildFullPropagationMermaid,
 } from "./analysis-diagrams";
-import type {
-  AnalysisChainEntry,
-  // AnalysisFileItem,
-  AnalysisItemWithTimestamps,
-  // AnalysisOperationItem,
-  AnalysisProcessReadView,
-  AnalysisRenameHistoryItem,
-  AnalysisReportResult,
-  // AnalysisReportResult,
-  AnalysisSourceColumns,
-  // AnalysisSourceItem,
-  // AnalysisTimelineEntry,
-} from "./analysis-report.types";
 import { AnalysisFileItem } from "@/services/files/file.types";
 import { AnalysisSourceItem } from "@/services/source/source.types";
 import { AnalysisTimelineEntry } from "@/services/timeline/timeline.types";
 import { AnalysisOperationItem } from "@/services/operations/analysis-operation-item.type";
 import { AnalysisStatusHistoryItem } from "@/services/status/status.type";
+import { AnalysisChainEntry, AnalysisProcessReadView, AnalysisReportResult, AnalysisSourceColumns } from "./analysis-report.types";
+import { AnalysisRenameHistoryItem } from "@/services/rename/rename-history.type";
+import { matchesFilters, matchesSnapshot } from "@/shared/utils/analysis-filters";
 
 interface CreateAnalysisWorkspaceSelectorsOptions {
   report: Ref<AnalysisReportResult | null>;
@@ -30,13 +20,6 @@ interface CreateAnalysisWorkspaceSelectorsOptions {
   snapshotAt: Ref<string>;
 }
 
-const getItemTimestamp = (item: AnalysisItemWithTimestamps) =>
-  item.timestamp ||
-  item.createdAt ||
-  item.trackingStartedAt ||
-  item.birthTime ||
-  item.lastStatusAt ||
-  null;
 
 export const createAnalysisWorkspaceSelectors = ({
   report,
@@ -44,24 +27,6 @@ export const createAnalysisWorkspaceSelectors = ({
   selectedSourceId,
   snapshotAt,
 }: CreateAnalysisWorkspaceSelectorsOptions) => {
-  const matchesSnapshot = (item: AnalysisItemWithTimestamps) => {
-    if (!snapshotAt.value) { return true; }
-    const ts = getItemTimestamp(item);
-    if (!ts) { return true; }
-    const cutoff = new Date(snapshotAt.value).getTime();
-    return new Date(ts).getTime() <= cutoff;
-  };
-
-  const matchesSource = (item: { sourceIds?: number[] }) => {
-    if (!selectedSourceId.value) { return true; }
-    if (!Array.isArray(item.sourceIds)) { return false; }
-    return item.sourceIds.includes(selectedSourceId.value);
-  };
-
-  const matchesFilters = <T extends AnalysisItemWithTimestamps>(item: T) => {
-    return matchesSnapshot(item) && matchesSource(item);
-
-  }
 
   const filesById = computed<Record<string, AnalysisFileItem>>(() => {
     const map: Record<string, AnalysisFileItem> = {};
@@ -72,25 +37,26 @@ export const createAnalysisWorkspaceSelectors = ({
   });
 
   const visibleSources = computed<AnalysisSourceItem[]>(() =>
-    (report.value?.sources || []).filter((item) => matchesFilters(item)),
+    (report.value?.sources || []).filter((item) => matchesFilters(item, snapshotAt.value, selectedSourceId.value)),
   );
 
   const allSources = computed<AnalysisSourceItem[]>(() => report.value?.sources || []);
 
   const filteredTimeline = computed<AnalysisTimelineEntry[]>(() =>
-    (report.value?.timeline || []).filter((item) => matchesFilters(item)),
+    (report.value?.timeline || []).filter((item) => matchesFilters(item, snapshotAt.value, selectedSourceId.value)),
   );
 
   const filteredFiles = computed<AnalysisFileItem[]>(() =>
-    (report.value?.files || []).filter((item) => matchesFilters(item)),
+    (report.value?.files || []).filter((item) => matchesFilters(
+      item, snapshotAt.value, selectedSourceId.value)),
   );
 
   const filteredStatusHistory = computed<AnalysisStatusHistoryItem[]>(() =>
-    (report.value?.statusHistory || []).filter((item) => matchesFilters(item)),
+    (report.value?.statusHistory || []).filter((item) => matchesFilters(item, snapshotAt.value, selectedSourceId.value)),
   );
 
   const filteredRenameHistory = computed<AnalysisRenameHistoryItem[]>(() =>
-    (report.value?.renameHistory || []).filter((item) => matchesFilters(item)),
+    (report.value?.renameHistory || []).filter((item) => matchesFilters(item, snapshotAt.value, selectedSourceId.value)),
   );
 
   const filteredProcessReads = computed<AnalysisProcessReadView[]>(() =>
@@ -103,7 +69,7 @@ export const createAnalysisWorkspaceSelectors = ({
             ...file,
             createdAt: file.firstAt || process.createdAt,
             sourceIds,
-          });
+          }, snapshotAt.value, selectedSourceId.value);
         });
 
         return {
@@ -123,7 +89,7 @@ export const createAnalysisWorkspaceSelectors = ({
   );
 
   const filteredOperations = computed<AnalysisOperationItem[]>(() =>
-    (report.value?.operations || []).filter((item) => matchesFilters(item)),
+    (report.value?.operations || []).filter((item) => matchesFilters(item, snapshotAt.value, selectedSourceId.value)),
   );
 
   const propagationDiagramMermaid = computed(() =>
@@ -179,7 +145,7 @@ export const createAnalysisWorkspaceSelectors = ({
           const chain = chains[String(fileId)];
           const file = filesById.value[String(fileId)];
           if (!chain || !file) { return null; }
-          if (!matchesFilters(file)) { return null; }
+          if (!matchesFilters(file, snapshotAt.value, selectedSourceId.value)) { return null; }
           return {
             ...file,
             chain,
@@ -187,7 +153,7 @@ export const createAnalysisWorkspaceSelectors = ({
               .map((child) => child.fileId)
               .filter((id) => {
                 const childFile = filesById.value[String(id)];
-                return Boolean(childFile && matchesFilters(childFile));
+                return Boolean(childFile && matchesFilters(childFile, snapshotAt.value, selectedSourceId.value));
               }),
           };
         })

@@ -83,7 +83,7 @@ import { useRouteFileScope } from "../../../model/use-route-file-scope";
 import AnalysisFileDetailsToggle from "../../components/AnalysisFileDetailsToggle.vue";
 import { headers } from "./headers";
 import { AnalysisTimelineEntry } from "@/services/timeline/timeline.types";
-import { useGetTimeline } from "./hooks/useGetTimeline";
+import { useGetTimeline } from "../../../model/queries/useGetTimeline";
 
 const {
   badgeClass,

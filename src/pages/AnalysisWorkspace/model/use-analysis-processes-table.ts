@@ -19,7 +19,8 @@ import type {
   Nullable,
 } from "./analysis-report.types";
 import { AnalysisFileItem } from "@/services/files/file.types";
-import { AnalysisProcessReadGroup, ProcessGroupRow, ProcessTableItem } from "@/services/process/process.type";
+import { AnalysisOperationItem } from "@/services/operations/analysis-operation-item.type";
+import { ProcessGroupRow, ProcessTableItem } from "@/services/process/process.type";
 
 export type { ProcessBucket, ProcessGroup, } from "./analysis-processes-table.types";
 
@@ -28,8 +29,7 @@ interface UseAnalysisProcessesTableOptions {
   expandedProcessGroups: Ref<string[]>;
   filesById: ComputedRef<Record<string, AnalysisFileItem>>;
   formatTs: (value?: Nullable<string>) => string;
-  //TODO: СЮДА ДИП ДОБАВИПТЬ
-  report: Ref<AnalysisProcessReadGroup | null>;
+  processesData: ComputedRef<AnalysisOperationItem[]>;
   scopedFileId: Ref<number | null>;
   selectedSourceId: Ref<number | null>;
   snapshotAt: Ref<string>;
@@ -40,7 +40,7 @@ export const useAnalysisProcessesTable = ({
   expandedProcessGroups,
   filesById,
   formatTs,
-  report,
+  processesData,
   scopedFileId,
   selectedSourceId,
   snapshotAt,
@@ -48,7 +48,7 @@ export const useAnalysisProcessesTable = ({
 
   const processRows = createProcessRows({
     filesById,
-    report,
+    processesData,
     selectedSourceId,
     snapshotAt,
   });

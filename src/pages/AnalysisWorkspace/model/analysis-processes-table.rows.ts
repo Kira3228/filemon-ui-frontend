@@ -1,20 +1,15 @@
 import { computed } from "vue";
 import type { ComputedRef, Ref } from "vue";
 import { buildProcessGroupKey, getProcessFileName, resolveProcessTimestamp } from "./analysis-processes-table.helpers";
-import type {
-  AnalysisDiagramFileVersion,
-  AnalysisDiagramOperation,
-  AnalysisDiagramProcessVersion,
-
-  Nullable,
-} from "./analysis-report.types";
+import type { Nullable } from "./analysis-report.types";
 import { AnalysisFileItem } from "@/services/files/file.types";
-import { AnalysisProcessReadGroup, ProcessEventRow, ProcessEventType } from "@/services/process/process.type";
-
+import { AnalysisOperationItem } from "@/services/operations/analysis-operation-item.type";
+import { ProcessEventRow, ProcessEventType } from "@/services/process/process.type";
 
 interface ProcessEventSeed {
+  operationId: string;
   processId: number;
-  processVersionId: number;
+  processVersionId: Nullable<number>;
   processLabel: string;
   executablePath: Nullable<string>;
   pid: Nullable<number>;
@@ -30,32 +25,38 @@ interface ProcessEventSeed {
   eventType: ProcessEventType;
 }
 
-
-
-
 interface BuildProcessRowsOptions {
   filesById: ComputedRef<Record<string, AnalysisFileItem>>;
-  report: Ref<AnalysisProcessReadGroup[] | null>;
+  processesData: ComputedRef<AnalysisOperationItem[]>;
   selectedSourceId: Ref<number | null>;
   snapshotAt: Ref<string>;
 }
 
+const buildFallbackProcessId = (operation: AnalysisOperationItem) => {
+  const source = operation.processLabel || operation.processName || "unknown";
+  let hash = 0;
+
+  for (let index = 0; index < source.length; index += 1) {
+    hash = ((hash << 5) - hash) + source.charCodeAt(index);
+    hash |= 0;
+  }
+
+  return -(Math.abs(hash) || 1);
+};
+
 export const createProcessRows = ({
   filesById,
-  report,
+  processesData,
   selectedSourceId,
   snapshotAt,
 }: BuildProcessRowsOptions) => {
 
   const formatProcessDisplayName = (
-    executablePath?: Nullable<string>,
-    pid?: Nullable<number>,
+    processLabel?: Nullable<string>,
+    processName?: Nullable<string>,
   ) => {
-    const executableName = getProcessFileName(executablePath);
-    if (pid !== null && pid !== undefined) {
-      return `${executableName} (PID ${pid})`;
-    }
-    return executableName;
+    const label = String(processLabel || processName || "").trim();
+    return label || getProcessFileName(processName);
   };
 
   const snapshotCutoff = computed(() => {
@@ -70,92 +71,67 @@ export const createProcessRows = ({
     return resolveProcessTimestamp(value) <= snapshotCutoff.value;
   };
 
-  const buildProcessLabel = (processVersion?: Partial<AnalysisDiagramProcessVersion> | null) => {
-    return formatProcessDisplayName(processVersion?.executablePath, processVersion?.pid);
-  };
-
-  const matchesFileScope = (fileId: number) => {
+  const matchesFileScope = (operation: AnalysisOperationItem) => {
     if (!selectedSourceId.value) { return true; }
-    const sourceIds = filesById.value[String(fileId)]?.sourceIds || [];
+    const sourceIds = operation.sourceIds?.length
+      ? operation.sourceIds
+      : filesById.value[String(operation.fileId)]?.sourceIds || [];
     return sourceIds.includes(selectedSourceId.value);
   };
 
-  const toProcessEventSeed = (
-    operation: AnalysisDiagramOperation,
-    eventType: ProcessEventType,
-    processVersionsById: Map<number, AnalysisDiagramProcessVersion>,
-    fileVersionsById: Map<number, AnalysisDiagramFileVersion>,
-  ): ProcessEventSeed | null => {
-    const processVersionId = Number(operation.processVersionId);
+  const toProcessEventSeed = (operation: AnalysisOperationItem): ProcessEventSeed | null => {
     const fileId = Number(operation.fileId);
-    const processVersion = processVersionsById.get(processVersionId);
-    const processId = Number(processVersion?.processId ?? operation.processId);
+    const processVersionId = operation.processVersionId === null || operation.processVersionId === undefined
+      ? null
+      : Number(operation.processVersionId);
+    const processId = Number.isFinite(processVersionId)
+      ? Number(processVersionId)
+      : buildFallbackProcessId(operation);
+
     if (
-      !Number.isFinite(processVersionId)
+      !Number.isFinite(fileId)
       || !Number.isFinite(processId)
-      || !Number.isFinite(fileId)
-      || !isBeforeSnapshot(operation.firstAt)
-      || !matchesFileScope(fileId)
+      || !isBeforeSnapshot(operation.timestamp)
+      || !matchesFileScope(operation)
     ) {
       return null;
     }
 
     const file = filesById.value[String(fileId)];
-    const versionNumber = operation.fileVersionId !== null && operation.fileVersionId !== undefined
-      ? fileVersionsById.get(Number(operation.fileVersionId))?.versionNumber ?? null
-      : null;
-    const path = file?.path || `file_${fileId}`;
+    const path = operation.path || file?.path || `file_${fileId}`;
 
     return {
+      operationId: operation.id,
       processId,
       processVersionId,
-      processLabel: buildProcessLabel(processVersion),
-      executablePath: processVersion?.executablePath || null,
-      pid: processVersion?.pid ?? null,
-      user: processVersion?.username || null,
-      uid: processVersion?.uid ?? null,
-      processCreatedAt: processVersion?.createdAt || operation.firstAt,
+      processLabel: formatProcessDisplayName(operation.processLabel, operation.processName),
+      executablePath: operation.processName || null,
+      pid: null,
+      user: operation.user || null,
+      uid: null,
+      processCreatedAt: null,
       fileId,
-      fileName: file?.name || getProcessFileName(path),
+      fileName: operation.fileName || file?.name || getProcessFileName(path),
       path,
       filesystemUuid: file?.filesystemUuid || null,
-      versionNumber,
-      eventAt: operation.firstAt,
-      eventType,
+      versionNumber: operation.fileVersionNumber,
+      eventAt: operation.timestamp,
+      eventType: operation.type,
     };
   };
 
   return computed<ProcessEventRow[]>(() => {
-    if (!report.value) { return []; }
-
-    const processVersionsById = new Map<number, AnalysisDiagramProcessVersion>(
-      (report.value || [])
-        .map((item) => [Number(item.processVersionId), item] as const)
-        .filter(([key]) => Number.isFinite(key)),
-    );
-    const fileVersionsById = new Map<number, AnalysisDiagramFileVersion>(
-      (report.value.diagramData.fileVersions || [])
-        .map((item) => [Number(item.fileVersionId), item] as const)
-        .filter(([key]) => Number.isFinite(key)),
-    );
-
     const readsByProcess = new Map<number, ProcessEventSeed[]>();
     const writesByProcess = new Map<number, ProcessEventSeed[]>();
 
-    for (const operation of report.value.diagramData.reads || []) {
-      const seed = toProcessEventSeed(operation, "READ", processVersionsById, fileVersionsById);
+    for (const operation of processesData.value || []) {
+      const seed = toProcessEventSeed(operation);
       if (!seed) { continue; }
-      const items = readsByProcess.get(seed.processId) || [];
-      items.push(seed);
-      readsByProcess.set(seed.processId, items);
-    }
 
-    for (const operation of report.value.diagramData.writes || []) {
-      const seed = toProcessEventSeed(operation, "WRITE", processVersionsById, fileVersionsById);
-      if (!seed) { continue; }
-      const items = writesByProcess.get(seed.processId) || [];
+      const bucket = seed.eventType === "READ" ? readsByProcess : writesByProcess;
+      const items = bucket.get(seed.processId) || [];
       items.push(seed);
-      writesByProcess.set(seed.processId, items);
+      bucket.set(seed.processId, items);
     }
 
     const rows: ProcessEventRow[] = [];
@@ -180,7 +156,7 @@ export const createProcessRows = ({
         }
 
         const processGroupKey = buildProcessGroupKey(
-          writeSeed.processVersionId,
+          writeSeed.processId,
           writeSeed.eventAt,
           writeSeed.fileId,
           writeIndex,
@@ -203,7 +179,7 @@ export const createProcessRows = ({
 
         groupEvents.forEach((event, eventIndex) => {
           rows.push({
-            id: `${processGroupKey}:${event.eventType}:${event.fileId}:${eventIndex}`,
+            id: `${processGroupKey}:${event.operationId}:${event.eventType}:${event.fileId}:${eventIndex}`,
             rowKind: "EVENT",
             processBucketKey: String(event.processId),
             processId: event.processId,

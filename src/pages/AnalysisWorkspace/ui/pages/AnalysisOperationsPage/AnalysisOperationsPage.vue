@@ -122,7 +122,7 @@ import { useAnalysisWorkspace } from "../../../model/use-analysis-workspace";
 import { useRouteFileScope } from "../../../model/use-route-file-scope";
 import AnalysisFileDetailsToggle from "../../components/AnalysisFileDetailsToggle.vue";
 import { headers } from "./headers";
-import { useGetOperation } from "./hooks/useGetOperation";
+import { useGetOperation } from "../../../model/queries/useGetOperation";
 
 const {
   badgeClass,

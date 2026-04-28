@@ -169,7 +169,7 @@ import AnalysisChainDrawer from "../../components/AnalysisChainDrawer.vue";
 import AnalysisFileDetailsToggle from "../../components/AnalysisFileDetailsToggle.vue";
 import { UiButton } from "@/components/UiButton";
 import { headers } from "./heaers";
-import { useGetFiles } from "./hooks/useGetFiles";
+import { useGetFiles } from "../../../model/queries/useGetFiles";
 import { useTableStore } from "../../store/table.store";
 
 const { router, scopedFile, scopedFileId, clearScopedFile } =

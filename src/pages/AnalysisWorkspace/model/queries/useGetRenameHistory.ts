@@ -1,17 +1,18 @@
+import { AnalysisRenameHistoryItem } from "@/services/rename/rename-history.type";
+import { RenameService } from "@/services/rename/rename.service";
 import { useInfiniteQuery } from "@tanstack/vue-query";
-import { useTableStore } from "../../../store/table.store";
+import { useTableStore } from "../../ui/store/table.store";
 import { computed } from "vue";
-import { AnalysisOperationItem } from "@/services/operations/analysis-operation-item.type";
-import { OperationsService } from "@/services/operations/operations.service";
 
-export const useGetProcesses = () => {
+
+export const useGetRenameHistory = () => {
   const tableStore = useTableStore();
-  const table = tableStore.getTable("processes");
+  const table = tableStore.getTable("rename-history");
 
-  const query = useInfiniteQuery<AnalysisOperationItem[]>(
+  const query = useInfiniteQuery<AnalysisRenameHistoryItem[]>(
     ["analysis-sources", table.limit],
     ({ pageParam = 1 }) =>
-      OperationsService.getOperation({
+      RenameService.getRenameHistory({
         page: pageParam,
         limit: table.limit,
       }),

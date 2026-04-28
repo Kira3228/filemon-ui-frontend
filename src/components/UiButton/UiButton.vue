@@ -1,6 +1,7 @@
 <template>
   <PrimeButton
     @click="$emit('click', $event)"
+    @dblclick="$emit('dblclick', $event)"
     :disabled="isDisabled"
     :class="[buttonVariant, sizeVariant, activeState]"
     class="app-button"

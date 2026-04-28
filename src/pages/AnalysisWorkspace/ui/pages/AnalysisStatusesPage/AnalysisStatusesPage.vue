@@ -77,7 +77,7 @@ import { useAnalysisUiSettings } from "@/pages/AnalysisWorkspace/model/use-analy
 import DataTable from "@/components/DataTable/DataTable.vue";
 import AnalysisFileDetailsToggle from "../../components/AnalysisFileDetailsToggle.vue";
 import { formatAnalysisTimestamp } from "@/shared/utils/format-analysis-timestamp";
-import { useGetStatuses } from "./hooks/useGetStatuses";
+import { useGetStatuses } from "../../../model/queries/useGetStatuses";
 
 const { setSelectedFile, statusBadgeClass } = useAnalysisWorkspace();
 

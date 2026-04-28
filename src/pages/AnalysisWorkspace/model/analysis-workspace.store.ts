@@ -12,8 +12,8 @@ import {
   formatAnalysisTimestamp,
   getAnalysisBadgeClass,
   getAnalysisEventColor,
-  getAnalysisEventTypeLabel,
 } from "./analysis-workspace.presentation";
+import { getAnalysisEventTypeLabel } from "@/shared/utils/get-analysis-event-type-label";
 import { createAnalysisWorkspaceSelectors } from "./analysis-workspace.selectors";
 import { AnalysisReportResult } from "./analysis-report.types";
 import { analysisSections } from "./analysis-sections";
@@ -31,8 +31,8 @@ export const useAnalysisWorkspaceStore = defineStore("analysis-workspace", () =>
 
   let activeLoad: Promise<void> | null = null;
   let loadRequestId = 0;
-  
-  const { 
+
+  const {
     allSources,
     fileTreeDiagramMermaid,
     filesById,

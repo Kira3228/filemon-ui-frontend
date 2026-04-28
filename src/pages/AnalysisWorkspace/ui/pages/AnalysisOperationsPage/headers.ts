@@ -1,7 +1,7 @@
 import { Header } from "@/components/DataTable";
-import { getAnalysisEventTypeLabel } from "../../../model/analysis-workspace.presentation";
 import { formatAnalysisTimestamp } from "@/shared/utils/format-analysis-timestamp";
 import { AnalysisOperationItem } from "@/services/operations/analysis-operation-item.type";
+import { getAnalysisEventTypeLabel } from "@/shared/utils/get-analysis-event-type-label";
 
 export const headers: Header<AnalysisOperationItem>[] = [
   {

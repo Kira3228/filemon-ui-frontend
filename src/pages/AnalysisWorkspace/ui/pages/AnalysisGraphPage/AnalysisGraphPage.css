@@ -1,0 +1,121 @@
+@import "../../styles/analysis-card-surface.css";
+
+.analysis-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--analysis-header-gap);
+  flex: 0 0 auto;
+  margin-bottom: var(--analysis-header-margin);
+  font-size: var(--analysis-heading-size);
+  font-weight: var(--analysis-heading-weight);
+}
+
+.analysis-graph-page {
+  overflow: hidden;
+}
+
+.analysis-page-meta {
+  color: var(--app-text-muted);
+  font-size: var(--analysis-meta-size);
+  line-height: var(--analysis-meta-line-height);
+}
+
+.analysis-graph-stack {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 1rem;
+}
+
+.analysis-graph-scroll-shell {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 0.25rem;
+}
+
+.analysis-graph-details {
+  flex: 0 0 auto;
+  border: 1px solid var(--app-border);
+  border-radius: var(--analysis-surface-radius);
+  overflow: hidden;
+  background: var(--app-surface);
+}
+
+.analysis-graph-summary {
+  display: block;
+  cursor: pointer;
+  list-style: none;
+  padding: var(--analysis-surface-padding);
+  background: var(--app-surface-muted);
+}
+
+.analysis-graph-summary::-webkit-details-marker {
+  display: none;
+}
+
+.analysis-graph-title {
+  font-weight: 600;
+}
+
+.analysis-graph-level {
+  padding: var(--analysis-surface-padding);
+  border-top: 1px solid var(--app-border);
+}
+
+.analysis-graph-level-label {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  background: var(--app-surface-muted);
+  color: var(--app-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 0.28rem 0.65rem;
+}
+
+.analysis-graph-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.75rem;
+}
+
+.analysis-graph-node {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+  border-radius: var(--analysis-surface-radius);
+  padding: var(--analysis-surface-padding);
+  cursor: pointer;
+}
+
+.analysis-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: var(--analysis-badge-padding);
+  font-size: var(--analysis-badge-font-size);
+  font-weight: 600;
+}
+
+.event_badge_gray {
+  border: 1px solid var(--app-border);
+  background: var(--app-surface-muted);
+  color: var(--app-text);
+}
+
+@media (max-width: 960px) {
+  .analysis-graph-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -231,7 +231,7 @@ import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router/composables";
 import { useTheme } from "@/plugins/theme";
 import { useApi } from "@/shared/api/http";
-import { useDatabaseState } from "@/shared/model/use-database-state";
+import { DatabaseConnectionSettings, useDatabaseState } from "@/shared/model/use-database-state";
 import { useAnalysisWorkspace } from "../../model/use-analysis-workspace";
 import {
   DEFAULT_ANALYSIS_SECTION_KEY,
@@ -245,6 +245,7 @@ import {
   AUTO_REFRESH_INTERVAL_MIN_SECONDS,
   useAnalysisUiSettings,
 } from "../../model/use-analysis-ui-settings";
+import { UpdateDatabaseSettingsRequest } from "@/shared/api/contracts";
 
 type ThemeMode = "light" | "dark";
 
