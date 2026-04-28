@@ -7,17 +7,23 @@
   >
     <header class="analysis-page-header">
       <span>Процессы и операции записи</span>
-      <span class="analysis-page-meta">{{ scopedProcessRows.length }} событий · {{ scopedProcessCount }} групп записи · {{ processBuckets.length }} процессов</span>
+      <span class="analysis-page-meta"
+        >{{ scopedProcessRows.length }} событий · {{ scopedProcessCount }} групп
+        записи · {{ processBuckets.length }} процессов</span
+      >
     </header>
 
     <div ref="processesBodyRef" class="analysis-processes-body">
       <div
         class="analysis-processes-table-region"
-        :class="{ 'analysis-processes-table-region--full': !showProcessCards || !selectedProcess }"
+        :class="{
+          'analysis-processes-table-region--full':
+            !showProcessCards || !selectedProcess,
+        }"
         :style="tableRegionStyle"
       >
         <AnalysisProcessesTable
-          :headers="headers"
+          :headers="processHeaders"
           :process-table-items="processTableItems"
           :active-row-key="activeRowKey"
           :process-export-headers="processExportHeaders"
@@ -46,13 +52,13 @@
           @expanded-buckets-change="handleExpandedProcessBucketsUpdate"
           @toggle-process-cards="showProcessCards = !showProcessCards"
           @process-bucket-click="handleProcessBucketClick"
-          @process-bucket-keydown="handleProcessBucketKeydown"
           @process-group-click="handleProcessGroupRowClick"
+          @process-bucket-keydown="handleProcessBucketKeydown"
           @process-group-keydown="handleProcessGroupRowKeydown"
         />
       </div>
 
-      <button
+      <UiButton
         v-if="showProcessCards && selectedProcess"
         type="button"
         class="analysis-processes-resizer"
@@ -63,7 +69,7 @@
         <span />
         <span />
         <span />
-      </button>
+      </UiButton>
 
       <div
         v-if="showProcessCards && selectedProcess"
@@ -83,25 +89,32 @@
 </template>
 
 <script lang="ts" setup>
+import { UiButton } from "@/components/UiButton";
+import { useAnalysisProcessesInteractions } from "@/pages/AnalysisWorkspace/model/use-analysis-processes-interactions";
+import { useAnalysisProcessesTable } from "@/pages/AnalysisWorkspace/model/use-analysis-processes-table";
+import { useAnalysisWorkspace } from "@/pages/AnalysisWorkspace/model/use-analysis-workspace";
+import { useRouteFileScope } from "@/pages/AnalysisWorkspace/model/use-route-file-scope";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import AnalysisProcessesSelectionCards from "../components/AnalysisProcessesSelectionCards.vue";
-import AnalysisProcessesTable from "../components/AnalysisProcessesTable.vue";
-import { useAnalysisProcessesInteractions } from "../../model/use-analysis-processes-interactions";
-import { useAnalysisProcessesTable } from "../../model/use-analysis-processes-table";
-import { useAnalysisWorkspace } from "../../model/use-analysis-workspace";
-import { useRouteFileScope } from "../../model/use-route-file-scope";
+import AnalysisProcessesSelectionCards from "../../components/AnalysisProcessesSelectionCards.vue";
+import AnalysisProcessesTable from "../../components/AnalysisProcessesTable.vue";
+import { processExportHeaders, processHeaders } from "./headers";
+import { useGetProcesses } from "./hooks/useGetProcesses";
+
+const { data: processesData } = useGetProcesses();
 
 const {
   badgeClass,
   eventTypeLabel,
   filesById,
   formatTs,
-  report,
+  // report,
   selectedSourceId,
   setSelectedFile,
   snapshotAt,
 } = useAnalysisWorkspace();
-const { router, scopedFile, scopedFileId, clearScopedFile } = useRouteFileScope();
+
+const { router, scopedFile, scopedFileId, clearScopedFile } =
+  useRouteFileScope();
 
 const processesRootRef = ref<HTMLElement | null>(null);
 const processesBodyRef = ref<HTMLElement | null>(null);
@@ -118,18 +131,20 @@ const PROCESS_PANEL_RESIZER_HEIGHT = 14;
 const PROCESS_TABLE_MIN_HEIGHT = 280;
 const PROCESS_CARDS_MIN_HEIGHT = 180;
 
-const scopedFileName = computed(() => scopedFile.value?.name || `#${scopedFileId.value}`);
-const scopedFilePath = computed(() => scopedFile.value?.path || `Файл #${scopedFileId.value}`);
+const scopedFileName = computed(
+  () => scopedFile.value?.name || `#${scopedFileId.value}`,
+);
+const scopedFilePath = computed(
+  () => scopedFile.value?.path || `Файл #${scopedFileId.value}`,
+);
 
 const {
   buildProcessBucketTitle,
   buildProcessGroupTitle,
   formatMetaValue,
-  headers,
   isProcessGroupRow,
   processBucketSummary,
   processBuckets,
-  processExportHeaders,
   processExportRowKinds,
   processExportRows,
   processGroups,
@@ -143,7 +158,7 @@ const {
   expandedProcessGroups,
   filesById,
   formatTs,
-  report,
+  processesData,
   scopedFileId,
   selectedSourceId,
   snapshotAt,
@@ -191,7 +206,10 @@ const clampCardsHeight = (height: number) => {
     return 0;
   }
 
-  const maxCardsHeight = Math.max(PROCESS_CARDS_MIN_HEIGHT, available - PROCESS_TABLE_MIN_HEIGHT);
+  const maxCardsHeight = Math.max(
+    PROCESS_CARDS_MIN_HEIGHT,
+    available - PROCESS_TABLE_MIN_HEIGHT,
+  );
   return Math.max(PROCESS_CARDS_MIN_HEIGHT, Math.min(maxCardsHeight, height));
 };
 
@@ -213,11 +231,18 @@ const resolvedTableHeight = computed(() => {
     return null;
   }
 
-  return Math.max(PROCESS_TABLE_MIN_HEIGHT, availablePanelsHeight.value - resolvedCardsHeight.value);
+  return Math.max(
+    PROCESS_TABLE_MIN_HEIGHT,
+    availablePanelsHeight.value - resolvedCardsHeight.value,
+  );
 });
 
 const tableRegionStyle = computed(() => {
-  if (!showProcessCards.value || !selectedProcess.value || resolvedTableHeight.value === null) {
+  if (
+    !showProcessCards.value ||
+    !selectedProcess.value ||
+    resolvedTableHeight.value === null
+  ) {
     return undefined;
   }
 
@@ -308,82 +333,4 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style scoped>
-@import "../styles/analysis-card-surface.css";
-
-.analysis-page-card {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.analysis-page-header {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--analysis-header-gap);
-  margin-bottom: var(--analysis-header-margin);
-  font-size: var(--analysis-heading-size);
-  font-weight: var(--analysis-heading-weight);
-}
-
-.analysis-page-meta {
-  color: var(--app-text-muted);
-  font-size: var(--analysis-meta-size);
-  font-weight: var(--analysis-meta-weight);
-  line-height: var(--analysis-meta-line-height);
-}
-
-.analysis-processes-body {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.analysis-processes-table-region {
-  flex: 1 1 auto;
-  min-height: 22rem;
-  overflow: hidden;
-}
-
-.analysis-processes-table-region--full {
-  height: auto;
-}
-
-.analysis-processes-resizer {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  height: 14px;
-  margin: 0.55rem 0;
-  border: 0;
-  border-top: 1px solid var(--app-border);
-  border-bottom: 1px solid var(--app-border);
-  background:
-    linear-gradient(180deg, var(--app-surface-muted), var(--app-surface));
-  cursor: row-resize;
-}
-
-.analysis-processes-resizer span {
-  width: 4px;
-  height: 4px;
-  border-radius: 999px;
-  background: rgba(100, 116, 139, 0.9);
-}
-
-.analysis-processes-resizer--dragging {
-  user-select: none;
-}
-
-.analysis-processes-cards-region {
-  flex: 0 0 auto;
-  min-height: 0;
-  overflow: auto;
-  padding-right: 0.1rem;
-  scrollbar-gutter: stable;
-}
-</style>
+<style scoped src="./AnalysisProcessesPage.css"></style>

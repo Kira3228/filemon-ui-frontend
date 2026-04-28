@@ -1,17 +1,18 @@
+import { AnalysisRenameHistoryItem } from "@/services/rename/rename-history.type";
+import { RenameService } from "@/services/rename/rename.service";
 import { useInfiniteQuery } from "@tanstack/vue-query";
 import { useTableStore } from "../../../store/table.store";
-import { FileService } from "@/services/files/files.service";
-import { AnalysisFileItem } from "@/services/files/file.types";
 import { computed } from "vue";
 
-export const useGetFiles = () => {
-  const tableStore = useTableStore();
-  const table = tableStore.getTable("files");
 
-  const query = useInfiniteQuery<AnalysisFileItem[]>(
-    ["analysis-files", table.limit],
+export const useGetRenameHistory = () => {
+  const tableStore = useTableStore();
+  const table = tableStore.getTable("rename-history");
+
+  const query = useInfiniteQuery<AnalysisRenameHistoryItem[]>(
+    ["analysis-sources", table.limit],
     ({ pageParam = 1 }) =>
-      FileService.getFiles({
+      RenameService.getRenameHistory({
         page: pageParam,
         limit: table.limit,
       }),
@@ -28,10 +29,12 @@ export const useGetFiles = () => {
         table.page = nextPage;
       },
     },
+
+
   );
 
-  const data = computed<AnalysisFileItem[]>(() =>
-    query.data.value?.pages.flatMap((page) => page ?? []) ?? []
+  const data = computed(() =>
+    query.data.value?.pages.flat() ?? []
   );
 
   return {

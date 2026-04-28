@@ -1,21 +1,18 @@
 <template>
   <div class="analysis-processes-table">
     <div v-if="scopedFileId !== null" class="analysis-process-filters">
-      <span
-        class="analysis-route-filter-chip"
-        :title="scopedFilePath"
-      >
+      <span class="analysis-route-filter-chip" :title="scopedFilePath">
         <span class="analysis-route-filter-text">
           <strong>Файл:</strong> {{ scopedFileName }}
         </span>
-        <button
+        <UiButton
           type="button"
           class="analysis-route-filter-remove"
           aria-label="Сбросить фильтр по файлу"
           @click="$emit('clear-scoped-file')"
         >
           <span class="pi pi-times" />
-        </button>
+        </UiButton>
       </span>
     </div>
     <div class="analysis-page-table-shell analysis-process-table-shell">
@@ -45,15 +42,18 @@
             :active="fileDetailsVisible"
             @click="setFileDetailsVisible(!fileDetailsVisible)"
           />
-          <button
+          <UiButton
             type="button"
-            class="analysis-toolbar-toggle"
             :class="{ 'analysis-toolbar-toggle--active': showProcessCards }"
+            variant="secondary"
             @click="$emit('toggle-process-cards')"
           >
-            <span class="pi" :class="showProcessCards ? 'pi-eye-slash' : 'pi-eye'" />
+            <span
+              class="pi"
+              :class="showProcessCards ? 'pi-eye-slash' : 'pi-eye'"
+            />
             <span>Детали процесса</span>
-          </button>
+          </UiButton>
         </template>
         <template #status-filters>
           <span
@@ -77,34 +77,85 @@
         <template #groupheader="{ item }">
           <header
             class="analysis-process-bucket__header"
-            :class="{ 'analysis-process-bucket__header--expanded': isProcessBucketExpanded(item.processBucketKey) }"
+            :class="{
+              'analysis-process-bucket__header--expanded':
+                isProcessBucketExpanded(item.processBucketKey),
+            }"
             tabindex="0"
             role="button"
             :data-process-bucket-key="item.processBucketKey"
-            :aria-expanded="isProcessBucketExpanded(item.processBucketKey) ? 'true' : 'false'"
+            :aria-expanded="
+              isProcessBucketExpanded(item.processBucketKey) ? 'true' : 'false'
+            "
             @click.stop="$emit('process-bucket-click', item.processBucketKey)"
-            @keydown.stop="$emit('process-bucket-keydown', $event, item.processBucketKey)"
+            @keydown.stop="
+              $emit('process-bucket-keydown', $event, item.processBucketKey)
+            "
           >
             <span
               class="analysis-process-bucket__chevron-wrap"
-              :class="{ 'analysis-process-bucket__chevron-wrap--expanded': isProcessBucketExpanded(item.processBucketKey) }"
+              :class="{
+                'analysis-process-bucket__chevron-wrap--expanded':
+                  isProcessBucketExpanded(item.processBucketKey),
+              }"
             >
-              <span class="pi analysis-process-bucket__chevron" :class="isProcessBucketExpanded(item.processBucketKey) ? 'pi-chevron-down' : 'pi-chevron-right'" />
+              <span
+                class="pi analysis-process-bucket__chevron"
+                :class="
+                  isProcessBucketExpanded(item.processBucketKey)
+                    ? 'pi-chevron-down'
+                    : 'pi-chevron-right'
+                "
+              />
             </span>
-            <div class="analysis-process-bucket__main" :title="buildProcessBucketTitle(item.processBucketKey)">
-              <strong class="analysis-process-bucket__title">{{ processBucketSummary[item.processBucketKey]?.processLabel || item.processLabel }}</strong>
+            <div
+              class="analysis-process-bucket__main"
+              :title="buildProcessBucketTitle(item.processBucketKey)"
+            >
+              <strong class="analysis-process-bucket__title">{{
+                processBucketSummary[item.processBucketKey]?.processLabel ||
+                item.processLabel
+              }}</strong>
               <span class="analysis-process-bucket__meta">
-                PID {{ formatMetaValue(processBucketSummary[item.processBucketKey]?.pid) }}
-                · UID {{ formatMetaValue(processBucketSummary[item.processBucketKey]?.uid) }}
-                · пользователь {{ processBucketSummary[item.processBucketKey]?.user || "—" }}
-                <template v-if="processBucketSummary[item.processBucketKey]?.executablePath">
-                  · {{ processBucketSummary[item.processBucketKey]?.executablePath }}
+                PID
+                {{
+                  formatMetaValue(
+                    processBucketSummary[item.processBucketKey]?.pid,
+                  )
+                }}
+                · UID
+                {{
+                  formatMetaValue(
+                    processBucketSummary[item.processBucketKey]?.uid,
+                  )
+                }}
+                · пользователь
+                {{ processBucketSummary[item.processBucketKey]?.user || "—" }}
+                <template
+                  v-if="
+                    processBucketSummary[item.processBucketKey]?.executablePath
+                  "
+                >
+                  ·
+                  {{
+                    processBucketSummary[item.processBucketKey]?.executablePath
+                  }}
                 </template>
               </span>
             </div>
             <div class="analysis-process-bucket__aside">
-              <span class="analysis-badge event_badge_gray">{{ processBucketSummary[item.processBucketKey]?.groupCount || 0 }} групп записи</span>
-              <span class="analysis-page-meta">{{ processBucketSummary[item.processBucketKey]?.eventCount || 0 }} событий</span>
+              <span class="analysis-badge event_badge_gray"
+                >{{
+                  processBucketSummary[item.processBucketKey]?.groupCount || 0
+                }}
+                групп записи</span
+              >
+              <span class="analysis-page-meta"
+                >{{
+                  processBucketSummary[item.processBucketKey]?.eventCount || 0
+                }}
+                событий</span
+              >
             </div>
           </header>
         </template>
@@ -113,25 +164,56 @@
             v-if="isProcessGroupRow(item)"
             type="button"
             class="analysis-process-group__header"
-            :class="{ 'analysis-process-group__header--selected': selectedProcessGroupKey === item.processGroupKey }"
+            :class="{
+              'analysis-process-group__header--selected':
+                selectedProcessGroupKey === item.processGroupKey,
+            }"
             :title="buildProcessGroupTitle(item)"
             :data-process-group-key="item.processGroupKey"
             :data-process-bucket-key="item.processBucketKey"
-            :aria-expanded="isProcessGroupExpanded(item.processGroupKey) ? 'true' : 'false'"
-            @click="$emit('process-group-click', item.processGroupKey, item.processBucketKey)"
-            @keydown.stop="$emit('process-group-keydown', $event, item.processGroupKey, item.processBucketKey)"
+            :aria-expanded="
+              isProcessGroupExpanded(item.processGroupKey) ? 'true' : 'false'
+            "
+            @click="
+              $emit(
+                'process-group-click',
+                item.processGroupKey,
+                item.processBucketKey,
+              )
+            "
+            @keydown.stop="
+              $emit(
+                'process-group-keydown',
+                $event,
+                item.processGroupKey,
+                item.processBucketKey,
+              )
+            "
           >
             <span
               class="analysis-process-group__chevron-wrap"
-              :class="{ 'analysis-process-group__chevron-wrap--expanded': isProcessGroupExpanded(item.processGroupKey) }"
+              :class="{
+                'analysis-process-group__chevron-wrap--expanded':
+                  isProcessGroupExpanded(item.processGroupKey),
+              }"
               aria-hidden="true"
             >
-              <span class="pi analysis-process-group__chevron" :class="isProcessGroupExpanded(item.processGroupKey) ? 'pi-chevron-down' : 'pi-chevron-right'" />
+              <span
+                class="pi analysis-process-group__chevron"
+                :class="
+                  isProcessGroupExpanded(item.processGroupKey)
+                    ? 'pi-chevron-down'
+                    : 'pi-chevron-right'
+                "
+              />
             </span>
             <div class="analysis-process-group__main">
-              <strong class="analysis-process-group__title">WRITE {{ item.writeFileName }}</strong>
+              <strong class="analysis-process-group__title"
+                >WRITE {{ item.writeFileName }}</strong
+              >
               <span class="analysis-process-group__meta">
-                PV {{ formatMetaValue(item.processVersionId) }} · {{ formatTs(item.writeAt) }}
+                PV {{ formatMetaValue(item.processVersionId) }} ·
+                {{ formatTs(item.writeAt) }}
                 <template v-if="item.writePath">
                   · {{ item.writePath }}
                 </template>
@@ -141,7 +223,9 @@
               <span class="analysis-badge event_badge_gray">
                 {{ item.readCount }} чтений · {{ item.writeCount }} записей
               </span>
-              <span class="analysis-page-meta">{{ formatTs(item.writeAt) }}</span>
+              <span class="analysis-page-meta">{{
+                formatTs(item.writeAt)
+              }}</span>
             </div>
           </button>
           <span v-else class="analysis-badge" :class="badgeClass(value)">
@@ -150,7 +234,11 @@
         </template>
         <template #[`item.fileName`]="{ item }">
           <template v-if="isProcessGroupRow(item)"> </template>
-          <div v-else class="analysis-file-cell" :title="`${item.fileName}\n${item.path}`">
+          <div
+            v-else
+            class="analysis-file-cell"
+            :title="`${item.fileName}\n${item.path}`"
+          >
             <strong class="analysis-file-title">{{ item.fileName }}</strong>
             <span class="analysis-file-caption">{{ item.path }}</span>
           </div>
@@ -161,13 +249,18 @@
         </template>
         <template #[`item.versionNumber`]="{ item, value }">
           <template v-if="isProcessGroupRow(item)"> </template>
-          <template v-else>{{ value === null || value === undefined ? "—" : `v${value}` }}</template>
+          <template v-else>{{
+            value === null || value === undefined ? "—" : `v${value}`
+          }}</template>
         </template>
         <template #[`item.eventAt`]="{ item, value }">
           {{ isProcessGroupRow(item) ? "" : formatTs(value) }}
         </template>
         <template #[`item.path`]="{ item, value }">
-          <div class="analysis-file-inline" :title="isProcessGroupRow(item) ? '' : value || '—'">
+          <div
+            class="analysis-file-inline"
+            :title="isProcessGroupRow(item) ? '' : value || '—'"
+          >
             {{ isProcessGroupRow(item) ? "" : value || "—" }}
           </div>
         </template>
@@ -180,9 +273,14 @@
 import { DataTable } from "@/components/DataTable";
 import type { Header } from "@/components/DataTable";
 import type { Nullable } from "../../model/analysis-report.types";
-import type { ProcessBucket, ProcessGroupRow, ProcessTableItem } from "../../model/analysis-processes-table.types";
+import type {
+  ProcessBucket,
+  ProcessGroupRow,
+  ProcessTableItem,
+} from "../../model/analysis-processes-table.types";
 import { useAnalysisUiSettings } from "../../model/use-analysis-ui-settings";
 import AnalysisFileDetailsToggle from "./AnalysisFileDetailsToggle.vue";
+import UiButton from "@/components/UiButton/UiButton.vue";
 
 const { fileDetailsVisible, setFileDetailsVisible } = useAnalysisUiSettings();
 
@@ -218,7 +316,12 @@ defineEmits<{
   (e: "process-bucket-click", bucketKey: string): void;
   (e: "process-bucket-keydown", event: KeyboardEvent, bucketKey: string): void;
   (e: "process-group-click", groupKey: string, bucketKey: string): void;
-  (e: "process-group-keydown", event: KeyboardEvent, groupKey: string, bucketKey: string): void;
+  (
+    e: "process-group-keydown",
+    event: KeyboardEvent,
+    groupKey: string,
+    bucketKey: string,
+  ): void;
   (e: "row-click", item: ProcessTableItem): void;
   (e: "row-dblclick", item: ProcessTableItem): void;
   (e: "toggle-process-cards"): void;
@@ -285,8 +388,7 @@ defineEmits<{
 
 .analysis-process-bucket__header:focus-visible,
 .analysis-process-group__header:focus-visible {
-  box-shadow:
-    inset 0 0 0 1px rgba(37, 99, 235, 0.22),
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.22),
     0 0 0 3px rgba(37, 99, 235, 0.14);
 }
 
@@ -349,7 +451,8 @@ defineEmits<{
   border-radius: 999px;
   background: rgba(148, 163, 184, 0.14);
   flex: 0 0 auto;
-  transition: background-color 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
+  transition: background-color 0.18s ease, box-shadow 0.18s ease,
+    color 0.18s ease;
 }
 
 .analysis-process-bucket__chevron-wrap--expanded,
@@ -397,8 +500,7 @@ defineEmits<{
 :global(html.dark) .event_badge_gray {
   background: rgba(51, 65, 85, 0.88);
   color: #e2e8f0;
-  box-shadow:
-    inset 0 0 0 1px rgba(148, 163, 184, 0.18),
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.18),
     0 0 0 1px rgba(15, 23, 42, 0.12);
 }
 
@@ -481,8 +583,10 @@ defineEmits<{
   overflow: hidden;
 }
 
-.analysis-process-table-shell :deep(.compact-data-table .p-rowgroup-header .p-row-toggler),
-.analysis-process-table-shell :deep(.compact-data-table .p-rowgroup-header .p-row-toggler.p-link) {
+.analysis-process-table-shell
+  :deep(.compact-data-table .p-rowgroup-header .p-row-toggler),
+.analysis-process-table-shell
+  :deep(.compact-data-table .p-rowgroup-header .p-row-toggler.p-link) {
   display: none;
 }
 
@@ -490,21 +594,30 @@ defineEmits<{
   scroll-margin-top: 0.75rem;
 }
 
-.analysis-process-table-shell :deep(.compact-data-table .p-rowgroup-header > td) {
+.analysis-process-table-shell
+  :deep(.compact-data-table .p-rowgroup-header > td) {
   padding-left: 0 !important;
 }
 
-.analysis-process-table-shell :deep(.compact-data-table .p-rowgroup-header > td) {
+.analysis-process-table-shell
+  :deep(.compact-data-table .p-rowgroup-header > td) {
   border-bottom-color: rgba(148, 163, 184, 0.18);
   padding-top: 0.2rem;
   padding-bottom: 0.2rem;
 }
 
-.analysis-process-table-shell :deep(.compact-data-table tbody tr:has(.analysis-process-group__header)) {
+.analysis-process-table-shell
+  :deep(.compact-data-table tbody tr:has(.analysis-process-group__header)) {
   position: relative;
 }
 
-.analysis-process-table-shell :deep(.compact-data-table tbody tr:has(.analysis-process-group__header) > td:first-child) {
+.analysis-process-table-shell
+  :deep(
+    .compact-data-table
+      tbody
+      tr:has(.analysis-process-group__header)
+      > td:first-child
+  ) {
   display: block !important;
   width: 100% !important;
   min-width: 0 !important;
@@ -514,34 +627,75 @@ defineEmits<{
   box-sizing: border-box;
 }
 
-.analysis-process-table-shell :deep(.compact-data-table tbody tr:has(.analysis-process-group__header) > td:nth-child(n + 2)) {
+.analysis-process-table-shell
+  :deep(
+    .compact-data-table
+      tbody
+      tr:has(.analysis-process-group__header)
+      > td:nth-child(n + 2)
+  ) {
   display: none;
 }
 
-.analysis-process-table-shell :deep(.compact-data-table tbody tr:has(.analysis-process-group__header) .compact-data-table__content) {
+.analysis-process-table-shell
+  :deep(
+    .compact-data-table
+      tbody
+      tr:has(.analysis-process-group__header)
+      .compact-data-table__content
+  ) {
   overflow: visible;
 }
 
-.analysis-process-table-shell :deep(.compact-data-table tbody tr:has(.analysis-process-group__header--selected)) > td {
+.analysis-process-table-shell
+  :deep(
+    .compact-data-table tbody tr:has(.analysis-process-group__header--selected)
+  )
+  > td {
   background: rgba(219, 234, 254, 0.46);
 }
 
-.analysis-process-table-shell :deep(.compact-data-table tbody tr.compact-data-table__row--active:has(.analysis-process-group__header)) > td {
+.analysis-process-table-shell
+  :deep(
+    .compact-data-table
+      tbody
+      tr.compact-data-table__row--active:has(.analysis-process-group__header)
+  )
+  > td {
   background: rgba(219, 234, 254, 0.72);
 }
 
-.analysis-process-table-shell :deep(.compact-data-table tbody tr:has(.analysis-process-group__header) .p-column-title) {
+.analysis-process-table-shell
+  :deep(
+    .compact-data-table
+      tbody
+      tr:has(.analysis-process-group__header)
+      .p-column-title
+  ) {
   display: none;
 }
 
-.analysis-process-table-shell :deep(.compact-data-table tbody tr:has(.analysis-process-group__header) td .compact-data-table__content) {
+.analysis-process-table-shell
+  :deep(
+    .compact-data-table
+      tbody
+      tr:has(.analysis-process-group__header)
+      td
+      .compact-data-table__content
+  ) {
   display: block;
   width: 100% !important;
   max-width: none !important;
   min-width: 0 !important;
 }
 
-.analysis-process-table-shell :deep(.compact-data-table tbody tr:not(.p-rowgroup-header):not(:has(.analysis-process-group__header)) > td:first-child) {
+.analysis-process-table-shell
+  :deep(
+    .compact-data-table
+      tbody
+      tr:not(.p-rowgroup-header):not(:has(.analysis-process-group__header))
+      > td:first-child
+  ) {
   padding-left: 2.65rem !important;
 }
 

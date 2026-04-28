@@ -4,9 +4,10 @@ import type {
   AnalysisChainVersion,
   AnalysisFileEventKind,
   AnalysisRenameHistoryItem,
-  AnalysisStatusHistoryItem,
-  AnalysisTimelineEntry,
+
 } from "./analysis-report.types";
+import { AnalysisTimelineEntry } from "@/services/timeline/timeline.types";
+import { AnalysisStatusHistoryItem } from "@/services/status/status.type";
 
 export interface CombinedHistoryEntry {
   id: string;

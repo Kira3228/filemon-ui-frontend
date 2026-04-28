@@ -2,11 +2,11 @@ import type {
   AnalysisDiagramFileVersion,
   AnalysisDiagramOperation,
   AnalysisDiagramProcessVersion,
-  AnalysisFileItem,
   AnalysisReportResult,
   Nullable,
 } from "./analysis-report.types";
 import { clipTs, isBeforeSnapshot, minTs, normalizeSnapshotCutoff } from "./analysis-diagrams.helpers";
+import { AnalysisFileItem } from "@/services/files/file.types";
 
 export interface AggregatedDiagramOperation {
   fileVersionId: number;

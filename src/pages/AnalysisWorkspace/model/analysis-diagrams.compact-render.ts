@@ -9,10 +9,10 @@ import {
 import type {
   AnalysisDiagramFileVersion,
   AnalysisDiagramProcessVersion,
-  AnalysisFileItem,
   AnalysisReportResult,
 } from "./analysis-report.types";
 import type { CompactTreeResult } from "./analysis-diagrams.compact-tree";
+import { AnalysisFileItem } from "@/services/files/file.types";
 
 interface CompactRenderState {
   fileItems: AnalysisFileItem[];

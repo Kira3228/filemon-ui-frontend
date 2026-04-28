@@ -1,5 +1,5 @@
 import { Header } from "@/components/DataTable";
-import { AnalysisFileItem } from "@/services/files/types/file.types";
+import { AnalysisFileItem } from "@/services/files/file.types";
 import { formatAnalysisTimestamp } from "@/shared/utils/format-analysis-timestamp";
 
 export const headers: Header<AnalysisFileItem>[] = [

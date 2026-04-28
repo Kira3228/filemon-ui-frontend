@@ -1,23 +1,19 @@
+import { AnalysisFileItem } from "@/services/files/file.types";
+import { AnalysisOperationItem } from "@/services/operations/analysis-operation-item.type";
+import { AnalysisProcessReadFile, AnalysisProcessReadGroup } from "@/services/process/process.type";
+import { AnalysisFileEventKind } from "@/services/rename/rename-history.type";
+import { AnalysisSourceItem } from "@/services/source/source.types";
+import { AnalysisStatusHistoryItem } from "@/services/status/status.type";
+import { AnalysisTimelineEntry } from "@/services/timeline/timeline.types";
+
 export type Nullable<T> = T | null;
 export type {
   MonitoringAction,
   UpdateMonitoringStatusResult,
 } from "@/shared/api/contracts";
-export type AnalysisTimelineType =
-  | "TRACKING"
-  | "SOURCE"
-  | "DELETE"
-  | "STATUS"
-  | "MANUAL_STATUS_CHANGE"
-  | "RENAME"
-  | "MOVE"
-  | "MOVE_RENAME"
-  | "FILE_VERSION"
-  | "READ"
-  | "WRITE"
-  | "PROCESS";
+
 export type AnalysisOperationType = "READ" | "WRITE";
-export type AnalysisFileEventKind = "RENAME" | "MOVE" | "MOVE_RENAME" | "DELETE";
+
 
 export interface AnalysisFileLink {
   id: number;
@@ -26,29 +22,6 @@ export interface AnalysisFileLink {
   path: string;
 }
 
-export interface AnalysisFileItem {
-  id: number;
-  fileId: number;
-  name: string;
-  path: string;
-  pathHistory: string[];
-  filesystem: Nullable<string>;
-  filesystemUuid: Nullable<string>;
-  sizeBytes: Nullable<number>;
-  versionCount: number;
-  depth: number;
-  parents: AnalysisFileLink[];
-  sourceIds: number[];
-  sourceLabels: AnalysisFileLink[];
-  originProcess: string;
-  user: string;
-  currentStatusCode: number;
-  currentStatus: string;
-  trackingStartedAt: string;
-  birthTime: Nullable<string>;
-  lastStatusAt: Nullable<string>;
-  inode: Nullable<number>;
-}
 
 export interface AnalysisSourceReader {
   processVersionId: Nullable<number>;
@@ -62,35 +35,6 @@ export interface AnalysisSourceStats {
   producedFiles: number;
   maxDepth: number;
   readOps: number;
-}
-
-export interface AnalysisSourceItem {
-  id: number;
-  fileId: number;
-  name: string;
-  path: string;
-  filesystemUuid: Nullable<string>;
-  trackingStartedAt: string;
-  sourceIds: number[];
-  stats: AnalysisSourceStats;
-  readers: AnalysisSourceReader[];
-  produced: AnalysisFileItem[];
-}
-
-export interface AnalysisStatusHistoryItem {
-  id: number;
-  fileId: number;
-  fileName: string;
-  path: string;
-  filesystemUuid: Nullable<string>;
-  status: string;
-  createdAt: string;
-  isManual: boolean;
-  changeSource: "MANUAL" | "SYSTEM";
-  manualAction: Nullable<string>;
-  previousStatus: Nullable<string>;
-  nextStatus: string;
-  sourceIds: number[];
 }
 
 export interface AnalysisRenameHistoryItem {
@@ -107,67 +51,11 @@ export interface AnalysisRenameHistoryItem {
   details: Record<string, unknown>;
 }
 
-export interface AnalysisProcessReadFile {
-  fileId: number;
-  fileName: string;
-  path: string;
-  filesystemUuid: Nullable<string>;
-  versionNumber: Nullable<number>;
-  count: number;
-  firstAt: string;
-  lastAt: Nullable<string>;
-}
 
-export interface AnalysisProcessReadGroup {
-  processVersionId: Nullable<number>;
-  label: string;
-  executablePath: Nullable<string>;
-  pid: Nullable<number>;
-  user: Nullable<string>;
-  uid: Nullable<number>;
-  createdAt: string;
-  sourceIds: number[];
-  files: AnalysisProcessReadFile[];
-}
 
-export interface AnalysisTimelineEntry {
-  id: string;
-  type: AnalysisTimelineType;
-  timestamp: Nullable<string>;
-  fileId: Nullable<number>;
-  fileName: Nullable<string>;
-  fileStatus: Nullable<string>;
-  processVersionId: Nullable<number>;
-  processLabel: Nullable<string>;
-  details: string;
-  sourceIds: number[];
-  index: number;
-}
 
-export interface AnalysisOperationItem {
-  id: string;
-  type: AnalysisOperationType;
-  timestamp: string;
-  fileId: number;
-  fileName: string;
-  path: string;
-  inode: Nullable<number>;
-  fileVersionNumber: Nullable<number>;
-  processName: string;
-  processVersionId: Nullable<number>;
-  processVersionNumber: Nullable<number>;
-  processLabel: string;
-  originFileName: string;
-  originFilePath: Nullable<string>;
-  fileStatus: Nullable<string>;
-  depth: Nullable<number>;
-  user: Nullable<string>;
-  count: number;
-  sizeBytes: Nullable<number>;
-  trackingStartedAt: Nullable<string>;
-  statusTime: Nullable<string>;
-  sourceIds: number[];
-}
+
+
 
 export interface AnalysisChainProcessEvent {
   processVersionId: Nullable<number>;

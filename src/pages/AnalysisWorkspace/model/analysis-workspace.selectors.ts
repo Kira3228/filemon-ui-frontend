@@ -6,17 +6,22 @@ import {
 } from "./analysis-diagrams";
 import type {
   AnalysisChainEntry,
-  AnalysisFileItem,
+  // AnalysisFileItem,
   AnalysisItemWithTimestamps,
-  AnalysisOperationItem,
+  // AnalysisOperationItem,
   AnalysisProcessReadView,
   AnalysisRenameHistoryItem,
   AnalysisReportResult,
+  // AnalysisReportResult,
   AnalysisSourceColumns,
-  AnalysisSourceItem,
-  AnalysisStatusHistoryItem,
-  AnalysisTimelineEntry,
+  // AnalysisSourceItem,
+  // AnalysisTimelineEntry,
 } from "./analysis-report.types";
+import { AnalysisFileItem } from "@/services/files/file.types";
+import { AnalysisSourceItem } from "@/services/source/source.types";
+import { AnalysisTimelineEntry } from "@/services/timeline/timeline.types";
+import { AnalysisOperationItem } from "@/services/operations/analysis-operation-item.type";
+import { AnalysisStatusHistoryItem } from "@/services/status/status.type";
 
 interface CreateAnalysisWorkspaceSelectorsOptions {
   report: Ref<AnalysisReportResult | null>;
@@ -53,8 +58,10 @@ export const createAnalysisWorkspaceSelectors = ({
     return item.sourceIds.includes(selectedSourceId.value);
   };
 
-  const matchesFilters = <T extends AnalysisItemWithTimestamps>(item: T) =>
-    matchesSnapshot(item) && matchesSource(item);
+  const matchesFilters = <T extends AnalysisItemWithTimestamps>(item: T) => {
+    return matchesSnapshot(item) && matchesSource(item);
+
+  }
 
   const filesById = computed<Record<string, AnalysisFileItem>>(() => {
     const map: Record<string, AnalysisFileItem> = {};

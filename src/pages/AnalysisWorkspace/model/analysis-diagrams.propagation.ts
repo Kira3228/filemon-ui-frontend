@@ -1,10 +1,10 @@
+import { AnalysisFileItem } from "@/services/files/file.types";
 import { aggregateDiagramOps } from "./analysis-diagrams.dataset";
 import { groupRenameRowsByFile, minTs } from "./analysis-diagrams.helpers";
 import type {
   AnalysisDiagramFileVersion,
   AnalysisDiagramOperation,
   AnalysisDiagramProcessVersion,
-  AnalysisFileItem,
   AnalysisReportResult,
 } from "./analysis-report.types";
 

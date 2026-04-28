@@ -6,10 +6,9 @@ import {
 import type { Nullable } from "./analysis-report.types";
 import type {
   ProcessBucket,
-  ProcessEventRow,
   ProcessGroup,
-  ProcessGroupRow,
 } from "./analysis-processes-table.types";
+import { ProcessEventRow, ProcessGroupRow } from "@/services/process/process.type";
 
 export const buildProcessGroups = (rows: ProcessEventRow[]) =>
   Object.values(rows.reduce((accumulator: Record<string, ProcessGroup>, row) => {

@@ -1,6 +1,6 @@
+import { AnalysisFileItem } from "@/services/files/file.types";
 import type {
   AnalysisDiagramProcessVersion,
-  AnalysisFileItem,
   AnalysisReportResult,
   Nullable,
 } from "./analysis-report.types";

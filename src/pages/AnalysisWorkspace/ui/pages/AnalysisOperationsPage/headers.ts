@@ -1,0 +1,136 @@
+import { Header } from "@/components/DataTable";
+import { getAnalysisEventTypeLabel } from "../../../model/analysis-workspace.presentation";
+import { formatAnalysisTimestamp } from "@/shared/utils/format-analysis-timestamp";
+import { AnalysisOperationItem } from "@/services/operations/analysis-operation-item.type";
+
+export const headers: Header<AnalysisOperationItem>[] = [
+  {
+    text: "Время операции",
+    value: "timestamp",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 150,
+    exportValue: (item: AnalysisOperationItem) =>
+      formatAnalysisTimestamp(item.timestamp),
+  },
+  {
+    text: "Файл",
+    value: "fileName",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 220,
+    wrap: true,
+  },
+  {
+    text: "Индексный дескриптор (inode)",
+    value: "inode",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 96,
+  },
+  {
+    text: "Тип",
+    value: "type",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 90,
+    exportValue: (item: AnalysisOperationItem) =>
+      getAnalysisEventTypeLabel(item.type),
+  },
+  {
+    text: "Версия файла",
+    value: "fileVersionNumber",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 100,
+  },
+  {
+    text: "Процесс",
+    value: "processName",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 150,
+  },
+  {
+    text: "Версия процесса",
+    value: "processVersionNumber",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 112,
+  },
+  {
+    text: "Оригинальный файл",
+    value: "originFileName",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 180,
+  },
+  {
+    text: "Статус файла",
+    value: "fileStatus",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 120,
+  },
+  {
+    text: "Глубина",
+    value: "depth",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 86,
+  },
+  {
+    text: "Пользователь",
+    value: "user",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 110,
+  },
+  {
+    text: "Размер",
+    value: "sizeBytes",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 90,
+  },
+  {
+    text: "Старт отслеживания",
+    value: "trackingStartedAt",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 150,
+    exportValue: (item: AnalysisOperationItem) =>
+      formatAnalysisTimestamp(item.trackingStartedAt),
+  },
+  {
+    text: "Время статуса",
+    value: "statusTime",
+    align: "start",
+    sortable: true,
+    isVisible: true,
+    width: 150,
+    exportValue: (item: AnalysisOperationItem) =>
+      formatAnalysisTimestamp(item.statusTime),
+  },
+  {
+    text: "Путь",
+    value: "path",
+    align: "start",
+    sortable: false,
+    isVisible: true,
+    width: 320,
+  },
+];

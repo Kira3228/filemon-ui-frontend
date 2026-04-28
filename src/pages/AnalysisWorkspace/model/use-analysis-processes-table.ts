@@ -14,22 +14,22 @@ import {
 } from "./analysis-processes-table.grouping";
 import { createProcessRows } from "./analysis-processes-table.rows";
 import { buildProcessBucketTitle, buildProcessGroupTitle, formatProcessTableMetaValue } from "./analysis-processes-table.presentation";
-import type { ProcessBucket, ProcessGroup, ProcessGroupRow, ProcessTableItem } from "./analysis-processes-table.types";
+import type { ProcessBucket, ProcessGroup, } from "./analysis-processes-table.types";
 import type {
-  AnalysisFileItem,
-  AnalysisReportResult,
   Nullable,
 } from "./analysis-report.types";
+import { AnalysisFileItem } from "@/services/files/file.types";
+import { AnalysisProcessReadGroup, ProcessGroupRow, ProcessTableItem } from "@/services/process/process.type";
 
-export type { ProcessEventRow } from "./analysis-processes-table.rows";
-export type { ProcessBucket, ProcessGroup, ProcessGroupRow, ProcessTableItem } from "./analysis-processes-table.types";
+export type { ProcessBucket, ProcessGroup, } from "./analysis-processes-table.types";
 
 interface UseAnalysisProcessesTableOptions {
   eventTypeLabel: (type?: Nullable<string>) => string;
   expandedProcessGroups: Ref<string[]>;
   filesById: ComputedRef<Record<string, AnalysisFileItem>>;
   formatTs: (value?: Nullable<string>) => string;
-  report: Ref<AnalysisReportResult | null>;
+  //TODO: СЮДА ДИП ДОБАВИПТЬ
+  report: Ref<AnalysisProcessReadGroup | null>;
   scopedFileId: Ref<number | null>;
   selectedSourceId: Ref<number | null>;
   snapshotAt: Ref<string>;
@@ -45,6 +45,7 @@ export const useAnalysisProcessesTable = ({
   selectedSourceId,
   snapshotAt,
 }: UseAnalysisProcessesTableOptions) => {
+
   const processRows = createProcessRows({
     filesById,
     report,

@@ -5,12 +5,12 @@ import type {
   AnalysisDiagramFileVersion,
   AnalysisDiagramOperation,
   AnalysisDiagramProcessVersion,
-  AnalysisFileItem,
-  AnalysisReportResult,
+
   Nullable,
 } from "./analysis-report.types";
+import { AnalysisFileItem } from "@/services/files/file.types";
+import { AnalysisProcessReadGroup, ProcessEventRow, ProcessEventType } from "@/services/process/process.type";
 
-export type ProcessEventType = "READ" | "WRITE";
 
 interface ProcessEventSeed {
   processId: number;
@@ -30,41 +30,12 @@ interface ProcessEventSeed {
   eventType: ProcessEventType;
 }
 
-interface BaseProcessTableItem {
-  id: string;
-  rowKind: "GROUP" | "EVENT";
-  processBucketKey: string;
-  processId: number;
-  processGroupKey: string;
-  processVersionId: Nullable<number>;
-  processLabel: string;
-  executablePath: Nullable<string>;
-  pid: Nullable<number>;
-  user: Nullable<string>;
-  uid: Nullable<number>;
-  processCreatedAt: Nullable<string>;
-  writeAt: string;
-  writeFileId: number;
-  writeFileName: string;
-  writePath: string;
-  writeFilesystemUuid: Nullable<string>;
-  eventType: ProcessEventType;
-  eventAt: string;
-  fileId: number;
-  fileName: string;
-  path: string;
-  filesystemUuid: Nullable<string>;
-  versionNumber: Nullable<number>;
-}
 
-export interface ProcessEventRow extends BaseProcessTableItem {
-  rowKind: "EVENT";
-  eventType: ProcessEventType;
-}
+
 
 interface BuildProcessRowsOptions {
   filesById: ComputedRef<Record<string, AnalysisFileItem>>;
-  report: Ref<AnalysisReportResult | null>;
+  report: Ref<AnalysisProcessReadGroup[] | null>;
   selectedSourceId: Ref<number | null>;
   snapshotAt: Ref<string>;
 }
@@ -75,6 +46,7 @@ export const createProcessRows = ({
   selectedSourceId,
   snapshotAt,
 }: BuildProcessRowsOptions) => {
+
   const formatProcessDisplayName = (
     executablePath?: Nullable<string>,
     pid?: Nullable<number>,
@@ -157,7 +129,7 @@ export const createProcessRows = ({
     if (!report.value) { return []; }
 
     const processVersionsById = new Map<number, AnalysisDiagramProcessVersion>(
-      (report.value.diagramData.processVersions || [])
+      (report.value || [])
         .map((item) => [Number(item.processVersionId), item] as const)
         .filter(([key]) => Number.isFinite(key)),
     );

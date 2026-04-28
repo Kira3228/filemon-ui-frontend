@@ -1,0 +1,80 @@
+@import "../../styles/analysis-card-surface.css";
+
+.analysis-page-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.analysis-page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--analysis-header-gap);
+  margin-bottom: var(--analysis-header-margin);
+  font-size: var(--analysis-heading-size);
+  font-weight: var(--analysis-heading-weight);
+}
+
+.analysis-page-meta {
+  color: var(--app-text-muted);
+  font-size: var(--analysis-meta-size);
+  font-weight: var(--analysis-meta-weight);
+  line-height: var(--analysis-meta-line-height);
+}
+
+.analysis-processes-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.analysis-processes-table-region {
+  flex: 1 1 auto;
+  min-height: 22rem;
+  overflow: hidden;
+}
+
+.analysis-processes-table-region--full {
+  height: auto;
+}
+
+.analysis-processes-resizer {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  height: 14px;
+  margin: 0.55rem 0;
+  border: 0;
+  border-top: 1px solid var(--app-border);
+  border-bottom: 1px solid var(--app-border);
+  background: linear-gradient(
+    180deg,
+    var(--app-surface-muted),
+    var(--app-surface)
+  );
+  cursor: row-resize;
+}
+
+.analysis-processes-resizer span {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.9);
+}
+
+.analysis-processes-resizer--dragging {
+  user-select: none;
+}
+
+.analysis-processes-cards-region {
+  flex: 0 0 auto;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 0.1rem;
+  scrollbar-gutter: stable;
+}

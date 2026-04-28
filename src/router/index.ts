@@ -3,20 +3,21 @@ import VueRouter, { RouteConfig } from "vue-router";
 Vue.use(VueRouter);
 import { Layout } from "@/layout";
 import FileDetailsPage from "@/pages/FileDetailsPage/ui/FileDetailsPage.vue";
-import AnalysisTimelinePage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisTimelinePage.vue";
+
+import AnalysisFilesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisFilesPage/AnalysisFilesPage.vue";
 import AnalysisPropagationDiagramPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisPropagationDiagramPage.vue";
 import AnalysisFilesTreePage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisFilesTreePage.vue";
-import AnalysisStatusesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisStatusesPage.vue";
-import AnalysisRenamePage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisRenamePage.vue";
-import AnalysisProcessesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisProcessesPage.vue";
-import AnalysisOperationsPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisOperationsPage.vue";
 import AnalysisGraphPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisGraphPage.vue";
 import AnalysisChainPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisChainPage.vue";
 import AnalysisSettingsPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisSettingsPage.vue";
 import { getDefaultAnalysisTabPath } from "@/pages/AnalysisWorkspace/model/use-analysis-ui-settings";
 
 import AnalysisSourcesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisSourcesPage/AnalysisSourcesPage.vue";
-import AnalysisFilesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisFilesPage/AnalysisFilesPage.vue";
+import AnalysisOperationsPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisOperationsPage/AnalysisOperationsPage.vue";
+import AnalysisTimelinePage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisTimelinePage/AnalysisTimelinePage.vue";
+import AnalysisStatusesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisStatusesPage/AnalysisStatusesPage.vue";
+import AnalysisRenamePage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisRenamePage/AnalysisRenamePage.vue";
+import AnalysisProcessesPage from "@/pages/AnalysisWorkspace/ui/pages/AnalysisProcessesPage/AnalysisProcessesPage.vue";
 
 const routes: RouteConfig[] = [
   {

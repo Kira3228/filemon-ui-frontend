@@ -1,17 +1,17 @@
 import { useInfiniteQuery } from "@tanstack/vue-query";
-import { useTableStore } from "../../../store/table.store";
-import { FileService } from "@/services/files/files.service";
-import { AnalysisFileItem } from "@/services/files/file.types";
 import { computed } from "vue";
+import { useTableStore } from "../../../store/table.store";
+import { AnalysisStatusHistoryItem } from "@/services/status/status.type";
+import { StatusService } from "@/services/status/status.service";
 
-export const useGetFiles = () => {
+export const useGetStatuses = () => {
   const tableStore = useTableStore();
-  const table = tableStore.getTable("files");
+  const table = tableStore.getTable("statuses");
 
-  const query = useInfiniteQuery<AnalysisFileItem[]>(
-    ["analysis-files", table.limit],
+  const query = useInfiniteQuery<AnalysisStatusHistoryItem[]>(
+    ["analysis-statuses", table.limit],
     ({ pageParam = 1 }) =>
-      FileService.getFiles({
+      StatusService.getStatuses({
         page: pageParam,
         limit: table.limit,
       }),
@@ -28,10 +28,12 @@ export const useGetFiles = () => {
         table.page = nextPage;
       },
     },
+
+
   );
 
-  const data = computed<AnalysisFileItem[]>(() =>
-    query.data.value?.pages.flatMap((page) => page ?? []) ?? []
+  const data = computed(() =>
+    query.data.value?.pages.flat() ?? []
   );
 
   return {

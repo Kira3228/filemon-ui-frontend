@@ -1,15 +1,9 @@
 import { useApi } from "@/shared/api/http";
-import { AnalysisFileItem } from "./types/file.types";
-
-
-interface GetFilesParams {
-  page?: number;
-  limit?: number;
-  force?: boolean;
-}
+import { AnalysisFileItem } from "./file.types";
+import { RequestParams } from "@/types/request.params";
 
 interface IFileService {
-  getFiles: (params?: GetFilesParams) => Promise<AnalysisFileItem[]>
+  getFiles: (params?: RequestParams) => Promise<AnalysisFileItem[]>
 }
 
 export const FileService: IFileService = {

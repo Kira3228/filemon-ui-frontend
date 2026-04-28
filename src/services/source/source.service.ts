@@ -1,15 +1,9 @@
+import { RequestParams } from "@/types/request.params";
 import { AnalysisSourceItem } from "./source.types";
-
 import { useApi } from "@/shared/api/http";
 
 interface ISourceService {
-  getServices: (params?: GetServicesParams) => Promise<AnalysisSourceItem[]>
-}
-
-interface GetServicesParams {
-  page?: number;
-  limit?: number;
-  force?: boolean;
+  getServices: (params?: RequestParams) => Promise<AnalysisSourceItem[]>
 }
 
 export const SourceService: ISourceService = {

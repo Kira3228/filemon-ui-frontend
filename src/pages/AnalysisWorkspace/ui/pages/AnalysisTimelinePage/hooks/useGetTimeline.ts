@@ -1,17 +1,17 @@
 import { useInfiniteQuery } from "@tanstack/vue-query";
 import { useTableStore } from "../../../store/table.store";
-import { FileService } from "@/services/files/files.service";
-import { AnalysisFileItem } from "@/services/files/file.types";
+import { AnalysisTimelineEntry } from "@/services/timeline/timeline.types";
+import { TimelineService } from "@/services/timeline/timeline.service";
 import { computed } from "vue";
 
-export const useGetFiles = () => {
+export const useGetTimeline = () => {
   const tableStore = useTableStore();
-  const table = tableStore.getTable("files");
+  const table = tableStore.getTable("timeline");
 
-  const query = useInfiniteQuery<AnalysisFileItem[]>(
-    ["analysis-files", table.limit],
+  const query = useInfiniteQuery<AnalysisTimelineEntry[]>(
+    ["analysis-timeline", table.limit],
     ({ pageParam = 1 }) =>
-      FileService.getFiles({
+      TimelineService.getTimeline({
         page: pageParam,
         limit: table.limit,
       }),
@@ -28,10 +28,12 @@ export const useGetFiles = () => {
         table.page = nextPage;
       },
     },
+
+
   );
 
-  const data = computed<AnalysisFileItem[]>(() =>
-    query.data.value?.pages.flatMap((page) => page ?? []) ?? []
+  const data = computed(() =>
+    query.data.value?.pages.flat() ?? []
   );
 
   return {
