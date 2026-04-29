@@ -9,8 +9,8 @@
           'analysis-workspace-layout--dragging': isDragging,
         }"
       >
-        <section class="min-w-0 analysis-workspace-main">
-          <Message v-if="error" severity="error" :closable="false" class="mb-4">
+        <div class="analysis-workspace-notices">
+          <Message v-if="error" severity="error" :closable="false">
             {{ error }}
           </Message>
           <Message
@@ -18,12 +18,12 @@
             :key="notice"
             severity="warn"
             :closable="false"
-            class="mb-4"
           >
             {{ notice }}
           </Message>
+        </div>
 
-          <nav class="analysis-tabs mb-4">
+        <nav class="analysis-tabs">
             <div
               v-for="section in openSections"
               :key="section.key"
@@ -47,7 +47,8 @@
             </div>
           </nav>
 
-          <RouterView />
+        <section class="min-w-0 analysis-workspace-main">
+          <RouterView class="analysis-workspace-view" />
         </section>
 
         <button
@@ -363,6 +364,7 @@ onBeforeUnmount(() => {
   display: grid;
   flex: 1 1 auto;
   grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: 0;
   padding: 0.1rem;
   border: 1px solid var(--analysis-shell-border);
@@ -380,6 +382,17 @@ onBeforeUnmount(() => {
 .analysis-workspace-layout--with-drawer {
   grid-template-columns: minmax(0, 1fr) 16px auto;
   align-items: stretch;
+}
+
+.analysis-workspace-notices {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.analysis-workspace-notices:not(:empty) {
+  padding: 0.8rem 0.9rem 0;
 }
 
 .analysis-workspace-main {
@@ -422,6 +435,8 @@ onBeforeUnmount(() => {
 
 .analysis-tabs {
   display: flex;
+  flex: 0 0 auto;
+  grid-column: 1 / -1;
   align-items: flex-end;
   gap: 0.125rem;
   overflow-x: auto;
@@ -448,6 +463,14 @@ onBeforeUnmount(() => {
 
 .analysis-tabs::-webkit-scrollbar-thumb:hover {
   background: var(--app-text-muted);
+}
+
+.analysis-workspace-view {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
 }
 
 .analysis-tab {
