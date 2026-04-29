@@ -25,7 +25,7 @@
 .analysis-files-workspace__body {
   display: grid;
   flex: 1 1 auto;
-  grid-template-columns: auto 16px minmax(180px, 1fr);
+  grid-template-columns: minmax(0, 1fr) 16px auto;
   align-items: stretch;
   gap: 0;
   padding: 0.1rem;
@@ -48,6 +48,7 @@
   min-width: 0;
   padding: 0;
   border-right: 1px solid var(--analysis-files-divider);
+  overflow: hidden;
 }
 
 .analysis-files-pane {

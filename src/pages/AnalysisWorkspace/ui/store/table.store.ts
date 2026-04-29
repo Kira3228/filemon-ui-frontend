@@ -16,9 +16,11 @@ export const useTableStore = defineStore("table", () => {
         limit: 100,
       };
     }
-
     return tables[key];
   }
+
+
+
 
   return { tables, getTable }
 });

@@ -94,7 +94,7 @@ import {
   getAnalysisSectionByKey,
   getAnalysisSectionByPath,
 } from "../model/analysis-sections";
-import AnalysisChainDrawer from "./components/AnalysisChainDrawer.vue";
+import AnalysisChainDrawer from "./components/AnalysisChainDrawer/AnalysisChainDrawer.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -104,7 +104,7 @@ const viewportWidth = ref(
   typeof window !== "undefined" ? window.innerWidth : 0,
 );
 const dockWidth = ref(0);
-const sharedDrawerRatio = ref(0.3);
+const sharedDrawerWidth = ref(SHARED_DOCK_DEFAULT_WIDTH);
 
 const { ensureReportLoaded, error, report } = useAnalysisWorkspace();
 
@@ -149,16 +149,7 @@ const clampDrawerWidth = (width: number) => {
 };
 
 const setDrawerWidthFromPx = (width: number) => {
-  const availableDockWidth =
-    dockWidth.value ||
-    dockRef.value?.clientWidth ||
-    viewportWidth.value ||
-    width;
-  if (!availableDockWidth) {
-    return;
-  }
-
-  sharedDrawerRatio.value = clampDrawerWidth(width) / availableDockWidth;
+  sharedDrawerWidth.value = clampDrawerWidth(width);
 };
 
 const drawerStyle = computed(() => {
@@ -170,10 +161,7 @@ const drawerStyle = computed(() => {
   }
 
   return {
-    width: `${clampDrawerWidth(
-      (dockWidth.value || viewportWidth.value || SHARED_DOCK_DEFAULT_WIDTH) *
-        sharedDrawerRatio.value,
-    )}px`,
+    width: `${clampDrawerWidth(sharedDrawerWidth.value)}px`,
     minWidth: `${SHARED_DOCK_MIN_WIDTH}px`,
   };
 });

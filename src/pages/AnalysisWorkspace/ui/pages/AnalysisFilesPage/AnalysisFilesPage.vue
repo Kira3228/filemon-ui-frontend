@@ -8,13 +8,13 @@
     }"
   >
     <div class="analysis-files-workspace__body">
-      <div class="analysis-files-dock" :style="panelStyle">
+      <div class="analysis-files-dock">
         <section class="analysis-files-pane">
           <header class="analysis-page-header">
             <span>Все файлы</span>
-            <span class="analysis-page-meta"
-              >{{ scopedFiles.length }} строк</span
-            >
+            <span class="analysis-page-meta">
+              {{ scopedFiles.length }} строк
+            </span>
           </header>
           <div
             v-if="actionError"
@@ -141,7 +141,11 @@
         <span />
       </button>
 
-      <div v-if="fileDetailsVisible" class="analysis-files-workspace__canvas">
+      <div
+        v-if="fileDetailsVisible"
+        class="analysis-files-workspace__canvas"
+        :style="drawerStyle"
+      >
         <AnalysisChainDrawer embedded />
       </div>
     </div>
@@ -152,25 +156,23 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { DataTable } from "@/components/DataTable";
 import { filterItemsByFileId } from "../../../model/file-route-filter";
-import type {
-  AnalysisFileItem,
-  MonitoringAction,
-} from "../../../model/analysis-report.types";
+import type { MonitoringAction } from "../../../model/analysis-report.types";
 import { useKeyboardTableSelection } from "../../../model/use-keyboard-table-selection";
 import {
-  FILES_DOCK_DEFAULT_WIDTH,
-  FILES_DOCK_MAX_WIDTH,
-  FILES_DOCK_MIN_WIDTH,
+  SHARED_DOCK_DEFAULT_WIDTH,
+  SHARED_DOCK_MAX_WIDTH,
+  SHARED_DOCK_MIN_WIDTH,
   useAnalysisUiSettings,
 } from "../../../model/use-analysis-ui-settings";
 import { useAnalysisWorkspace } from "../../../model/use-analysis-workspace";
 import { useRouteFileScope } from "../../../model/use-route-file-scope";
-import AnalysisChainDrawer from "../../components/AnalysisChainDrawer.vue";
+import AnalysisChainDrawer from "../../components/AnalysisChainDrawer/AnalysisChainDrawer.vue";
 import AnalysisFileDetailsToggle from "../../components/AnalysisFileDetailsToggle.vue";
 import { UiButton } from "@/components/UiButton";
 import { headers } from "./heaers";
 import { useGetFiles } from "../../../model/queries/useGetFiles";
 import { useTableStore } from "../../store/table.store";
+import { AnalysisFileItem } from "@/services/files/file.types";
 
 const { router, scopedFile, scopedFileId, clearScopedFile } =
   useRouteFileScope();
@@ -200,7 +202,7 @@ const viewportWidth = ref(
   typeof window !== "undefined" ? window.innerWidth : 0,
 );
 const dockWidth = ref(0);
-const filesDockRatio = ref(0.55);
+const filesDrawerWidth = ref(SHARED_DOCK_DEFAULT_WIDTH);
 
 const scopedFiles = computed(() =>
   filterItemsByFileId(files.value, scopedFileId.value),
@@ -329,7 +331,7 @@ const isToolbarActionDisabled = computed(
     isToolbarActionPending.value,
 );
 
-const clampPanelWidth = (width: number) => {
+const clampDrawerWidth = (width: number) => {
   if (typeof window === "undefined") {
     return width;
   }
@@ -339,31 +341,19 @@ const clampPanelWidth = (width: number) => {
     viewportWidth.value ||
     window.innerWidth;
   const maxWidth = Math.max(
-    FILES_DOCK_MIN_WIDTH,
-    Math.min(FILES_DOCK_MAX_WIDTH, availableDockWidth - 180),
+    SHARED_DOCK_MIN_WIDTH,
+    Math.min(SHARED_DOCK_MAX_WIDTH, availableDockWidth - 680),
   );
-  return Math.max(FILES_DOCK_MIN_WIDTH, Math.min(maxWidth, width));
+  return Math.max(SHARED_DOCK_MIN_WIDTH, Math.min(maxWidth, width));
 };
 
-const setPanelWidthFromPx = (width: number) => {
-  const availableDockWidth =
-    dockWidth.value ||
-    dockRef.value?.clientWidth ||
-    viewportWidth.value ||
-    width;
-  if (!availableDockWidth) {
-    return;
-  }
-
-  filesDockRatio.value = clampPanelWidth(width) / availableDockWidth;
+const setDrawerWidthFromPx = (width: number) => {
+  filesDrawerWidth.value = clampDrawerWidth(width);
 };
 
-const panelStyle = computed(() => ({
-  width: `${clampPanelWidth(
-    (dockWidth.value || viewportWidth.value || FILES_DOCK_DEFAULT_WIDTH) *
-      filesDockRatio.value,
-  )}px`,
-  minWidth: `${FILES_DOCK_MIN_WIDTH}px`,
+const drawerStyle = computed(() => ({
+  width: `${clampDrawerWidth(filesDrawerWidth.value)}px`,
+  minWidth: `${SHARED_DOCK_MIN_WIDTH}px`,
 }));
 
 const stopResize = () => {
@@ -382,7 +372,7 @@ const handleResize = (event: PointerEvent) => {
   }
   const bounds = dockRef.value.getBoundingClientRect();
   dockWidth.value = bounds.width;
-  setPanelWidthFromPx(event.clientX - bounds.left);
+  setDrawerWidthFromPx(bounds.right - event.clientX);
 };
 
 const startResize = (event: PointerEvent) => {
@@ -425,7 +415,7 @@ const handleViewportResize = () => {
 
 onMounted(() => {
   handleViewportResize();
-  setPanelWidthFromPx(FILES_DOCK_DEFAULT_WIDTH);
+  setDrawerWidthFromPx(SHARED_DOCK_DEFAULT_WIDTH);
 
   if (typeof window !== "undefined") {
     window.addEventListener("resize", handleViewportResize);

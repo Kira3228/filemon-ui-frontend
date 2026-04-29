@@ -1,0 +1,56 @@
+.analysis-drawer__section {
+  padding-top: 1rem;
+  border-top: 1px solid var(--app-border);
+}
+
+.analysis-drawer__section-title {
+  margin-bottom: 0;
+  font-size: var(--analysis-section-title-size);
+  color: var(--app-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--analysis-section-title-spacing);
+}
+
+.analysis-drawer__section-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+}
+
+.analysis-drawer__section-body {
+  margin-top: 0.65rem;
+}
+
+.analysis-scroll-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 14rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.analysis-scroll-list--compact {
+  gap: 0.35rem;
+}
+
+.analysis-pill-row,
+.analysis-empty-row {
+  min-height: 2rem;
+  padding: 0.42rem 0.65rem;
+  border-radius: var(--analysis-surface-radius);
+  background: var(--app-surface-muted);
+  font-size: var(--analysis-table-font-size);
+  line-height: var(--analysis-table-line-height);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

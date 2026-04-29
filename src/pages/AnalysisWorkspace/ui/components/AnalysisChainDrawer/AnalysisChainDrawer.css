@@ -1,0 +1,206 @@
+@import "../../styles/analysis-card-surface.css";
+
+.analysis-drawer-card {
+  position: sticky;
+  top: 16px;
+}
+
+.analysis-drawer--embedded {
+  height: 100%;
+  overflow: auto;
+}
+
+.analysis-drawer__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--analysis-header-gap);
+  margin-bottom: var(--analysis-header-margin);
+}
+
+.analysis-drawer__title {
+  font-size: var(--analysis-drawer-title-size);
+  font-weight: 700;
+}
+
+.analysis-drawer__title-link {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.analysis-drawer__title-link:hover {
+  text-decoration: underline;
+}
+
+.analysis-drawer__muted {
+  color: var(--app-text-muted);
+  font-size: var(--analysis-meta-size);
+  line-height: var(--analysis-meta-line-height);
+}
+
+.analysis-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface);
+  color: var(--app-text);
+}
+
+.analysis-drawer__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.analysis-drawer__section {
+  padding-top: 1rem;
+  border-top: 1px solid var(--app-border);
+}
+
+.analysis-drawer__section-title {
+  margin-bottom: 0.65rem;
+  font-size: var(--analysis-section-title-size);
+  color: var(--app-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--analysis-section-title-spacing);
+}
+
+.analysis-drawer__section-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+}
+
+.analysis-drawer__section-toggle .analysis-drawer__section-title {
+  margin-bottom: 0;
+}
+
+.analysis-drawer__section-body {
+  margin-top: 0.65rem;
+}
+
+.analysis-kv-grid,
+.analysis-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.analysis-kv-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: var(--analysis-table-font-size);
+  line-height: var(--analysis-table-line-height);
+}
+
+.analysis-drawer__path-history {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.analysis-drawer__path-history-item {
+  min-width: 0;
+  padding: 0.42rem 0.65rem;
+  border-radius: var(--analysis-surface-radius);
+  background: var(--app-surface-muted);
+  font-size: var(--analysis-table-font-size);
+  line-height: var(--analysis-table-line-height);
+  word-break: break-word;
+}
+
+.analysis-pill-row,
+.analysis-empty-row {
+  padding: var(--analysis-surface-padding);
+  border-radius: var(--analysis-surface-radius);
+  background: var(--app-surface-muted);
+}
+
+.analysis-scroll-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 14rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.analysis-scroll-list--compact {
+  gap: 0.35rem;
+}
+
+.analysis-pill-row,
+.analysis-link-row,
+.analysis-empty-row {
+  min-height: 2rem;
+  padding: 0.42rem 0.65rem;
+  font-size: var(--analysis-table-font-size);
+  line-height: var(--analysis-table-line-height);
+}
+
+.analysis-pill-row,
+.analysis-empty-row {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analysis-link-row {
+  text-align: left;
+  border-radius: var(--analysis-surface-radius);
+  border: 1px solid var(--app-border);
+  background: var(--app-surface);
+  color: var(--app-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analysis-mini-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.analysis-mini-table__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.42rem 0.65rem;
+  border-radius: var(--analysis-surface-radius);
+  background: var(--app-surface-muted);
+}
+
+.analysis-mini-table__primary,
+.analysis-mini-table__secondary {
+  min-width: 0;
+  font-size: var(--analysis-table-font-size);
+  line-height: var(--analysis-table-line-height);
+}
+
+.analysis-mini-table__primary {
+  color: var(--app-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analysis-mini-table__secondary {
+  color: var(--app-text-muted);
+  text-align: right;
+}
