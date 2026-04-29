@@ -5,16 +5,12 @@ interface IDownloadOptions {
   filename: string;
 }
 
-type QueryParamValue = string | number | boolean | null | undefined;
+type QueryParamPrimitive = string | number | boolean | null | undefined;
+type QueryParamValue = QueryParamPrimitive | QueryParamPrimitive[];
 type QueryParams = Record<string, QueryParamValue>;
-type JsonBody =
-  | object
-  | unknown[]
-  | string
-  | number
-  | boolean
-  | null;
-type JsonMethod = "GET" | "POST" | "PATCH";
+
+type JsonBody = object | unknown[] | string | number | boolean | null;
+type JsonMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
 const isApiErrorResponse = (payload: unknown): payload is ApiErrorResponse => {
   if (!payload || typeof payload !== "object") {
@@ -22,10 +18,11 @@ const isApiErrorResponse = (payload: unknown): payload is ApiErrorResponse => {
   }
 
   const candidate = payload as Partial<ApiErrorResponse>;
+
   return (
-    typeof candidate.status === "number"
-    && typeof candidate.code === "string"
-    && typeof candidate.message === "string"
+    typeof candidate.status === "number" &&
+    typeof candidate.code === "string" &&
+    typeof candidate.message === "string"
   );
 };
 
@@ -40,55 +37,83 @@ export class ApiError extends Error {
     this.status = payload.status;
     this.code = payload.code;
     this.details = payload.details;
+
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
-const readHttpError = async (res: Response, fallback: string) => {
+const readJsonSafely = async (res: Response): Promise<unknown> => {
+  const text = await res.text();
+
+  if (!text) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return undefined;
+  }
+};
+
+const readHttpError = async (
+  res: Response,
+  fallback: string,
+): Promise<ApiError> => {
   const fallbackPayload: ApiErrorResponse = {
     status: res.status,
     code: res.status >= 500 ? "INTERNAL_ERROR" : "REQUEST_FAILED",
     message: fallback,
   };
 
-  try {
-    const payload = await res.json() as unknown;
-    if (isApiErrorResponse(payload)) {
-      return new ApiError(payload);
-    }
-    if (payload && typeof payload === "object" && typeof (payload as { message?: string }).message === "string") {
-      return new ApiError({
-        ...fallbackPayload,
-        message: (payload as { message: string }).message,
-        details: (payload as { details?: unknown }).details,
-      });
-    }
-  } catch {
-    // Ignore non-JSON error responses and use fallback below.
+  const payload = await readJsonSafely(res);
+
+  if (isApiErrorResponse(payload)) {
+    return new ApiError(payload);
+  }
+
+  if (
+    payload &&
+    typeof payload === "object" &&
+    typeof (payload as { message?: unknown }).message === "string"
+  ) {
+    return new ApiError({
+      ...fallbackPayload,
+      message: (payload as { message: string }).message,
+      details: (payload as { details?: unknown }).details,
+    });
   }
 
   return new ApiError(fallbackPayload);
 };
 
+const appendQueryParam = (
+  searchParams: URLSearchParams,
+  key: string,
+  value: QueryParamValue,
+) => {
+  if (Array.isArray(value)) {
+    value.forEach((item) => appendQueryParam(searchParams, key, item));
+    return;
+  }
+
+  if (value === undefined || value === null || value === "") {
+    return;
+  }
+
+  searchParams.append(key, String(value));
+};
+
 const buildUrl = (endpoint: string, params?: QueryParams): string => {
-  const url = `${BASE_URL}${endpoint}`;
+  const url = new URL(endpoint, BASE_URL);
 
-  if (!params) {
-    return url;
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      appendQueryParam(url.searchParams, key, value);
+    });
   }
 
-  const searchParams = new URLSearchParams();
-
-  for (const [key, value] of Object.entries(params)) {
-    if (value === undefined || value === null || value === "") {
-      continue;
-    }
-
-    searchParams.set(key, String(value));
-  }
-
-  const queryString = searchParams.toString();
-  return queryString ? `${url}?${queryString}` : url;
+  return url.toString();
 };
 
 const requestJson = async <
@@ -105,6 +130,7 @@ const requestJson = async <
 ): Promise<TResponse> => {
   const url = buildUrl(endpoint, options.params);
   const hasBody = typeof options.body !== "undefined";
+
   const res = await fetch(url, {
     method,
     cache: "no-store",
@@ -116,11 +142,9 @@ const requestJson = async <
     throw await readHttpError(res, `${method} ${url} failed ${res.status}`);
   }
 
-  if (res.status === 204) {
-    return {} as TResponse;
-  }
+  const payload = await readJsonSafely(res);
 
-  return res.json() as Promise<TResponse>;
+  return payload as TResponse;
 };
 
 const requestBlob = async <
@@ -136,6 +160,7 @@ const requestBlob = async <
 ): Promise<Blob> => {
   const url = buildUrl(endpoint, options.params);
   const hasBody = typeof options.body !== "undefined";
+
   const res = await fetch(url, {
     method,
     cache: "no-store",
@@ -152,18 +177,22 @@ const requestBlob = async <
 
 const downloadBlob = (blob: Blob, options: IDownloadOptions) => {
   const url = window.URL.createObjectURL(blob);
-  const link = document.createElement(`a`);
+  const link = document.createElement("a");
+
   link.href = url;
   link.download = options.filename;
+  link.style.display = "none";
 
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 
-  window.URL.revokeObjectURL(url);
+  setTimeout(() => {
+    window.URL.revokeObjectURL(url);
+  }, 0);
 };
 
-export const useApi = () => {
+export const createApiClient = () => {
   const get = <TResponse, TParams extends QueryParams = QueryParams>(
     endpoint: string,
     params?: TParams,
@@ -177,12 +206,33 @@ export const useApi = () => {
     endpoint: string,
     body: TBody,
     params?: TParams,
-  ) => requestJson<TResponse, TBody, TParams>("POST", endpoint, { body, params });
+  ) =>
+    requestJson<TResponse, TBody, TParams>("POST", endpoint, {
+      body,
+      params,
+    });
 
-  const patch = <TResponse, TBody extends JsonBody | undefined = JsonBody | undefined>(
+  const patch = <
+    TResponse,
+    TBody extends JsonBody | undefined = JsonBody | undefined,
+    TParams extends QueryParams = QueryParams,
+  >(
     endpoint: string,
     body?: TBody,
-  ) => requestJson<TResponse, TBody>("PATCH", endpoint, { body });
+    params?: TParams,
+  ) =>
+    requestJson<TResponse, TBody, TParams>("PATCH", endpoint, {
+      body,
+      params,
+    });
+
+  const remove = <TResponse, TParams extends QueryParams = QueryParams>(
+    endpoint: string,
+    params?: TParams,
+  ) =>
+    requestJson<TResponse, undefined, TParams>("DELETE", endpoint, {
+      params,
+    });
 
   const getBlob = <TParams extends QueryParams = QueryParams>(
     endpoint: string,
@@ -198,8 +248,11 @@ export const useApi = () => {
     get,
     post,
     patch,
+    delete: remove,
     getBlob,
     postBlob,
     downloadBlob,
   };
 };
+
+export const api = createApiClient();

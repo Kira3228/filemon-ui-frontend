@@ -1,4 +1,4 @@
-import { useApi } from "@/shared/api/http"
+import { api } from "@/shared/api/http"
 import { RequestParams } from "@/types/request.params"
 
 interface IProcessService {
@@ -7,7 +7,6 @@ interface IProcessService {
 
 export const ProcessService: IProcessService = {
   async getProcesses(params = {}) {
-    const api = useApi()
 
     return await api.get("/analysis/report/process-reads", {
       page: params.page,

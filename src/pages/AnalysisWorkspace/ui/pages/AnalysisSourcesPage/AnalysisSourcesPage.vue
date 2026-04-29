@@ -25,51 +25,15 @@
           />
         </template>
         <template #select-preset>
-          <div class="analysis-sources-toolbar">
-            <div class="analysis-sources-toolbar__controls">
-              <UiButton
-                @click="assignHighlightedSource"
-                :is-disabled="!highlightedSourceId"
-                variant="secondary"
-              >
-                <span class="pi pi-bookmark" aria-hidden="true" />
-                <span>Источник</span>
-              </UiButton>
-
-              <UiButton
-                variant="secondary"
-                :is-disabled="!selectedSourceId"
-                @click="resetDataFilters"
-              >
-                <span class="pi pi-eye" aria-hidden="true" />
-                <span>Показать все</span>
-              </UiButton>
-
-              <div class="analysis-sources-toolbar__snapshot-shell">
-                <span class="pi pi-calendar" aria-hidden="true" />
-                <div
-                  class="analysis-sources-toolbar__snapshot"
-                  :title="SNAPSHOT_HINT"
-                >
-                  <input
-                    :value="snapshotAt"
-                    type="datetime-local"
-                    class="analysis-sources-toolbar__input"
-                    :disabled="!selectedSourceId"
-                    :title="SNAPSHOT_HINT"
-                    @input="handleSnapshotInput"
-                  />
-                  <UiButton
-                    :is-disabled="!selectedSourceId || !snapshotAt"
-                    @click="clearSnapshot"
-                    variant="secondary"
-                  >
-                    Очистить
-                  </UiButton>
-                </div>
-              </div>
-            </div>
-          </div>
+          <SelectPreset
+            :highlighted-source-id="highlightedSourceId"
+            :selected-source-id="selectedSourceId"
+            :snapshot-at="snapshotAt"
+            @assign-highlighted-source="assignHighlightedSource"
+            @reset-data-filters="resetDataFilters"
+            @snapshot-at-change="handleSnapshotInput"
+            @clear-snapshot="clearSnapshot"
+          />
         </template>
 
         <template #[`item.name`]="{ item }">
@@ -108,12 +72,11 @@ import { useRouter } from "vue-router/composables";
 import { useAnalysisUiSettings } from "../../../model/use-analysis-ui-settings";
 import { useAnalysisWorkspace } from "../../../model/use-analysis-workspace";
 import AnalysisFileDetailsToggle from "../../components/AnalysisFileDetailsToggle.vue";
-
-import { UiButton } from "@/components/UiButton";
 import { useGetSources } from "../../../model/queries/useGetSources";
 import { useTableStore } from "../../store/table.store";
 import { headers } from "./headers";
 import { AnalysisSourceItem } from "@/services/source/source.types";
+import SelectPreset from "./SelectPreset.vue";
 
 const router = useRouter();
 
@@ -132,12 +95,10 @@ const {
   isFetchingNextPage,
 } = useGetSources();
 
-const tableStore = useTableStore();
-const table = tableStore.getTable("sources");
-
 const { fileDetailsVisible, setFileDetailsVisible } = useAnalysisUiSettings();
 
-const SNAPSHOT_HINT = "Снимок на момент времени";
+const tableStore = useTableStore();
+const table = tableStore.getTable("sources");
 
 const highlightedSourceId = ref<number | null>(selectedSourceId.value);
 
@@ -186,10 +147,8 @@ const assignHighlightedSource = () => {
   setSelectedSource(highlightedSourceId.value);
 };
 
-const handleSnapshotInput = (event: Event) => {
-  snapshotAt.value = !selectedSourceId.value
-    ? ""
-    : (event.target as HTMLInputElement)?.value || "";
+const handleSnapshotInput = (value: string) => {
+  snapshotAt.value = !selectedSourceId.value ? "" : value;
 };
 
 const clearSnapshot = () => {

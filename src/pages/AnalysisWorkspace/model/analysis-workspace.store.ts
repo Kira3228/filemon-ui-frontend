@@ -5,7 +5,7 @@ import {
   UpdateMonitoringStatusRequest,
   UpdateMonitoringStatusResult,
 } from "@/shared/api/contracts";
-import { useApi } from "@/shared/api/http";
+import { api } from "@/shared/api/http";
 import {
   formatAnalysisLinks,
   getAnalysisStatusBadgeClass,
@@ -19,7 +19,6 @@ import { AnalysisReportResult } from "./analysis-report.types";
 import { analysisSections } from "./analysis-sections";
 
 export const useAnalysisWorkspaceStore = defineStore("analysis-workspace", () => {
-  const { get, patch } = useApi();
 
   const report = ref<AnalysisReportResult | null>(null);
   const loading = ref(false);
@@ -82,7 +81,7 @@ export const useAnalysisWorkspaceStore = defineStore("analysis-workspace", () =>
     const requestId = ++loadRequestId;
     activeLoad = (async () => {
       try {
-        const nextReport = await get<AnalysisReportResult>("/analysis/report", {
+        const nextReport = await api.get<AnalysisReportResult>("/analysis/report", {
           limit: 500,
           _ts: force ? Date.now() : undefined,
         });
@@ -133,7 +132,7 @@ export const useAnalysisWorkspaceStore = defineStore("analysis-workspace", () =>
   };
 
   const updateFileMonitoringStatus = async (fileId: number, action: MonitoringAction) => {
-    await patch<UpdateMonitoringStatusResult, UpdateMonitoringStatusRequest>(`/analysis/files/${fileId}/status`, { action });
+    await api.patch<UpdateMonitoringStatusResult, UpdateMonitoringStatusRequest>(`/analysis/files/${fileId}/status`, { action });
     await refreshReport();
   };
 

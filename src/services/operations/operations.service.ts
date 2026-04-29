@@ -1,4 +1,4 @@
-import { useApi } from "@/shared/api/http";
+import { api } from "@/shared/api/http";
 import { RequestParams } from "@/types/request.params";
 import { AnalysisOperationItem } from "./analysis-operation-item.type";
 
@@ -8,7 +8,6 @@ interface IOperationsService {
 
 export const OperationsService: IOperationsService = {
   async getOperation(param = {}) {
-    const api = useApi()
 
     return await api.get<AnalysisOperationItem[]>("/analysis/report/operations", {
       page: param.page,

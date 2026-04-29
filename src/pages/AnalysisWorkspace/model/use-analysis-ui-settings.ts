@@ -41,6 +41,7 @@ const readStoredBoolean = (key: string, fallback: boolean) => {
   }
 
   const stored = window.localStorage.getItem(key);
+
   if (stored === null) {
     return fallback;
   }
@@ -110,9 +111,13 @@ const persistTabKeys = (key: string, value: TAnalysisSectionKey[]) => {
 };
 
 const ensureInitialized = () => {
+
   if (isInitialized) {
     return;
   }
+
+  console.log(`isInitialized`, isInitialized);
+
 
   isInitialized = true;
 
@@ -129,7 +134,7 @@ const ensureInitialized = () => {
     DEFAULT_ANALYSIS_TAB_KEY,
     DEFAULT_ANALYSIS_SECTION_KEY,
   );
-  
+
   fileDetailsVisible.value = readStoredBoolean(FILE_DETAILS_VISIBLE_KEY, true);
   openAnalysisTabKeys.value = readStoredTabKeys(
     OPEN_ANALYSIS_TABS_KEY,

@@ -1,6 +1,6 @@
 import { RequestParams } from "@/types/request.params";
 import { AnalysisSourceItem } from "./source.types";
-import { useApi } from "@/shared/api/http";
+import { api } from "@/shared/api/http";
 
 interface ISourceService {
   getServices: (params?: RequestParams) => Promise<AnalysisSourceItem[]>
@@ -8,7 +8,6 @@ interface ISourceService {
 
 export const SourceService: ISourceService = {
   async getServices(params = {}): Promise<AnalysisSourceItem[]> {
-    const api = useApi()
 
     return await api.get<AnalysisSourceItem[]>("/analysis/report/sources", {
       page: params.page,

@@ -1,4 +1,4 @@
-import { useApi } from "@/shared/api/http";
+import { api } from "@/shared/api/http";
 
 interface IOverviewService {
   getOverviews: (force?: boolean) => Promise<AnalysisReportOverview>
@@ -14,7 +14,6 @@ export interface AnalysisReportOverview {
 }
 export const OverviewService: IOverviewService = {
   async getOverviews(force = false) {
-    const api = useApi()
 
     return await api.get<AnalysisReportOverview>("/analysis/report/overview", {
       limit: 500,

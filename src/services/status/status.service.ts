@@ -1,6 +1,6 @@
 import { RequestParams } from "@/types/request.params";
 import { AnalysisStatusHistoryItem } from "./status.type";
-import { useApi } from "@/shared/api/http";
+import { api } from "@/shared/api/http";
 
 interface IStatusService {
   getStatuses(params: RequestParams): Promise<AnalysisStatusHistoryItem[]>;
@@ -9,7 +9,6 @@ interface IStatusService {
 
 export const StatusService: IStatusService = {
   async getStatuses(params = {}): Promise<AnalysisStatusHistoryItem[]> {
-    const api = useApi()
 
     return await api.get<AnalysisStatusHistoryItem[]>("/analysis/report/status-history", {
       page: params.page,

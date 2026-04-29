@@ -1,11 +1,10 @@
 import { ref } from "vue";
-import { useApi } from "@/shared/api/http";
+import { api } from "@/shared/api/http";
 import {
   DatabaseConnectionStatus,
   DatabaseConnectionSettings,
 } from "@/shared/api/contracts";
 
-const { get } = useApi();
 
 const databasePath = ref("");
 const databaseExists = ref(false);
@@ -29,7 +28,7 @@ const applyDatabaseState = (settings: DatabaseConnectionSettings) => {
 
 const loadDatabaseState = async () => {
   try {
-    const settings = await get<DatabaseConnectionSettings>("/settings/database");
+    const settings = await api.get<DatabaseConnectionSettings>("/settings/database");
     applyDatabaseState(settings);
     return settings;
   } catch (error) {

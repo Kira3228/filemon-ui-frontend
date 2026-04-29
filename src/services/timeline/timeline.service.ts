@@ -1,4 +1,4 @@
-import { useApi } from "@/shared/api/http";
+import { api } from "@/shared/api/http";
 import { AnalysisTimelineEntry } from "./timeline.types";
 import { RequestParams } from "@/types/request.params";
 
@@ -8,7 +8,6 @@ interface ITimelineService {
 
 export const TimelineService: ITimelineService = {
   async getTimeline(param = {}): Promise<AnalysisTimelineEntry[]> {
-    const api = useApi()
     return await api.get<AnalysisTimelineEntry[]>("/analysis/report/timeline", {
       page: param.page,
       limit: param.limit,

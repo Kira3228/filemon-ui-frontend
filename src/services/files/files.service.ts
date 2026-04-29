@@ -1,4 +1,4 @@
-import { useApi } from "@/shared/api/http";
+import { api } from "@/shared/api/http";
 import { AnalysisFileItem } from "./file.types";
 import { RequestParams } from "@/types/request.params";
 
@@ -8,7 +8,6 @@ interface IFileService {
 
 export const FileService: IFileService = {
   async getFiles(params = {}): Promise<AnalysisFileItem[]> {
-    const api = useApi()
 
     return await api.get<AnalysisFileItem[]>("/analysis/report/files", {
       page: params.page,
