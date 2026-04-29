@@ -1,79 +1,13 @@
 <template>
   <div v-if="selectedChain && selectedFile" class="analysis-chain-page">
-    <section
+    <FileCard
       v-if="showFileCard"
-      class="app-surface analysis-page-card analysis-page-card--compact analysis-page-card--resizable"
-    >
-      <header class="analysis-page-header">
-        <span>Карточка файла</span>
-        <span class="analysis-page-meta analysis-file-name">{{
-          selectedChain.name
-        }}</span>
-      </header>
-      <div class="analysis-kv-grid">
-        <div class="analysis-kv-row">
-          <span>Путь</span>
-          <span>{{ selectedFile.path }}</span>
-        </div>
-        <div class="analysis-kv-row">
-          <span>Файловая система</span>
-          <span>{{
-            selectedFile.filesystem || selectedFile.filesystemUuid || "—"
-          }}</span>
-        </div>
-        <div class="analysis-kv-row">
-          <span>Индексный дескриптор (inode)</span>
-          <span>{{
-            selectedFile.inode === null || selectedFile.inode === undefined
-              ? "—"
-              : selectedFile.inode
-          }}</span>
-        </div>
-        <div class="analysis-kv-row">
-          <span>История пути</span>
-          <span>{{ selectedFile.pathHistory.join(" -> ") }}</span>
-        </div>
-        <div class="analysis-kv-row analysis-kv-row--wide">
-          <span>Описание выбранного события</span>
-          <span
-            :title="
-              (selectedTimelineEvent && selectedTimelineEvent.details) || '—'
-            "
-            >{{
-              (selectedTimelineEvent && selectedTimelineEvent.details) || "—"
-            }}</span
-          >
-        </div>
-        <div class="analysis-kv-row">
-          <span>Статус</span>
-          <span>{{ selectedFile.currentStatus }}</span>
-        </div>
-        <div class="analysis-kv-row">
-          <span>Размер</span>
-          <span>{{ selectedFile.sizeBytes || 0 }}</span>
-        </div>
-        <div class="analysis-kv-row">
-          <span>Исходный процесс</span>
-          <span>{{ selectedFile.originProcess || "—" }}</span>
-        </div>
-        <div class="analysis-kv-row">
-          <span>Пользователь</span>
-          <span>{{ selectedFile.user || "—" }}</span>
-        </div>
-        <div class="analysis-kv-row">
-          <span>Время создания</span>
-          <span>{{ formatTs(selectedFile.birthTime) }}</span>
-        </div>
-        <div class="analysis-kv-row">
-          <span>Начало отслеживания</span>
-          <span>{{ formatTs(selectedFile.trackingStartedAt) }}</span>
-        </div>
-        <div class="analysis-kv-row">
-          <span>Источник(и)</span>
-          <span>{{ formatLinks(selectedFile.sourceLabels) }}</span>
-        </div>
-      </div>
-    </section>
+      :selected-chain="selectedChain"
+      :selected-file="selectedFile"
+      :selected-timeline-event="selectedTimelineEvent"
+      :format-ts="formatTs"
+      :format-links="formatLinks"
+    />
 
     <div class="analysis-chain-layout">
       <div class="analysis-chain-row">
@@ -332,6 +266,7 @@ import {
   versionHeaders,
 } from "./headers";
 import { buildFileScopedLocation } from "@/shared/utils/buildFileScopedLocation";
+import FileCard from "./FileCard.vue";
 
 const route = useRoute();
 const router = useRouter();

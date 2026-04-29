@@ -12,6 +12,7 @@
 
 .analysis-page-card--compact {
   padding: 0.58rem;
+
 }
 
 .analysis-page-card--compact .analysis-page-header {
@@ -32,7 +33,7 @@
 .analysis-page-card--resizable {
   min-height: 4.5rem;
   overflow: auto;
-  resize: vertical;
+
 }
 
 .analysis-section-link-group {
@@ -112,7 +113,6 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
-  resize: vertical;
 }
 
 .analysis-widget-body--stretch {
