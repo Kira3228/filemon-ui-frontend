@@ -3,13 +3,16 @@ import { useTableStore } from "../../ui/store/table.store";
 import { computed } from "vue";
 import { AnalysisOperationItem } from "@/services/operations/analysis-operation-item.type";
 import { OperationsService } from "@/services/operations/operations.service";
+import { useAnalysisWorkspace } from "../use-analysis-workspace";
+import { matchesFilters } from "@/shared/utils/analysis-filters";
 
 export const useGetOperation = () => {
   const tableStore = useTableStore();
   const table = tableStore.getTable("operations");
+  const { selectedSourceId, snapshotAt } = useAnalysisWorkspace();
 
   const query = useInfiniteQuery<AnalysisOperationItem[]>(
-    ["analysis-sources", table.limit],
+    ["analysis-operations", table.limit],
     ({ pageParam = 1 }) =>
       OperationsService.getOperation({
         page: pageParam,
@@ -32,8 +35,10 @@ export const useGetOperation = () => {
 
   );
 
-  const data = computed(() =>
-    query.data.value?.pages.flat() ?? []
+  const data = computed<AnalysisOperationItem[]>(() =>
+    (query.data.value?.pages.flatMap((page) => page ?? []) ?? []).filter((item) =>
+      matchesFilters(item, snapshotAt.value, selectedSourceId.value),
+    )
   );
 
   return {

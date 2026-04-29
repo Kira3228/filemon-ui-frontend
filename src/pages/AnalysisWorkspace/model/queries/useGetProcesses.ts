@@ -9,7 +9,7 @@ export const useGetProcesses = () => {
   const table = tableStore.getTable("processes");
 
   const query = useInfiniteQuery<AnalysisOperationItem[]>(
-    ["analysis-sources", table.limit],
+    ["analysis-processes", table.limit],
     ({ pageParam = 1 }) =>
       OperationsService.getOperation({
         page: pageParam,

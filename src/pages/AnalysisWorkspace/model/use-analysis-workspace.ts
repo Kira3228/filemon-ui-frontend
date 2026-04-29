@@ -24,5 +24,6 @@ export const useAnalysisWorkspace = () => {
     eventColor: store.eventColor,
     sourceColumns: store.sourceColumns,
     analysisSections: store.analysisSections,
+    
   };
 };

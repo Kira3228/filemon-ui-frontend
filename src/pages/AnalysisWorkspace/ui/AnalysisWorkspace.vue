@@ -105,12 +105,7 @@ const viewportWidth = ref(
 const dockWidth = ref(0);
 const sharedDrawerRatio = ref(0.3);
 
-
-const {
-  // ensureReportLoaded,
-  error,
-  report,
-} = useAnalysisWorkspace();
+const { ensureReportLoaded, error, report } = useAnalysisWorkspace();
 
 const {
   closeAnalysisTab,
@@ -275,7 +270,7 @@ onMounted(async () => {
   }
 
   try {
-    //
+    await ensureReportLoaded();
   } catch (err) {
     // Ошибка уже записана в store.
   }
