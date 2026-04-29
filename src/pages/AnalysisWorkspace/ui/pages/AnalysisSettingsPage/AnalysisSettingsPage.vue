@@ -231,7 +231,7 @@ import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router/composables";
 import { useTheme } from "@/plugins/theme";
 import { DatabaseConnectionSettings, useDatabaseState } from "@/shared/model/use-database-state";
-import { DatabaseService } from "@/services/database.service";
+import { DatabaseService } from "@/services/database/database.service";
 import { useAnalysisWorkspace } from "../../../model/use-analysis-workspace";
 import {
   DEFAULT_ANALYSIS_SECTION_KEY,

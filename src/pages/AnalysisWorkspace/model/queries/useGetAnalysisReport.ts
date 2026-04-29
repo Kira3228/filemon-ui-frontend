@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/vue-query";
-import { AnalysisReportService } from "@/services/analysis-report.service";
+import { AnalysisReportService } from "@/services/analysis-report/analysis-report.service";
 
 export const ANALYSIS_REPORT_QUERY_KEY = ["analysis-report"];
 

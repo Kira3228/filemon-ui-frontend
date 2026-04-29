@@ -1,4 +1,4 @@
-import { OverviewService } from "@/services/overview.service"
+import { OverviewService } from "@/services/overview/overview.service"
 import { useQuery } from "@tanstack/vue-query"
 
 export const useGetOverviewStats = () => {

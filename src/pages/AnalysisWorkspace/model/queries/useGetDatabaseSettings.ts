@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/vue-query";
-import { DatabaseService } from "@/services/database.service";
+import { DatabaseService } from "@/services/database/database.service";
 
 export const DATABASE_SETTINGS_QUERY_KEY = ["database-settings"];
 
