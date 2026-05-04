@@ -12,13 +12,8 @@
     </UiButton>
     <div v-show="isSectionOpen" class="analysis-drawer__section-body">
       <div class="analysis-scroll-list analysis-scroll-list--compact">
-        <div
-          v-for="item in itemsList"
-          :key="item[itemKey]"
-          class="analysis-pill-row"
-        >
-          <span class="analysis-file-name">{{ item.name }}</span>
-        </div>
+        <slot name="body" :items="itemsList" />
+
         <div v-if="!itemsList.length" class="analysis-empty-row">Нет</div>
       </div>
     </div>
@@ -27,17 +22,11 @@
 <script setup lang="ts">
 import { UiButton } from "@/components/UiButton";
 
-interface SectionItem {
-  fileId: string | number;
-  name: string;
-}
-
 interface Props {
   ariaExpanded: boolean;
   classValue: string;
   isSectionOpen: boolean;
-  itemsList: SectionItem[];
-  itemKey: keyof SectionItem;
+  itemsList: any[];
   label: string;
 }
 defineProps<Props>();

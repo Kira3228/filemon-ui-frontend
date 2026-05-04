@@ -25,7 +25,7 @@ export const useAnalysisWorkspaceStore = defineStore("analysis-workspace", () =>
   const error = ref("");
   const loadedOnce = ref(false);
   const selectedSourceId = ref<number | null>(null);
-  const selectedFileId = ref<number | null>(null);
+  const selectedFileId = ref<string | number | null>(null);
   const snapshotAt = ref("");
 
   let activeLoad: Promise<void> | null = null;
@@ -151,7 +151,7 @@ export const useAnalysisWorkspaceStore = defineStore("analysis-workspace", () =>
     setSelectedSource(null);
   };
 
-  const setSelectedFile = (fileId: number | null) => {
+  const setSelectedFile = (fileId: string | number | null) => {
     selectedFileId.value = fileId;
   };
 

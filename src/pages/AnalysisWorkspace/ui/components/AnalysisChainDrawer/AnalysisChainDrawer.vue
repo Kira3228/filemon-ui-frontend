@@ -44,227 +44,119 @@
         :key="link.section"
         :ariaExpanded="isSectionOpen(link.section)"
         :classValue="
-          isSectionOpen(link.section) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'
+          isSectionOpen(link.section)
+            ? 'pi pi-chevron-up'
+            : 'pi pi-chevron-down'
         "
         :isSectionOpen="isSectionOpen(link.section)"
         :itemsList="selectedChain[link.itemsKey]"
-        itemKey="fileId"
         :label="link.label"
         @toggle-section="toggleSection(link.section)"
-      />
-
-      <div class="analysis-drawer__section">
-        <UiButton
-          variant="secondary"
-          type="button"
-          class="analysis-drawer__section-toggle"
-          :aria-expanded="isSectionOpen('children')"
-          @click="toggleSection('children')"
-        >
-          <span class="analysis-drawer__section-title">Порожденные файлы</span>
-          <span
-            :class="
-              isSectionOpen('children')
-                ? 'pi pi-chevron-up'
-                : 'pi pi-chevron-down'
-            "
-            aria-hidden="true"
-          />
-        </UiButton>
-        <div
-          v-show="isSectionOpen('children')"
-          class="analysis-drawer__section-body"
-        >
-          <div class="analysis-scroll-list analysis-scroll-list--compact">
+      >
+        <template #body="{ items }">
+          <template v-if="link.section === 'children'">
             <UiButton
-              v-for="child in selectedChain.children"
+              v-for="item in items"
+              :key="item.fileId"
               variant="secondary"
-              :key="child.fileId"
               type="button"
               class="analysis-link-row"
-              @click="handleOpenFile(child.fileId)"
+              @click="handleOpenFile(item.fileId)"
             >
-              <span class="analysis-file-name">{{ child.name }}</span>
+              <span class="analysis-file-name">{{ item.name }}</span>
             </UiButton>
-            <div
-              v-if="!selectedChain.children.length"
-              class="analysis-empty-row"
-            >
-              Нет
-            </div>
-          </div>
-        </div>
-      </div>
+          </template>
 
-      <div class="analysis-drawer__section">
-        <UiButton
-          variant="secondary"
-          type="button"
-          class="analysis-drawer__section-toggle"
-          :aria-expanded="isSectionOpen('reads')"
-          @click="toggleSection('reads')"
-        >
-          <span class="analysis-drawer__section-title">Чтения</span>
-          <span
-            :class="
-              isSectionOpen('reads') ? 'pi pi-chevron-up' : 'pi pi-chevron-down'
-            "
-            aria-hidden="true"
-          />
-        </UiButton>
-        <div
-          v-show="isSectionOpen('reads')"
-          class="analysis-drawer__section-body"
-        >
-          <div class="analysis-scroll-list">
-            <div class="analysis-mini-table">
-              <div
-                v-for="reader in selectedChain.readers"
-                :key="`${selectedChain.fileId}-${reader.processVersionId}`"
-                class="analysis-mini-table__row"
-              >
-                <div class="analysis-mini-table__primary">
-                  {{ reader.label }}
-                </div>
-                <div class="analysis-mini-table__secondary">
-                  {{
-                    reader.firstAt
-                      ? new Date(reader.firstAt).toLocaleString()
-                      : "—"
-                  }}
-                </div>
+          <template v-else>
+            <div
+              v-for="item in items"
+              :key="item.fileId"
+              class="analysis-pill-row"
+            >
+              <span class="analysis-file-name">{{ item.name }}</span>
+            </div>
+          </template>
+        </template>
+      </AnalysisFileLink>
+
+      <AnalysisFileLink
+        v-for="link in analysisInfoLinks"
+        :key="link.section"
+        :ariaExpanded="isSectionOpen(link.section)"
+        :classValue="
+          isSectionOpen(link.section)
+            ? 'pi pi-chevron-up'
+            : 'pi pi-chevron-down'
+        "
+        :isSectionOpen="isSectionOpen(link.section)"
+        :itemsList="link.items"
+        :label="link.label"
+        @toggle-section="toggleSection(link.section)"
+      >
+        <template #body="{ items }">
+          <div v-if="link.section === 'reads'" class="analysis-mini-table">
+            <div
+              v-for="reader in items"
+              :key="`${selectedChain.fileId}-${reader.processVersionId}`"
+              class="analysis-mini-table__row"
+            >
+              <div class="analysis-mini-table__primary">
+                {{ reader.label }}
+              </div>
+              <div class="analysis-mini-table__secondary">
+                {{
+                  reader.firstAt
+                    ? new Date(reader.firstAt).toLocaleString()
+                    : "—"
+                }}
               </div>
             </div>
-            <div
-              v-if="!selectedChain.readers.length"
-              class="analysis-empty-row"
-            >
-              Нет
-            </div>
           </div>
-        </div>
-      </div>
 
-      <div class="analysis-drawer__section">
-        <UiButton
-          variant="secondary"
-          type="button"
-          class="analysis-drawer__section-toggle"
-          :aria-expanded="isSectionOpen('versions')"
-          @click="toggleSection('versions')"
-        >
-          <span class="analysis-drawer__section-title">Версии</span>
-          <span
-            :class="
-              isSectionOpen('versions')
-                ? 'pi pi-chevron-up'
-                : 'pi pi-chevron-down'
-            "
-            aria-hidden="true"
-          />
-        </UiButton>
-        <div
-          v-show="isSectionOpen('versions')"
-          class="analysis-drawer__section-body"
-        >
-          <div class="analysis-scroll-list">
-            <div class="analysis-mini-table">
-              <div
-                v-for="version in selectedChain.versions"
-                :key="version.id"
-                class="analysis-mini-table__row"
-              >
-                <div class="analysis-mini-table__primary">
-                  v{{ version.versionNumber }}
-                </div>
-                <div class="analysis-mini-table__secondary">
-                  {{ version.createdBy }}
-                </div>
+          <div
+            v-else-if="link.section === 'versions'"
+            class="analysis-mini-table"
+          >
+            <div
+              v-for="version in items"
+              :key="version.id"
+              class="analysis-mini-table__row"
+            >
+              <div class="analysis-mini-table__primary">
+                v{{ version.versionNumber }}
+              </div>
+              <div class="analysis-mini-table__secondary">
+                {{ version.createdBy }}
               </div>
             </div>
-            <div
-              v-if="!selectedChain.versions.length"
-              class="analysis-empty-row"
-            >
-              Нет
-            </div>
           </div>
-        </div>
-      </div>
 
-      <div class="analysis-drawer__section">
-        <UiButton
-          variant="secondary"
-          type="button"
-          class="analysis-drawer__section-toggle"
-          :aria-expanded="isSectionOpen('pathHistory')"
-          @click="toggleSection('pathHistory')"
-        >
-          <span class="analysis-drawer__section-title">История пути</span>
-          <span
-            :class="
-              isSectionOpen('pathHistory')
-                ? 'pi pi-chevron-up'
-                : 'pi pi-chevron-down'
-            "
-            aria-hidden="true"
-          />
-        </UiButton>
-        <div
-          v-show="isSectionOpen('pathHistory')"
-          class="analysis-drawer__section-body"
-        >
-          <div class="analysis-drawer__path-history">
+          <div
+            v-else-if="link.section === 'pathHistory'"
+            class="analysis-drawer__path-history"
+          >
             <div
-              v-for="(pathItem, index) in selectedFile.pathHistory"
-              :key="`${selectedFile.fileId}-${index}-${pathItem}`"
+              v-for="pathItem in items"
+              :key="pathItem.id"
               class="analysis-drawer__path-history-item"
-              :title="pathItem"
+              :title="pathItem.value"
             >
-              {{ pathItem }}
-            </div>
-            <div
-              v-if="!selectedFile.pathHistory.length"
-              class="analysis-drawer__path-history-item"
-            >
-              —
+              {{ pathItem.value }}
             </div>
           </div>
-        </div>
-      </div>
 
-      <div class="analysis-drawer__section">
-        <UiButton
-          variant="secondary"
-          type="button"
-          class="analysis-drawer__section-toggle"
-          :aria-expanded="isSectionOpen('eventDescription')"
-          @click="toggleSection('eventDescription')"
-        >
-          <span class="analysis-drawer__section-title">Описание события</span>
-          <span
-            :class="
-              isSectionOpen('eventDescription')
-                ? 'pi pi-chevron-up'
-                : 'pi pi-chevron-down'
-            "
-            aria-hidden="true"
-          />
-        </UiButton>
-        <div
-          v-show="isSectionOpen('eventDescription')"
-          class="analysis-drawer__section-body"
-        >
-          <div class="analysis-drawer__path-history">
+          <div v-else class="analysis-drawer__path-history">
             <div
+              v-for="description in items"
+              :key="description.id"
               class="analysis-drawer__path-history-item"
-              :title="latestFileEventDescription || '—'"
+              :title="description.value"
             >
-              {{ latestFileEventDescription || "—" }}
+              {{ description.value }}
             </div>
           </div>
-        </div>
-      </div>
+        </template>
+      </AnalysisFileLink>
     </div>
   </section>
   <section
@@ -325,6 +217,18 @@ interface AnalysisFileLinkSection {
   label: string;
 }
 
+type AnalysisInfoSectionKey =
+  | "reads"
+  | "versions"
+  | "pathHistory"
+  | "eventDescription";
+
+interface AnalysisInfoLinkSection {
+  section: AnalysisInfoSectionKey;
+  label: string;
+  items: any[];
+}
+
 const sectionOpenState = ref<Record<SectionKey, boolean>>({
   sources: true,
   parents: true,
@@ -341,7 +245,7 @@ const toggleSection = (section: SectionKey) => {
   sectionOpenState.value[section] = !sectionOpenState.value[section];
 };
 
-const handleOpenFile = (fileId: number) => {
+const handleOpenFile = (fileId: number | string) => {
   setSelectedFile(fileId);
   router.push(`/analysis/file/${fileId}`);
 };
@@ -353,6 +257,26 @@ const handleCloseDrawer = () => {
 const latestFileEventDescription = computed(
   () => selectedFileTimeline.value[0]?.details || "",
 );
+
+const pathHistoryItems = computed(() => {
+  const items = selectedFile.value?.pathHistory || [];
+
+  if (!items.length) {
+    return [{ id: "path-history-empty", value: "—" }];
+  }
+
+  return items.map((value, index) => ({
+    id: `${selectedFile.value?.fileId || "file"}-${index}-${value}`,
+    value,
+  }));
+});
+
+const eventDescriptionItems = computed(() => [
+  {
+    id: "event-description",
+    value: latestFileEventDescription.value || "—",
+  },
+]);
 
 const metaDataRows = computed(() => {
   return [
@@ -421,6 +345,28 @@ const analysisFileLinks = computed<AnalysisFileLinkSection[]>(() => [
     section: "children",
     itemsKey: "children",
     label: "Порожденные файлы",
+  },
+]);
+const analysisInfoLinks = computed<AnalysisInfoLinkSection[]>(() => [
+  {
+    section: "reads",
+    label: "Чтения",
+    items: selectedChain.value?.readers || [],
+  },
+  {
+    section: "versions",
+    label: "Версии",
+    items: selectedChain.value?.versions || [],
+  },
+  {
+    section: "pathHistory",
+    label: "История пути",
+    items: pathHistoryItems.value,
+  },
+  {
+    section: "eventDescription",
+    label: "Описание события",
+    items: eventDescriptionItems.value,
   },
 ]);
 </script>

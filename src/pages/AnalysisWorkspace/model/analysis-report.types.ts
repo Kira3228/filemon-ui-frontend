@@ -155,8 +155,8 @@ export interface AnalysisReportOverview {
 }
 
 export interface AnalysisReportResult {
-  generatedAt: string;
-  capabilities: AnalysisReportCapabilities;
+  // generatedAt: string;
+  // capabilities: AnalysisReportCapabilities;
   overview: AnalysisReportOverview;
   sources: AnalysisSourceItem[];
   timeline: AnalysisTimelineEntry[];

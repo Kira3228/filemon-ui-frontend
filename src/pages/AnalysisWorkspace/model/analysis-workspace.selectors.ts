@@ -15,7 +15,7 @@ import { matchesFilters, matchesSnapshot } from "@/shared/utils/analysis-filters
 
 interface CreateAnalysisWorkspaceSelectorsOptions {
   report: Ref<AnalysisReportResult | null>;
-  selectedFileId: Ref<number | null>;
+  selectedFileId: Ref<string | number | null>;
   selectedSourceId: Ref<number | null>;
   snapshotAt: Ref<string>;
 }
@@ -111,7 +111,9 @@ export const createAnalysisWorkspaceSelectors = ({
   );
 
   const selectedChain = computed<AnalysisChainEntry | null>(() => {
-    if (!report.value || !selectedFileId.value) { return null; }
+    if (!report.value || !selectedFileId.value) {
+      return null;
+    }
     return report.value.chains[String(selectedFileId.value)] || null;
   });
 
