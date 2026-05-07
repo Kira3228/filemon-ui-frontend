@@ -5,6 +5,7 @@ import { AnalysisOperationItem } from "@/services/operations/analysis-operation-
 import { OperationsService } from "@/services/operations/operations.service";
 import { useAnalysisWorkspace } from "../use-analysis-workspace";
 import { matchesFilters } from "@/shared/utils/analysis-filters";
+import { analysisTableQueryOptions } from "./analysisTableQueryOptions";
 
 export const useGetOperation = () => {
   const tableStore = useTableStore();
@@ -19,16 +20,13 @@ export const useGetOperation = () => {
         limit: table.limit,
       }),
     {
+      ...analysisTableQueryOptions,
       getNextPageParam: (lastPage, allPages) => {
         if (lastPage.length < table.limit) {
           return undefined;
         }
 
         return allPages.length + 1;
-      },
-      onSuccess: () => {
-        const nextPage = table.page + 1;
-        table.page = nextPage;
       },
     },
 

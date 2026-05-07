@@ -66,7 +66,21 @@ export const useAnalysisWorkspaceStore = defineStore("analysis-workspace", () =>
     }
   }, { immediate: true });
 
-  const ensureReportLoaded = async (force = false) => {
+  type EnsureReportLoadedOptions = {
+    force?: boolean;
+    silent?: boolean;
+  };
+
+  const ensureReportLoaded = async (
+    forceOrOptions: boolean | EnsureReportLoadedOptions = false,
+  ) => {
+    const options =
+      typeof forceOrOptions === "boolean"
+        ? { force: forceOrOptions, silent: false }
+        : forceOrOptions;
+    const force = Boolean(options.force);
+    const silent = Boolean(options.silent);
+
     if (loading.value && activeLoad) {
       await activeLoad;
       return;
@@ -76,7 +90,9 @@ export const useAnalysisWorkspaceStore = defineStore("analysis-workspace", () =>
       return;
     }
 
-    loading.value = true;
+    if (!silent) {
+      loading.value = true;
+    }
     error.value = "";
     const requestId = ++loadRequestId;
     activeLoad = (async () => {
@@ -101,7 +117,9 @@ export const useAnalysisWorkspaceStore = defineStore("analysis-workspace", () =>
         throw err;
       } finally {
         if (requestId === loadRequestId) {
-          loading.value = false;
+          if (!silent) {
+            loading.value = false;
+          }
           activeLoad = null;
         }
       }
@@ -110,8 +128,11 @@ export const useAnalysisWorkspaceStore = defineStore("analysis-workspace", () =>
     await activeLoad;
   };
 
-  const refreshReport = async () => {
-    await ensureReportLoaded(true);
+  const refreshReport = async (options: { silent?: boolean } = {}) => {
+    await ensureReportLoaded({
+      force: true,
+      silent: options.silent,
+    });
   };
 
   const resetWorkspaceState = () => {

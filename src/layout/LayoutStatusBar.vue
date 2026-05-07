@@ -220,6 +220,11 @@ const refreshReportAndOverviewStats = async () => {
   await refetchOverviewStats();
 };
 
+const refreshReportAndOverviewStatsInBackground = async () => {
+  await refreshReport({ silent: true });
+  await refetchOverviewStats();
+};
+
 const handleRefreshClick = () => {
   if (loading.value) {
     return;
@@ -280,7 +285,7 @@ const restartAutoRefreshTimer = () => {
   }
 
   autoRefreshTimerId = window.setInterval(() => {
-    refreshReportAndOverviewStats().catch(() => {
+    refreshReportAndOverviewStatsInBackground().catch(() => {
       // Ошибка уже записана в store.
     });
   }, autoRefreshIntervalSeconds.value * 1000);

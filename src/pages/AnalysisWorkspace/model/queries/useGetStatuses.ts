@@ -5,6 +5,7 @@ import { AnalysisStatusHistoryItem } from "@/services/status/status.type";
 import { StatusService } from "@/services/status/status.service";
 import { useAnalysisWorkspace } from "../use-analysis-workspace";
 import { matchesFilters } from "@/shared/utils/analysis-filters";
+import { analysisTableQueryOptions } from "./analysisTableQueryOptions";
 
 export const useGetStatuses = () => {
   const tableStore = useTableStore();
@@ -19,6 +20,7 @@ export const useGetStatuses = () => {
         limit: table.limit,
       }),
     {
+      ...analysisTableQueryOptions,
       getNextPageParam: (lastPage, allPages) => {
         if (lastPage.length < table.limit) {
           return undefined;
@@ -26,13 +28,7 @@ export const useGetStatuses = () => {
 
         return allPages.length + 1;
       },
-      onSuccess: () => {
-        const nextPage = table.page + 1;
-        table.page = nextPage;
-      },
     },
-
-
   );
 
   const data = computed<AnalysisStatusHistoryItem[]>(() =>

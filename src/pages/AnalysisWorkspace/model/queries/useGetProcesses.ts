@@ -3,6 +3,7 @@ import { useTableStore } from "../../ui/store/table.store";
 import { computed } from "vue";
 import { AnalysisOperationItem } from "@/services/operations/analysis-operation-item.type";
 import { OperationsService } from "@/services/operations/operations.service";
+import { analysisTableQueryOptions } from "./analysisTableQueryOptions";
 
 export const useGetProcesses = () => {
   const tableStore = useTableStore();
@@ -16,16 +17,13 @@ export const useGetProcesses = () => {
         limit: table.limit,
       }),
     {
+      ...analysisTableQueryOptions,
       getNextPageParam: (lastPage, allPages) => {
         if (lastPage.length < table.limit) {
           return undefined;
         }
 
         return allPages.length + 1;
-      },
-      onSuccess: () => {
-        const nextPage = table.page + 1;
-        table.page = nextPage;
       },
     },
 

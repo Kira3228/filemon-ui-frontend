@@ -5,6 +5,7 @@ import { useTableStore } from "../../ui/store/table.store";
 import { computed } from "vue";
 import { useAnalysisWorkspace } from "../use-analysis-workspace";
 import { matchesFilters } from "@/shared/utils/analysis-filters";
+import { analysisTableQueryOptions } from "./analysisTableQueryOptions";
 
 
 export const useGetRenameHistory = () => {
@@ -20,16 +21,13 @@ export const useGetRenameHistory = () => {
         limit: table.limit,
       }),
     {
+      ...analysisTableQueryOptions,
       getNextPageParam: (lastPage, allPages) => {
         if (lastPage.length < table.limit) {
           return undefined;
         }
 
         return allPages.length + 1;
-      },
-      onSuccess: () => {
-        const nextPage = table.page + 1;
-        table.page = nextPage;
       },
     },
 
