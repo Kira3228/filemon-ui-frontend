@@ -55,14 +55,18 @@ export const getDiagramDataset = (
   selectedSourceId: number | null,
   snapshotAt: string,
 ): DiagramDataset => {
+
   const fileItems = report?.files || [];
+
   const diagramData = report?.diagramData || {
     fileVersions: [],
     processVersions: [],
     reads: [],
     writes: [],
   };
+
   const cutoff = normalizeSnapshotCutoff(snapshotAt);
+
   const allowedFileIds = new Set<number>(
     fileItems
       .filter((item) => !selectedSourceId || item.sourceIds.includes(selectedSourceId))

@@ -4,15 +4,20 @@ import { useAnalysisWorkspace } from "../use-analysis-workspace";
 import { useGetAnalysisReport } from "./useGetAnalysisReport";
 
 export const useGetFileTreeDiagram = () => {
+
   const { selectedSourceId, snapshotAt } = useAnalysisWorkspace();
+
   const query = useGetAnalysisReport();
 
-  const data = computed(() =>
-    buildCompactFileTreeMermaid(
+  const data = computed(() => {
+    console.log(query.data.value)
+
+    return buildCompactFileTreeMermaid(
       query.data.value ?? null,
       selectedSourceId.value,
       snapshotAt.value,
-    ),
+    )
+  },
   );
 
   return {

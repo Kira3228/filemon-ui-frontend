@@ -14,6 +14,7 @@ export const buildCompactFileTreeMermaid = (
   selectedSourceId: number | null,
   snapshotAt: string,
 ) => {
+  
   const {
     fileItems,
     allowedFileIds,

@@ -14,5 +14,6 @@ import { useAnalysisDiagramNavigation } from "../../../model/use-analysis-diagra
 import { useGetFileTreeDiagram } from "../../../model/queries/useGetFileTreeDiagram";
 
 const { data: fileTreeDiagramMermaid } = useGetFileTreeDiagram();
+
 const { handleDiagramEdgeDblClick, handleDiagramNodeDblClick } = useAnalysisDiagramNavigation();
 </script>

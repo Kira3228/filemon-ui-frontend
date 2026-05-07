@@ -1,5 +1,6 @@
 import { BASE_URL } from "@/constants";
 import { ApiErrorResponse } from "./contracts";
+import axios, { AxiosError, AxiosResponse, Method, ResponseType } from "axios";
 
 interface IDownloadOptions {
   filename: string;
@@ -11,6 +12,7 @@ type QueryParams = Record<string, QueryParamValue>;
 
 type JsonBody = object | unknown[] | string | number | boolean | null;
 type JsonMethod = "GET" | "POST" | "PATCH" | "DELETE";
+type BlobMethod = "GET" | "POST";
 
 const isApiErrorResponse = (payload: unknown): payload is ApiErrorResponse => {
   if (!payload || typeof payload !== "object") {
@@ -42,31 +44,18 @@ export class ApiError extends Error {
   }
 }
 
-const readJsonSafely = async (res: Response): Promise<unknown> => {
-  const text = await res.text();
 
-  if (!text) {
-    return undefined;
-  }
 
-  try {
-    return JSON.parse(text) as unknown;
-  } catch {
-    return undefined;
-  }
-};
-
-const readHttpError = async (
-  res: Response,
+const createHttpError = (
+  status: number,
+  payload: unknown,
   fallback: string,
-): Promise<ApiError> => {
+): ApiError => {
   const fallbackPayload: ApiErrorResponse = {
-    status: res.status,
-    code: res.status >= 500 ? "INTERNAL_ERROR" : "REQUEST_FAILED",
+    status,
+    code: status >= 500 ? "INTERNAL_ERROR" : "REQUEST_FAILED",
     message: fallback,
   };
-
-  const payload = await readJsonSafely(res);
 
   if (isApiErrorResponse(payload)) {
     return new ApiError(payload);
@@ -87,33 +76,36 @@ const readHttpError = async (
   return new ApiError(fallbackPayload);
 };
 
-const appendQueryParam = (
-  searchParams: URLSearchParams,
-  key: string,
-  value: QueryParamValue,
-) => {
-  if (Array.isArray(value)) {
-    value.forEach((item) => appendQueryParam(searchParams, key, item));
-    return;
+const normalizeEndpoint = (endpoint: string): string => endpoint.replace(/^\/+/, "");
+
+const normalizeParams = (params?: QueryParams): QueryParams | undefined => {
+  if (!params) {
+    return undefined;
   }
 
-  if (value === undefined || value === null || value === "") {
-    return;
-  }
-
-  searchParams.append(key, String(value));
+  return Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== ""),
+  );
 };
 
-const buildUrl = (endpoint: string, params?: QueryParams): string => {
-  const url = new URL(endpoint, BASE_URL);
+const resolveError = (
+  error: unknown,
+  method: Method,
+  endpoint: string,
+): ApiError => {
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError;
+    const status = axiosError.response?.status ?? 0;
+    const fallback = `${method} ${endpoint} failed ${status || axiosError.message}`;
 
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      appendQueryParam(url.searchParams, key, value);
-    });
+    return createHttpError(status, axiosError.response?.data, fallback);
   }
 
-  return url.toString();
+  return new ApiError({
+    status: 0,
+    code: "REQUEST_FAILED",
+    message: error instanceof Error ? error.message : `${method} ${endpoint} failed`,
+  });
 };
 
 const requestJson = async <
@@ -128,51 +120,44 @@ const requestJson = async <
     params?: TParams;
   } = {},
 ): Promise<TResponse> => {
-  const url = buildUrl(endpoint, options.params);
-  const hasBody = typeof options.body !== "undefined";
+  try {
+    const response = await v1api.request<TResponse>({
+      method,
+      url: normalizeEndpoint(endpoint),
+      data: options.body,
+      params: normalizeParams(options.params),
+    });
 
-  const res = await fetch(url, {
-    method,
-    cache: "no-store",
-    headers: hasBody ? { "Content-Type": "application/json" } : undefined,
-    body: hasBody ? JSON.stringify(options.body) : undefined,
-  });
-
-  if (!res.ok) {
-    throw await readHttpError(res, `${method} ${url} failed ${res.status}`);
+    return response.data;
+  } catch (error) {
+    throw resolveError(error, method, endpoint);
   }
-
-  const payload = await readJsonSafely(res);
-
-  return payload as TResponse;
 };
 
 const requestBlob = async <
   TBody extends JsonBody | undefined = undefined,
   TParams extends QueryParams = QueryParams,
 >(
-  method: "GET" | "POST",
+  method: BlobMethod,
   endpoint: string,
   options: {
     body?: TBody;
     params?: TParams;
   } = {},
 ): Promise<Blob> => {
-  const url = buildUrl(endpoint, options.params);
-  const hasBody = typeof options.body !== "undefined";
+  try {
+    const response = await v2api.request<Blob>({
+      method,
+      url: normalizeEndpoint(endpoint),
+      data: options.body,
+      params: normalizeParams(options.params),
+      responseType: "blob" as ResponseType,
+    });
 
-  const res = await fetch(url, {
-    method,
-    cache: "no-store",
-    headers: hasBody ? { "Content-Type": "application/json" } : undefined,
-    body: hasBody ? JSON.stringify(options.body) : undefined,
-  });
-
-  if (!res.ok) {
-    throw await readHttpError(res, `${method} ${url} failed ${res.status}`);
+    return response.data;
+  } catch (error) {
+    throw resolveError(error, method, endpoint);
   }
-
-  return res.blob();
 };
 
 const downloadBlob = (blob: Blob, options: IDownloadOptions) => {
@@ -256,3 +241,46 @@ export const createApiClient = () => {
 };
 
 export const api = createApiClient();
+
+export const v1api = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+export const v2api = axios.create({
+  baseURL: "http://localhost:5000/api/v2",
+  headers: {
+    "Content-Type": "application/json",
+  }
+})
+
+
+
+v2api.interceptors.response.use(
+  (response: AxiosResponse) => {
+    return response;
+  },
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response) {
+      if (!originalRequest._retry) {
+
+        originalRequest._retry = true;
+        console.log(`пися попа`);
+
+        originalRequest.baseURL = "http://localhost:5000/api/v1";
+
+        try {
+          return await v2api.request(originalRequest);
+        } catch (e) {
+          return Promise.reject(e);
+        }
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);

@@ -1,7 +1,7 @@
 import { useInfiniteQuery } from "@tanstack/vue-query";
 import { computed } from "vue";
 import { useTableStore } from "../../ui/store/table.store";
-import { AnalysisSourceItem } from "@/services/source/source.types";
+import { AnalysisSourceItem, SourceListResult } from "@/services/source/source.types";
 import { SourceService } from "@/services/source/source.service";
 import { useAnalysisWorkspace } from "../use-analysis-workspace";
 import { matchesFilters } from "@/shared/utils/analysis-filters";
@@ -11,7 +11,7 @@ export const useGetSources = () => {
   const table = tableStore.getTable("sources");
   const { selectedSourceId, snapshotAt } = useAnalysisWorkspace();
 
-  const query = useInfiniteQuery<AnalysisSourceItem[]>(
+  const query = useInfiniteQuery<SourceListResult>(
     ["analysis-sources", table.limit],
     ({ pageParam = 1 }) =>
       SourceService.getServices({
@@ -20,7 +20,7 @@ export const useGetSources = () => {
       }),
     {
       getNextPageParam: (lastPage, allPages) => {
-        if (lastPage.length < table.limit) {
+        if (lastPage.items.length < table.limit) {
           return undefined;
         }
 
@@ -36,7 +36,7 @@ export const useGetSources = () => {
   );
 
   const data = computed<AnalysisSourceItem[]>(() =>
-    (query.data.value?.pages.flatMap((page) => page ?? []) ?? []).filter((item) =>
+    (query.data.value?.pages.flatMap((page) => page.items ?? []) ?? []).filter((item) =>
       matchesFilters(item, snapshotAt.value, selectedSourceId.value),
     )
   );
