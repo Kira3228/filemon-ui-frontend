@@ -32,10 +32,3 @@ export interface AnalysisSourceStats {
   maxDepth: number;
   readOps: number;
 }
-
-export interface SourceListResult {
-  items: AnalysisSourceItem[];
-  page: number;
-  limit: number;
-  total: number;
-}

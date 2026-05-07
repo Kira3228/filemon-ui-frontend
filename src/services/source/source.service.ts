@@ -1,20 +1,21 @@
 import { RequestParams } from "@/types/request.params";
 import { api } from "@/shared/api/http";
-import { SourceListResult } from "./source.types";
+import { AnalysisSourceItem } from "./source.types";
+import { PaginatedResult } from "../paginated-result.type";
 
 interface ISourceService {
-  getServices: (params?: RequestParams) => Promise<SourceListResult>
+  getServices: (params?: RequestParams) => Promise<AnalysisSourceItem[]>
 }
 
-
-
 export const SourceService: ISourceService = {
-  async getServices(params = {}): Promise<SourceListResult> {
+  async getServices(params = {}): Promise<AnalysisSourceItem[]> {
 
-    return await api.get<SourceListResult>("/sources", {
+    const result = await api.get<PaginatedResult<AnalysisSourceItem>>("/sources", {
       page: params.page,
       limit: params.limit,
       _ts: params.force ? Date.now() : undefined,
     });
+
+    return result.items;
   }
 }
